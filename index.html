@@ -289,8 +289,7 @@
             const lines = text.split('\n');
             players = [];
 
-            // Skip first line (empty header) and second line (actual headers)
-            for (let i = 2; i < lines.length; i++) {
+            for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
 
@@ -313,25 +312,35 @@
                 
                 // CSV Format:
                 // 0: ID, 1: Pos, 2: Player, 3: Team, 4: Eligible, 5: Status, 6: Age
+                const idValue = values[0] || '';
                 const playerName = values[2] || '';
+                const posValue = values[1] || '';
+                
+                // Skip header rows - check multiple conditions
+                if (!playerName || 
+                    playerName === 'Player' || 
+                    idValue === 'ID' || 
+                    idValue === '' ||
+                    posValue === 'Pos' ||
+                    playerName.includes('Fantasy Points')) {
+                    continue;
+                }
+                
                 const teamCode = values[3] || '';
                 
-                // Skip header rows and invalid entries
-                if (playerName && playerName !== 'Player' && playerName !== '' && values[0] !== 'ID') {
-                    players.push({
-                        id: i,
-                        name: playerName,
-                        position: values[1] || '',
-                        team: teamCode,
-                        status: values[5] || '',
-                        age: values[6] || '',
-                        playerType: 'Hitting', // Could parse from first column if needed
-                        mlbOrg: '',
-                        minorLeagueLevel: '',
-                        stats: null,
-                        statsLoaded: false
-                    });
-                }
+                players.push({
+                    id: i,
+                    name: playerName,
+                    position: posValue,
+                    team: teamCode,
+                    status: values[5] || '',
+                    age: values[6] || '',
+                    playerType: 'Hitting',
+                    mlbOrg: '',
+                    minorLeagueLevel: '',
+                    stats: null,
+                    statsLoaded: false
+                });
             }
 
             document.getElementById('emptyState').classList.add('hidden');
