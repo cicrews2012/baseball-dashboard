@@ -425,9 +425,12 @@
                 const playerId = searchData.people[0].id;
                 console.log('Found player ID:', playerId, 'for', player.name);
 
-                // Step 2: Get player info with stats
-                // Try MLB career stats first
-                const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=career,sportId=1)`;
+                // Get current year dynamically
+                const currentYear = new Date().getFullYear();
+                const lastCompletedSeason = currentYear; // Will show 2024 stats during offseason
+
+                // Step 2: Get player info with career stats AND current season stats
+                const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,season],season=${lastCompletedSeason})`;
                 console.log('Fetching MLB stats from:', mlbStatsUrl);
                 const mlbRes = await fetch(mlbStatsUrl);
                 const mlbData = await mlbRes.json();
@@ -438,8 +441,9 @@
 
                 let hasMLBStats = false;
                 let careerStats = {};
+                let seasonStats = {};
 
-                // Check for MLB career stats
+                // Check for MLB career stats AND season stats
                 console.log('Player stats structure:', playerInfo.stats);
                 if (playerInfo.stats && playerInfo.stats.length > 0) {
                     // Check if player is a pitcher based on their primary position
@@ -450,6 +454,9 @@
                     
                     for (const statGroup of playerInfo.stats) {
                         console.log('Stat group:', statGroup.group?.displayName, 'Type:', statGroup.type?.displayName);
+                        
+                        const isCareerStats = statGroup.type?.displayName === 'career';
+                        const isSeasonStats = statGroup.type?.displayName === 'season';
                         
                         // For pitchers, prioritize pitching stats
                         if (isPitcher && statGroup.group.displayName === 'pitching') {
@@ -468,8 +475,7 @@
                                 }
                                 
                                 if (totalGames > 0) {
-                                    hasMLBStats = true;
-                                    careerStats = {
+                                    const statsObj = {
                                         type: 'pitching',
                                         level: 'MLB',
                                         era: aggregatedStats.era,
@@ -479,21 +485,25 @@
                                         whip: aggregatedStats.whip,
                                         games: totalGames
                                     };
-                                    break;
+                                    
+                                    if (isCareerStats) {
+                                        hasMLBStats = true;
+                                        careerStats = statsObj;
+                                    } else if (isSeasonStats) {
+                                        seasonStats = statsObj;
+                                    }
                                 }
                             }
                         }
                         
-                        // For non-pitchers or if no pitching stats found, use hitting stats
-                        if (statGroup.splits && statGroup.splits.length > 0) {
-                            let totalGames = 0;
-                            let aggregatedStats = {};
-                            
-                            for (const split of statGroup.splits) {
-                                const stat = split.stat;
-                                console.log('Split stat:', stat);
+                        // For non-pitchers, use hitting stats
+                        if (statGroup.group.displayName === 'hitting' && !isPitcher) {
+                            if (statGroup.splits && statGroup.splits.length > 0) {
+                                let totalGames = 0;
+                                let aggregatedStats = {};
                                 
-                                if (statGroup.group.displayName === 'hitting' && !isPitcher) {
+                                for (const split of statGroup.splits) {
+                                    const stat = split.stat;
                                     totalGames += stat.gamesPlayed || 0;
                                     aggregatedStats.avg = stat.avg || '.000';
                                     aggregatedStats.hr = (aggregatedStats.hr || 0) + (stat.homeRuns || 0);
@@ -501,21 +511,26 @@
                                     aggregatedStats.sb = (aggregatedStats.sb || 0) + (stat.stolenBases || 0);
                                     aggregatedStats.ops = stat.ops || '.000';
                                 }
-                            }
-                            
-                            if (statGroup.group.displayName === 'hitting' && totalGames > 0 && !hasMLBStats) {
-                                hasMLBStats = true;
-                                careerStats = {
-                                    type: 'hitting',
-                                    level: 'MLB',
-                                    avg: aggregatedStats.avg,
-                                    hr: aggregatedStats.hr,
-                                    rbi: aggregatedStats.rbi,
-                                    sb: aggregatedStats.sb,
-                                    ops: aggregatedStats.ops,
-                                    games: totalGames
-                                };
-                                break;
+                                
+                                if (totalGames > 0) {
+                                    const statsObj = {
+                                        type: 'hitting',
+                                        level: 'MLB',
+                                        avg: aggregatedStats.avg,
+                                        hr: aggregatedStats.hr,
+                                        rbi: aggregatedStats.rbi,
+                                        sb: aggregatedStats.sb,
+                                        ops: aggregatedStats.ops,
+                                        games: totalGames
+                                    };
+                                    
+                                    if (isCareerStats) {
+                                        hasMLBStats = true;
+                                        careerStats = statsObj;
+                                    } else if (isSeasonStats) {
+                                        seasonStats = statsObj;
+                                    }
+                                }
                             }
                         }
                     }
@@ -533,30 +548,22 @@
                     ];
 
                     for (const level of minorLevels) {
-                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=career,sportId=${level.id})`;
+                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[career,season],sportId=${level.id},season=${lastCompletedSeason})`;
                         const minorRes = await fetch(minorUrl);
                         const minorData = await minorRes.json();
 
                         if (minorData.people[0].stats && minorData.people[0].stats.length > 0) {
+                            const isPitcher = minorData.people[0].primaryPosition?.abbreviation === 'P';
+                            
                             for (const statGroup of minorData.people[0].stats) {
+                                const isCareerStats = statGroup.type?.displayName === 'career';
+                                const isSeasonStats = statGroup.type?.displayName === 'season';
+                                
                                 if (statGroup.splits && statGroup.splits.length > 0) {
                                     const stat = statGroup.splits[0].stat;
                                     
-                                    if (statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
-                                        careerStats = {
-                                            type: 'hitting',
-                                            level: level.name,
-                                            avg: stat.avg || '.000',
-                                            hr: stat.homeRuns || 0,
-                                            rbi: stat.rbi || 0,
-                                            sb: stat.stolenBases || 0,
-                                            ops: stat.ops || '.000',
-                                            games: stat.gamesPlayed || 0
-                                        };
-                                        player.minorLeagueLevel = level.name;
-                                        break;
-                                    } else if (statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
-                                        careerStats = {
+                                    if (isPitcher && statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
+                                        const statsObj = {
                                             type: 'pitching',
                                             level: level.name,
                                             era: stat.era || '0.00',
@@ -566,8 +573,33 @@
                                             whip: stat.whip || '0.00',
                                             games: stat.gamesPlayed || 0
                                         };
-                                        player.minorLeagueLevel = level.name;
-                                        break;
+                                        
+                                        if (isCareerStats && !careerStats.games) {
+                                            careerStats = statsObj;
+                                            player.minorLeagueLevel = level.name;
+                                        }
+                                        if (isSeasonStats) {
+                                            seasonStats = statsObj;
+                                        }
+                                    } else if (!isPitcher && statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
+                                        const statsObj = {
+                                            type: 'hitting',
+                                            level: level.name,
+                                            avg: stat.avg || '.000',
+                                            hr: stat.homeRuns || 0,
+                                            rbi: stat.rbi || 0,
+                                            sb: stat.stolenBases || 0,
+                                            ops: stat.ops || '.000',
+                                            games: stat.gamesPlayed || 0
+                                        };
+                                        
+                                        if (isCareerStats && !careerStats.games) {
+                                            careerStats = statsObj;
+                                            player.minorLeagueLevel = level.name;
+                                        }
+                                        if (isSeasonStats) {
+                                            seasonStats = statsObj;
+                                        }
                                     }
                                 }
                             }
@@ -576,7 +608,7 @@
                     }
                 }
 
-                player.stats = careerStats;
+                player.stats = { career: careerStats, season: seasonStats };
                 player.statsLoaded = true;
 
             } catch (error) {
@@ -595,34 +627,59 @@
                 return;
             }
 
-            if (!player.stats || !player.stats.games) {
+            const careerStats = player.stats?.career;
+            const seasonStats = player.stats?.season;
+
+            if (!careerStats || !careerStats.games) {
                 content.innerHTML = `<div class="error-msg">No stats available for this player</div>`;
                 return;
             }
 
-            const isHitter = player.stats.type === 'hitting';
+            const isHitter = careerStats.type === 'hitting';
+            const currentYear = new Date().getFullYear();
 
             content.innerHTML = `
                 <div class="section-title">🏆 Organization</div>
                 <div class="org-info">${player.mlbOrg}</div>
                 ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
                 
-                <div class="section-title">📊 Career Stats (${player.stats.level})</div>
+                ${seasonStats && seasonStats.games > 0 ? `
+                    <div class="section-title">📊 ${currentYear} Stats (${seasonStats.level})</div>
+                    <div class="stats-grid">
+                        ${isHitter ? `
+                            <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${seasonStats.avg}</div></div>
+                            <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${seasonStats.hr}</div></div>
+                            <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${seasonStats.rbi}</div></div>
+                            <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${seasonStats.sb}</div></div>
+                            <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${seasonStats.ops}</div></div>
+                            <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${seasonStats.games}</div></div>
+                        ` : `
+                            <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${seasonStats.era}</div></div>
+                            <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${seasonStats.w}</div></div>
+                            <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${seasonStats.l}</div></div>
+                            <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${seasonStats.so}</div></div>
+                            <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${seasonStats.whip}</div></div>
+                            <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${seasonStats.games}</div></div>
+                        `}
+                    </div>
+                ` : ''}
+                
+                <div class="section-title">📈 Career Stats (${careerStats.level})</div>
                 <div class="stats-grid">
                     ${isHitter ? `
-                        <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${player.stats.avg}</div></div>
-                        <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${player.stats.hr}</div></div>
-                        <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${player.stats.rbi}</div></div>
-                        <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${player.stats.sb}</div></div>
-                        <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${player.stats.ops}</div></div>
-                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${player.stats.games}</div></div>
+                        <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${careerStats.avg}</div></div>
+                        <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${careerStats.hr}</div></div>
+                        <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${careerStats.rbi}</div></div>
+                        <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${careerStats.sb}</div></div>
+                        <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${careerStats.ops}</div></div>
+                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${careerStats.games}</div></div>
                     ` : `
-                        <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${player.stats.era}</div></div>
-                        <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${player.stats.w}</div></div>
-                        <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${player.stats.l}</div></div>
-                        <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${player.stats.so}</div></div>
-                        <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${player.stats.whip}</div></div>
-                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${player.stats.games}</div></div>
+                        <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${careerStats.era}</div></div>
+                        <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${careerStats.w}</div></div>
+                        <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${careerStats.l}</div></div>
+                        <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${careerStats.so}</div></div>
+                        <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${careerStats.whip}</div></div>
+                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${careerStats.games}</div></div>
                     `}
                 </div>
             `;
