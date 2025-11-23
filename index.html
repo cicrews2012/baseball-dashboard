@@ -316,13 +316,19 @@
                 const playerName = values[2] || '';
                 const posValue = values[1] || '';
                 
+                console.log('Parsing row:', idValue, posValue, playerName); // Debug log
+                
                 // Skip header rows - check multiple conditions
                 if (!playerName || 
                     playerName === 'Player' || 
+                    playerName.toLowerCase() === 'player' ||
                     idValue === 'ID' || 
                     idValue === '' ||
+                    idValue.includes('ID') ||
                     posValue === 'Pos' ||
-                    playerName.includes('Fantasy Points')) {
+                    playerName.includes('Fantasy Points') ||
+                    playerName.includes('Average Fantasy')) {
+                    console.log('Skipping row:', playerName);
                     continue;
                 }
                 
@@ -436,25 +442,23 @@
                 // Check for MLB career stats
                 console.log('Player stats structure:', playerInfo.stats);
                 if (playerInfo.stats && playerInfo.stats.length > 0) {
+                    // Check if player is a pitcher based on their primary position
+                    const isPitcher = playerInfo.primaryPosition?.abbreviation === 'P' || 
+                                    playerInfo.primaryPosition?.code === '1';
+                    
+                    console.log('Player position:', playerInfo.primaryPosition, 'Is pitcher?', isPitcher);
+                    
                     for (const statGroup of playerInfo.stats) {
                         console.log('Stat group:', statGroup.group?.displayName, 'Type:', statGroup.type?.displayName);
-                        if (statGroup.splits && statGroup.splits.length > 0) {
-                            // Sum up all splits for career total
-                            let totalGames = 0;
-                            let aggregatedStats = {};
-                            
-                            for (const split of statGroup.splits) {
-                                const stat = split.stat;
-                                console.log('Split stat:', stat);
+                        
+                        // For pitchers, prioritize pitching stats
+                        if (isPitcher && statGroup.group.displayName === 'pitching') {
+                            if (statGroup.splits && statGroup.splits.length > 0) {
+                                let totalGames = 0;
+                                let aggregatedStats = {};
                                 
-                                if (statGroup.group.displayName === 'hitting') {
-                                    totalGames += stat.gamesPlayed || 0;
-                                    aggregatedStats.avg = stat.avg || '.000';
-                                    aggregatedStats.hr = (aggregatedStats.hr || 0) + (stat.homeRuns || 0);
-                                    aggregatedStats.rbi = (aggregatedStats.rbi || 0) + (stat.rbi || 0);
-                                    aggregatedStats.sb = (aggregatedStats.sb || 0) + (stat.stolenBases || 0);
-                                    aggregatedStats.ops = stat.ops || '.000';
-                                } else if (statGroup.group.displayName === 'pitching') {
+                                for (const split of statGroup.splits) {
+                                    const stat = split.stat;
                                     totalGames += stat.gamesPlayed || 0;
                                     aggregatedStats.era = stat.era || '0.00';
                                     aggregatedStats.w = (aggregatedStats.w || 0) + (stat.wins || 0);
@@ -462,9 +466,44 @@
                                     aggregatedStats.so = (aggregatedStats.so || 0) + (stat.strikeOuts || 0);
                                     aggregatedStats.whip = stat.whip || '0.00';
                                 }
+                                
+                                if (totalGames > 0) {
+                                    hasMLBStats = true;
+                                    careerStats = {
+                                        type: 'pitching',
+                                        level: 'MLB',
+                                        era: aggregatedStats.era,
+                                        w: aggregatedStats.w,
+                                        l: aggregatedStats.l,
+                                        so: aggregatedStats.so,
+                                        whip: aggregatedStats.whip,
+                                        games: totalGames
+                                    };
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // For non-pitchers or if no pitching stats found, use hitting stats
+                        if (statGroup.splits && statGroup.splits.length > 0) {
+                            let totalGames = 0;
+                            let aggregatedStats = {};
+                            
+                            for (const split of statGroup.splits) {
+                                const stat = split.stat;
+                                console.log('Split stat:', stat);
+                                
+                                if (statGroup.group.displayName === 'hitting' && !isPitcher) {
+                                    totalGames += stat.gamesPlayed || 0;
+                                    aggregatedStats.avg = stat.avg || '.000';
+                                    aggregatedStats.hr = (aggregatedStats.hr || 0) + (stat.homeRuns || 0);
+                                    aggregatedStats.rbi = (aggregatedStats.rbi || 0) + (stat.rbi || 0);
+                                    aggregatedStats.sb = (aggregatedStats.sb || 0) + (stat.stolenBases || 0);
+                                    aggregatedStats.ops = stat.ops || '.000';
+                                }
                             }
                             
-                            if (statGroup.group.displayName === 'hitting' && totalGames > 0) {
+                            if (statGroup.group.displayName === 'hitting' && totalGames > 0 && !hasMLBStats) {
                                 hasMLBStats = true;
                                 careerStats = {
                                     type: 'hitting',
@@ -474,19 +513,6 @@
                                     rbi: aggregatedStats.rbi,
                                     sb: aggregatedStats.sb,
                                     ops: aggregatedStats.ops,
-                                    games: totalGames
-                                };
-                                break;
-                            } else if (statGroup.group.displayName === 'pitching' && totalGames > 0) {
-                                hasMLBStats = true;
-                                careerStats = {
-                                    type: 'pitching',
-                                    level: 'MLB',
-                                    era: aggregatedStats.era,
-                                    w: aggregatedStats.w,
-                                    l: aggregatedStats.l,
-                                    so: aggregatedStats.so,
-                                    whip: aggregatedStats.whip,
                                     games: totalGames
                                 };
                                 break;
