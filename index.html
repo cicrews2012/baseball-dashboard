@@ -289,41 +289,42 @@
             const lines = text.split('\n');
             players = [];
 
-            for (let i = 1; i < lines.length; i++) {
+            // Skip first line (empty header) and second line (actual headers)
+            for (let i = 2; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                // Parse CSV with quoted values
+                const values = [];
+                let current = '';
+                let inQuotes = false;
                 
-                // Fantrax combines Player Name and Team in one column
-                // Format: "Player Name TEAM" in column 3
-                const playerAndTeam = values[3] || '';
-                
-                // Split player name from team code (team is last 2-3 uppercase letters)
-                const parts = playerAndTeam.trim().split(' ');
-                let playerName = '';
-                let teamCode = '';
-                
-                if (parts.length > 0) {
-                    // Last part is usually the team code (2-4 uppercase letters)
-                    const lastPart = parts[parts.length - 1];
-                    if (lastPart.length <= 4 && lastPart === lastPart.toUpperCase()) {
-                        teamCode = lastPart;
-                        playerName = parts.slice(0, -1).join(' ');
+                for (let char of line) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
                     } else {
-                        playerName = playerAndTeam;
+                        current += char;
                     }
                 }
+                values.push(current.trim()); // Push last value
+                
+                // CSV Format:
+                // 0: ID, 1: Pos, 2: Player, 3: Team, 4: Eligible, 5: Status, 6: Age
+                const playerName = values[2] || '';
+                const teamCode = values[3] || '';
                 
                 if (playerName) {
                     players.push({
                         id: i,
                         name: playerName,
-                        position: values[2] || '',
+                        position: values[1] || '',
                         team: teamCode,
                         status: values[5] || '',
                         age: values[6] || '',
-                        playerType: values[0] || 'Hitting',
+                        playerType: 'Hitting', // Could parse from first column if needed
                         mlbOrg: '',
                         minorLeagueLevel: '',
                         stats: null,
