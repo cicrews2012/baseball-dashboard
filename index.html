@@ -316,7 +316,8 @@
                 const playerName = values[2] || '';
                 const teamCode = values[3] || '';
                 
-                if (playerName) {
+                // Skip header rows and invalid entries
+                if (playerName && playerName !== 'Player' && playerName !== '' && values[0] !== 'ID') {
                     players.push({
                         id: i,
                         name: playerName,
