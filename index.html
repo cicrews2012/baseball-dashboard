@@ -450,11 +450,35 @@
         async function fetchPlayerStats(player) {
             try {
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(player.name)}`;
-                console.log('Searching for player:', player.name, 'URL:', searchUrl);
+                console.log('Searching for player:', player.name, 'Position:', player.position, 'URL:', searchUrl);
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
                 
                 console.log('Search results for', player.name, ':', searchData);
+
+                // If multiple results, try to filter by position
+                if (searchData.people && searchData.people.length > 1) {
+                    console.log(`Multiple players found named "${player.name}", filtering by position: ${player.position}`);
+                    
+                    const isPitcherPosition = player.position === 'P' || player.position === 'SP' || player.position === 'RP';
+                    
+                    const positionMatch = searchData.people.filter(p => {
+                        const playerIsPitcher = p.primaryPosition?.abbreviation === 'P' || p.primaryPosition?.code === '1';
+                        console.log(`- ${p.fullName} (ID: ${p.id}): Position ${p.primaryPosition?.abbreviation}, isPitcher: ${playerIsPitcher}, looking for pitcher: ${isPitcherPosition}`);
+                        return isPitcherPosition === playerIsPitcher;
+                    });
+                    
+                    if (positionMatch.length === 1) {
+                        console.log('✓ Found unique position match:', positionMatch[0].fullName, positionMatch[0].id);
+                        searchData.people = positionMatch;
+                    } else if (positionMatch.length > 1) {
+                        console.log(`Still ${positionMatch.length} matches after position filter, using first one`);
+                        searchData.people = [positionMatch[0]];
+                    } else {
+                        console.log('No position matches found, using first result');
+                        searchData.people = [searchData.people[0]];
+                    }
+                }
 
                 if (!searchData.people || searchData.people.length === 0) {
                     // Try alternative searches
