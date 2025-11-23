@@ -254,6 +254,23 @@
         .hidden {
             display: none;
         }
+
+        .bbref-link {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: background 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .bbref-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -715,11 +732,20 @@
 
             const isHitter = careerStats.type === 'hitting';
             const currentYear = new Date().getFullYear();
+            
+            // Generate Baseball Reference URL
+            const bbrefUrl = `https://www.baseball-reference.com/register/player.fcgi?name=${encodeURIComponent(player.name)}`;
 
             content.innerHTML = `
                 <div class="section-title">🏆 Organization</div>
                 <div class="org-info">${player.mlbOrg}</div>
                 ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+                
+                <div style="margin: 15px 0;">
+                    <a href="${bbrefUrl}" target="_blank" class="bbref-link">
+                        🔗 Baseball Reference Profile
+                    </a>
+                </div>
                 
                 ${seasonStats && seasonStats.games > 0 ? `
                     <div class="section-title">📊 ${currentYear} Stats (${seasonStats.level})</div>
