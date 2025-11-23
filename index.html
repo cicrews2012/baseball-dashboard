@@ -58,7 +58,6 @@
 
         .refresh-btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: rotate(180deg);
         }
 
         .upload-section {
@@ -447,6 +446,7 @@
                     const nameParts = player.name.split(' ');
                     if (nameParts.length > 1) {
                         const lastName = nameParts[nameParts.length - 1];
+                        const firstName = nameParts[0];
                         const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}`;
                         console.log('Trying last name search:', lastName);
                         const altSearchRes = await fetch(altSearchUrl);
@@ -454,11 +454,20 @@
                         console.log('Last name search results:', altSearchData);
                         
                         if (altSearchData.people && altSearchData.people.length > 0) {
-                            // Find best match
-                            const bestMatch = altSearchData.people.find(p => 
-                                p.fullName.toLowerCase().includes(player.name.toLowerCase()) ||
-                                player.name.toLowerCase().includes(p.fullName.toLowerCase())
-                            );
+                            // Find best match by checking if both first and last name match
+                            const bestMatch = altSearchData.people.find(p => {
+                                const fullName = p.fullName.toLowerCase();
+                                const searchName = player.name.toLowerCase();
+                                const pFirstName = p.firstName?.toLowerCase() || '';
+                                const pLastName = p.lastName?.toLowerCase() || '';
+                                
+                                return (
+                                    fullName === searchName ||
+                                    fullName.includes(searchName) ||
+                                    searchName.includes(fullName) ||
+                                    (pFirstName.includes(firstName.toLowerCase()) && pLastName.includes(lastName.toLowerCase()))
+                                );
+                            });
                             if (bestMatch) {
                                 console.log('Found match via last name:', bestMatch);
                                 searchData.people = [bestMatch];
@@ -477,6 +486,8 @@
                         player.statsLoaded = true;
                         return;
                     }
+                } else {
+                    console.log('Found player:', searchData.people[0]);
                 }
 
                 const playerId = searchData.people[0].id;
