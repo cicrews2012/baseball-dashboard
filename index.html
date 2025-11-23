@@ -31,11 +31,34 @@
             padding: 30px;
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .header h1 {
+        .header-content h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(180deg);
         }
 
         .upload-section {
@@ -237,8 +260,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚾ Fantasy Baseball Dashboard</h1>
-            <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
+            <div class="header-content">
+                <h1>⚾ Fantasy Baseball Dashboard</h1>
+                <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
+            </div>
+            <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
+                🔄 Refresh
+            </button>
         </div>
 
         <div class="upload-section">
@@ -440,7 +468,11 @@
                     
                     if (!searchData.people || searchData.people.length === 0) {
                         player.stats = { 
-                            error: `Player "${player.name}" not found in MLB database. Try checking spelling or they may not have professional stats yet.` 
+                            error: `"${player.name}" not found in MLB database. This player may be:<br>
+                            • A recent draft pick not yet in the system<br>
+                            • Playing in independent/international leagues<br>
+                            • Name spelled differently in MLB records<br><br>
+                            <small>The MLB API can take time to update for new players. Check back later or add stats manually.</small>` 
                         };
                         player.statsLoaded = true;
                         return;
