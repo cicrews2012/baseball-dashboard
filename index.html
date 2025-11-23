@@ -624,40 +624,6 @@
                 }
 
                 if (!hasMLBStats) {
-                    // First, get overall MiLB career stats (not level-specific)
-                    const minorCareerUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=career)`;
-                    const minorCareerRes = await fetch(minorCareerUrl);
-                    const minorCareerData = await minorCareerRes.json();
-                    
-                    let aggregatedCareerStats = { games: 0 };
-                    
-                    if (minorCareerData.people[0].stats && minorCareerData.people[0].stats.length > 0) {
-                        for (const statGroup of minorCareerData.people[0].stats) {
-                            if (statGroup.splits && statGroup.splits.length > 0) {
-                                const stat = statGroup.splits[0].stat;
-                                
-                                if (isPitcher && statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
-                                    aggregatedCareerStats.type = 'pitching';
-                                    aggregatedCareerStats.games = stat.gamesPlayed || 0;
-                                    aggregatedCareerStats.w = stat.wins || 0;
-                                    aggregatedCareerStats.l = stat.losses || 0;
-                                    aggregatedCareerStats.so = stat.strikeOuts || 0;
-                                    aggregatedCareerStats.era = stat.era || '0.00';
-                                    aggregatedCareerStats.whip = stat.whip || '0.00';
-                                } else if (!isPitcher && statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
-                                    aggregatedCareerStats.type = 'hitting';
-                                    aggregatedCareerStats.games = stat.gamesPlayed || 0;
-                                    aggregatedCareerStats.hr = stat.homeRuns || 0;
-                                    aggregatedCareerStats.rbi = stat.rbi || 0;
-                                    aggregatedCareerStats.sb = stat.stolenBases || 0;
-                                    aggregatedCareerStats.avg = stat.avg || '.000';
-                                    aggregatedCareerStats.ops = stat.ops || '.000';
-                                }
-                            }
-                        }
-                    }
-
-                    // Now get current season stats from the highest level they played at
                     const minorLevels = [
                         { id: 11, name: 'AAA' },
                         { id: 12, name: 'AA' },
@@ -666,20 +632,39 @@
                         { id: 16, name: 'Rookie' }
                     ];
 
+                    let aggregatedCareerStats = { games: 0 };
                     let mostRecentSeasonStats = null;
 
+                    // Loop through levels to get both career and season stats
                     for (const level of minorLevels) {
-                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=season,sportId=${level.id},season=${lastCompletedSeason})`;
+                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[career,season],sportId=${level.id},season=${lastCompletedSeason})`;
                         const minorRes = await fetch(minorUrl);
                         const minorData = await minorRes.json();
 
                         if (minorData.people[0].stats && minorData.people[0].stats.length > 0) {
                             for (const statGroup of minorData.people[0].stats) {
+                                const isCareerStats = statGroup.type?.displayName === 'career';
+                                const isSeasonStats = statGroup.type?.displayName === 'season';
+                                
                                 if (statGroup.splits && statGroup.splits.length > 0) {
                                     const stat = statGroup.splits[0].stat;
                                     
                                     if (isPitcher && statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
-                                        if (!mostRecentSeasonStats) {
+                                        if (isCareerStats) {
+                                            // Aggregate career stats across all levels
+                                            aggregatedCareerStats.type = 'pitching';
+                                            aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
+                                            aggregatedCareerStats.w = (aggregatedCareerStats.w || 0) + (stat.wins || 0);
+                                            aggregatedCareerStats.l = (aggregatedCareerStats.l || 0) + (stat.losses || 0);
+                                            aggregatedCareerStats.so = (aggregatedCareerStats.so || 0) + (stat.strikeOuts || 0);
+                                            // For rates like ERA/WHIP, use weighted average or last meaningful value
+                                            if (stat.inningsPitched > (aggregatedCareerStats.maxIP || 0)) {
+                                                aggregatedCareerStats.era = stat.era || '0.00';
+                                                aggregatedCareerStats.whip = stat.whip || '0.00';
+                                                aggregatedCareerStats.maxIP = stat.inningsPitched;
+                                            }
+                                        }
+                                        if (isSeasonStats && !mostRecentSeasonStats) {
                                             mostRecentSeasonStats = {
                                                 type: 'pitching',
                                                 level: level.name,
@@ -693,7 +678,21 @@
                                             player.minorLeagueLevel = level.name;
                                         }
                                     } else if (!isPitcher && statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
-                                        if (!mostRecentSeasonStats) {
+                                        if (isCareerStats) {
+                                            // Aggregate career stats across all levels
+                                            aggregatedCareerStats.type = 'hitting';
+                                            aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
+                                            aggregatedCareerStats.hr = (aggregatedCareerStats.hr || 0) + (stat.homeRuns || 0);
+                                            aggregatedCareerStats.rbi = (aggregatedCareerStats.rbi || 0) + (stat.rbi || 0);
+                                            aggregatedCareerStats.sb = (aggregatedCareerStats.sb || 0) + (stat.stolenBases || 0);
+                                            // For rates like AVG/OPS, use weighted average or last meaningful value
+                                            if (stat.atBats > (aggregatedCareerStats.maxAB || 0)) {
+                                                aggregatedCareerStats.avg = stat.avg || '.000';
+                                                aggregatedCareerStats.ops = stat.ops || '.000';
+                                                aggregatedCareerStats.maxAB = stat.atBats;
+                                            }
+                                        }
+                                        if (isSeasonStats && !mostRecentSeasonStats) {
                                             mostRecentSeasonStats = {
                                                 type: 'hitting',
                                                 level: level.name,
