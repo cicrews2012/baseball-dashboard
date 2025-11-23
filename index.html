@@ -380,6 +380,7 @@
                     age: values[6] || '',
                     playerType: 'Hitting',
                     mlbOrg: '',
+                    mlbPlayerId: null,
                     minorLeagueLevel: '',
                     stats: null,
                     statsLoaded: false
@@ -517,6 +518,7 @@
                 }
 
                 const playerId = searchData.people[0].id;
+                player.mlbPlayerId = playerId; // Store the MLB player ID
                 const currentYear = new Date().getFullYear();
                 const lastCompletedSeason = currentYear;
 
@@ -733,8 +735,10 @@
             const isHitter = careerStats.type === 'hitting';
             const currentYear = new Date().getFullYear();
             
-            // Generate Baseball Reference URL
-            const bbrefUrl = `https://www.baseball-reference.com/register/player.fcgi?name=${encodeURIComponent(player.name)}`;
+            // Generate MLB.com player page URL
+            const mlbUrl = player.mlbPlayerId 
+                ? `https://www.mlb.com/player/${player.mlbPlayerId}` 
+                : `https://www.mlb.com/search?q=${encodeURIComponent(player.name)}`;
 
             content.innerHTML = `
                 <div class="section-title">🏆 Organization</div>
@@ -742,8 +746,8 @@
                 ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
                 
                 <div style="margin: 15px 0;">
-                    <a href="${bbrefUrl}" target="_blank" class="bbref-link">
-                        🔗 Baseball Reference Profile
+                    <a href="${mlbUrl}" target="_blank" class="bbref-link">
+                        🔗 MLB.com Player Page
                     </a>
                 </div>
                 
