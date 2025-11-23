@@ -405,13 +405,46 @@
         async function fetchPlayerStats(player) {
             try {
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(player.name)}`;
+                console.log('Searching for player:', player.name, 'URL:', searchUrl);
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
+                
+                console.log('Search results for', player.name, ':', searchData);
 
                 if (!searchData.people || searchData.people.length === 0) {
-                    player.stats = { error: 'Player not found in MLB database' };
-                    player.statsLoaded = true;
-                    return;
+                    // Try alternative searches
+                    console.log('No exact match, trying alternative searches...');
+                    
+                    // Try with just last name
+                    const nameParts = player.name.split(' ');
+                    if (nameParts.length > 1) {
+                        const lastName = nameParts[nameParts.length - 1];
+                        const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}`;
+                        console.log('Trying last name search:', lastName);
+                        const altSearchRes = await fetch(altSearchUrl);
+                        const altSearchData = await altSearchRes.json();
+                        console.log('Last name search results:', altSearchData);
+                        
+                        if (altSearchData.people && altSearchData.people.length > 0) {
+                            // Find best match
+                            const bestMatch = altSearchData.people.find(p => 
+                                p.fullName.toLowerCase().includes(player.name.toLowerCase()) ||
+                                player.name.toLowerCase().includes(p.fullName.toLowerCase())
+                            );
+                            if (bestMatch) {
+                                console.log('Found match via last name:', bestMatch);
+                                searchData.people = [bestMatch];
+                            }
+                        }
+                    }
+                    
+                    if (!searchData.people || searchData.people.length === 0) {
+                        player.stats = { 
+                            error: `Player "${player.name}" not found in MLB database. Try checking spelling or they may not have professional stats yet.` 
+                        };
+                        player.statsLoaded = true;
+                        return;
+                    }
                 }
 
                 const playerId = searchData.people[0].id;
