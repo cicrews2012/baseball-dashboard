@@ -454,23 +454,32 @@
                         console.log('Last name search results:', altSearchData);
                         
                         if (altSearchData.people && altSearchData.people.length > 0) {
+                            console.log('Found people with last name:', altSearchData.people.map(p => `${p.fullName} (ID: ${p.id})`));
+                            
                             // Find best match by checking if both first and last name match
                             const bestMatch = altSearchData.people.find(p => {
                                 const fullName = p.fullName.toLowerCase();
                                 const searchName = player.name.toLowerCase();
                                 const pFirstName = p.firstName?.toLowerCase() || '';
                                 const pLastName = p.lastName?.toLowerCase() || '';
+                                const searchFirstName = firstName.toLowerCase();
+                                const searchLastName = lastName.toLowerCase();
+                                
+                                console.log(`Comparing: "${fullName}" with "${searchName}" | First: "${pFirstName}" vs "${searchFirstName}" | Last: "${pLastName}" vs "${searchLastName}"`);
                                 
                                 return (
                                     fullName === searchName ||
                                     fullName.includes(searchName) ||
                                     searchName.includes(fullName) ||
-                                    (pFirstName.includes(firstName.toLowerCase()) && pLastName.includes(lastName.toLowerCase()))
+                                    (pFirstName === searchFirstName && pLastName === searchLastName) ||
+                                    (pFirstName.includes(searchFirstName) && pLastName.includes(searchLastName))
                                 );
                             });
                             if (bestMatch) {
-                                console.log('Found match via last name:', bestMatch);
+                                console.log('✓ Found match via last name:', bestMatch.fullName, bestMatch.id);
                                 searchData.people = [bestMatch];
+                            } else {
+                                console.log('✗ No good match found among last name results');
                             }
                         }
                     }
