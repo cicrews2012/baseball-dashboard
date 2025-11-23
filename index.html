@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Baseball Minor League Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #166534 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-btn {
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 20px;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .player-card:hover {
+            border-color: #60a5fa;
+        }
+
+        .player-header {
+            padding: 25px;
+            cursor: pointer;
+        }
+
+        .player-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .player-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .player-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-team { background: #10b981; }
+        .badge-position { background: #3b82f6; }
+        .badge-status { background: #eab308; }
+        .badge-age { background: #a855f7; }
+
+        .player-details {
+            padding: 0 25px 25px 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .player-details.expanded {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 20px 0 15px 0;
+        }
+
+        .org-info {
+            font-size: 1.125rem;
+            color: #bfdbfe;
+            margin-bottom: 5px;
+        }
+
+        .org-level {
+            font-size: 0.875rem;
+            color: #93c5fd;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #93c5fd;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .empty-state {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚾ Fantasy Baseball Dashboard</h1>
+            <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
+        </div>
+
+        <div class="upload-section">
+            <h2>📤 Import Roster</h2>
+            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                📁 Upload Fantrax CSV
+            </button>
+            <p style="margin-top: 15px; font-size: 0.875rem; color: #bfdbfe;">
+                Upload your CSV and click any player to automatically fetch their career stats from MLB's API.
+                <br><strong>Shows MLB stats if available, otherwise Minor League stats.</strong>
+            </p>
+        </div>
+
+        <div class="search-box hidden" id="searchBox">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search players...">
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <div style="font-size: 4rem;">📊</div>
+            <h3>No Roster Loaded</h3>
+            <p style="color: #bfdbfe;">Upload your Fantrax CSV to get started</p>
+        </div>
+
+        <div class="players-grid hidden" id="playersGrid"></div>
+    </div>
+
+    <script>
+        let players = [];
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    parseCSV(event.target.result);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            renderPlayers(searchTerm);
+        });
+
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            players = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                
+                if (values[3]) {
+                    players.push({
+                        id: i,
+                        name: values[3],
+                        position: values[2] || '',
+                        team: values[4] || '',
+                        status: values[6] || '',
+                        age: values[7] || '',
+                        playerType: values[0] || 'Hitting',
+                        mlbOrg: '',
+                        minorLeagueLevel: '',
+                        stats: null,
+                        statsLoaded: false
+                    });
+                }
+            }
+
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('searchBox').classList.remove('hidden');
+            document.getElementById('playersGrid').classList.remove('hidden');
+            renderPlayers();
+        }
+
+        function renderPlayers(searchTerm = '') {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+
+            const filteredPlayers = players.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) || 
+                p.position.toLowerCase().includes(searchTerm)
+            );
+
+            filteredPlayers.forEach(player => {
+                const card = createPlayerCard(player);
+                grid.appendChild(card);
+            });
+        }
+
+        function createPlayerCard(player) {
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.innerHTML = `
+                <div class="player-header" onclick="toggleCard(${player.id})">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-badges">
+                        ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
+                        <span class="badge badge-position">${player.position}</span>
+                        ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
+                        ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
+                    </div>
+                </div>
+                <div class="player-details" id="details-${player.id}">
+                    <div id="content-${player.id}"></div>
+                </div>
+            `;
+            return card;
+        }
+
+        async function toggleCard(id) {
+            const details = document.getElementById(`details-${id}`);
+            const content = document.getElementById(`content-${id}`);
+            const player = players.find(p => p.id === id);
+
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                return;
+            }
+
+            details.classList.add('expanded');
+
+            if (!player.statsLoaded) {
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player stats...</p></div>';
+                await fetchPlayerStats(player);
+                updatePlayerCard(id);
+            }
+        }
+
+        async function fetchPlayerStats(player) {
+            try {
+                // Step 1: Search for player
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(player.name)}`;
+                const searchRes = await fetch(searchUrl);
+                const searchData = await searchRes.json();
+
+                if (!searchData.people || searchData.people.length === 0) {
+                    player.stats = { error: 'Player not found in MLB database' };
+                    player.statsLoaded = true;
+                    return;
+                }
+
+                const playerId = searchData.people[0].id;
+                console.log('Found player ID:', playerId, 'for', player.name);
+
+                // Step 2: Get player info with stats
+                // Try MLB career stats first
+                const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=career,sportId=1)`;
+                console.log('Fetching MLB stats from:', mlbStatsUrl);
+                const mlbRes = await fetch(mlbStatsUrl);
+                const mlbData = await mlbRes.json();
+                console.log('MLB API Response:', mlbData);
+
+                const playerInfo = mlbData.people[0];
+                player.mlbOrg = playerInfo.currentTeam?.name || 'Free Agent';
+
+                let hasMLBStats = false;
+                let careerStats = {};
+
+                // Check for MLB career stats
+                if (playerInfo.stats && playerInfo.stats.length > 0) {
+                    for (const statGroup of playerInfo.stats) {
+                        if (statGroup.splits && statGroup.splits.length > 0) {
+                            const stat = statGroup.splits[0].stat;
+                            
+                            if (statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
+                                hasMLBStats = true;
+                                careerStats = {
+                                    type: 'hitting',
+                                    level: 'MLB',
+                                    avg: stat.avg || '.000',
+                                    hr: stat.homeRuns || 0,
+                                    rbi: stat.rbi || 0,
+                                    sb: stat.stolenBases || 0,
+                                    ops: stat.ops || '.000',
+                                    games: stat.gamesPlayed || 0
+                                };
+                                break;
+                            } else if (statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
+                                hasMLBStats = true;
+                                careerStats = {
+                                    type: 'pitching',
+                                    level: 'MLB',
+                                    era: stat.era || '0.00',
+                                    w: stat.wins || 0,
+                                    l: stat.losses || 0,
+                                    so: stat.strikeOuts || 0,
+                                    whip: stat.whip || '0.00',
+                                    games: stat.gamesPlayed || 0
+                                };
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // If no MLB stats, get Minor League stats
+                if (!hasMLBStats) {
+                    // Sport IDs: 11=AAA, 12=AA, 13=A+, 14=A, 16=Rookie
+                    const minorLevels = [
+                        { id: 11, name: 'AAA' },
+                        { id: 12, name: 'AA' },
+                        { id: 13, name: 'A+' },
+                        { id: 14, name: 'A' },
+                        { id: 16, name: 'Rookie' }
+                    ];
+
+                    for (const level of minorLevels) {
+                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=career,sportId=${level.id})`;
+                        const minorRes = await fetch(minorUrl);
+                        const minorData = await minorRes.json();
+
+                        if (minorData.people[0].stats && minorData.people[0].stats.length > 0) {
+                            for (const statGroup of minorData.people[0].stats) {
+                                if (statGroup.splits && statGroup.splits.length > 0) {
+                                    const stat = statGroup.splits[0].stat;
+                                    
+                                    if (statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
+                                        careerStats = {
+                                            type: 'hitting',
+                                            level: level.name,
+                                            avg: stat.avg || '.000',
+                                            hr: stat.homeRuns || 0,
+                                            rbi: stat.rbi || 0,
+                                            sb: stat.stolenBases || 0,
+                                            ops: stat.ops || '.000',
+                                            games: stat.gamesPlayed || 0
+                                        };
+                                        player.minorLeagueLevel = level.name;
+                                        break;
+                                    } else if (statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
+                                        careerStats = {
+                                            type: 'pitching',
+                                            level: level.name,
+                                            era: stat.era || '0.00',
+                                            w: stat.wins || 0,
+                                            l: stat.losses || 0,
+                                            so: stat.strikeOuts || 0,
+                                            whip: stat.whip || '0.00',
+                                            games: stat.gamesPlayed || 0
+                                        };
+                                        player.minorLeagueLevel = level.name;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (careerStats.games > 0) break;
+                        }
+                    }
+                }
+
+                player.stats = careerStats;
+                player.statsLoaded = true;
+
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+                player.stats = { error: error.message };
+                player.statsLoaded = true;
+            }
+        }
+
+        function updatePlayerCard(id) {
+            const content = document.getElementById(`content-${id}`);
+            const player = players.find(p => p.id === id);
+
+            if (player.stats && player.stats.error) {
+                content.innerHTML = `<div class="error-msg">${player.stats.error}</div>`;
+                return;
+            }
+
+            if (!player.stats || !player.stats.games) {
+                content.innerHTML = `<div class="error-msg">No stats available for this player</div>`;
+                return;
+            }
+
+            const isHitter = player.stats.type === 'hitting';
+
+            content.innerHTML = `
+                <div class="section-title">🏆 Organization</div>
+                <div class="org-info">${player.mlbOrg}</div>
+                ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+                
+                <div class="section-title">📊 Career Stats (${player.stats.level})</div>
+                <div class="stats-grid">
+                    ${isHitter ? `
+                        <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${player.stats.avg}</div></div>
+                        <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${player.stats.hr}</div></div>
+                        <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${player.stats.rbi}</div></div>
+                        <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${player.stats.sb}</div></div>
+                        <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${player.stats.ops}</div></div>
+                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${player.stats.games}</div></div>
+                    ` : `
+                        <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${player.stats.era}</div></div>
+                        <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${player.stats.w}</div></div>
+                        <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${player.stats.l}</div></div>
+                        <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${player.stats.so}</div></div>
+                        <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${player.stats.whip}</div></div>
+                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${player.stats.games}</div></div>
+                    `}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
