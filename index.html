@@ -1,334 +1,682 @@
-import React, { useState } from 'react';
-import { Upload, Search, TrendingUp, Award, Calendar, Edit2 } from 'lucide-react';
-
-const FantasyBaseballDashboard = () => {
-  const [players, setPlayers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target.result;
-        parseCSV(text);
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  const parseCSV = (text) => {
-    const lines = text.split('\n');
-    
-    const playerData = lines.slice(1).filter(line => line.trim()).map((line, idx) => {
-      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-      
-      // Fantrax CSV columns:
-      // 0: Hitting/Pitching, 1: ID, 2: Pos, 3: Player, 4: Team, 5: Eligible, 6: Status, 7: Age
-      
-      return {
-        id: idx,
-        name: values[3] || '',
-        position: values[2] || '',
-        team: values[4] || '',
-        status: values[6] || '',
-        age: values[7] || '',
-        playerType: values[0] || 'Hitting',
-        // Initialize with empty stats that user can fill in
-        mlbOrg: '',
-        minorLeagueLevel: '',
-        stats: {
-          avg: '',
-          hr: '',
-          rbi: '',
-          sb: '',
-          ops: '',
-          games: '',
-          era: '',
-          w: '',
-          l: '',
-          so: '',
-          whip: ''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Baseball Minor League Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      };
-    }).filter(p => p.name);
 
-    setPlayers(playerData);
-  };
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #166534 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
 
-  const updatePlayerStats = (playerId, field, value) => {
-    setPlayers(players.map(p => 
-      p.id === playerId 
-        ? { ...p, [field]: value }
-        : p
-    ));
-  };
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-  const updatePlayerStatField = (playerId, statField, value) => {
-    setPlayers(players.map(p => 
-      p.id === playerId 
-        ? { ...p, stats: { ...p.stats, [statField]: value } }
-        : p
-    ));
-  };
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-  const filteredPlayers = players.filter(player =>
-    player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.position.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-green-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-            <Award className="text-yellow-400" size={40} />
-            Fantasy Baseball Minor League Dashboard
-          </h1>
-          <p className="text-blue-100">Import your Fantrax roster and manage player data</p>
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-btn {
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 20px;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .player-card:hover {
+            border-color: #60a5fa;
+        }
+
+        .player-header {
+            padding: 25px;
+            cursor: pointer;
+        }
+
+        .player-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .player-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .player-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-team { background: #10b981; }
+        .badge-position { background: #3b82f6; }
+        .badge-status { background: #eab308; }
+        .badge-age { background: #a855f7; }
+
+        .player-details {
+            padding: 0 25px 25px 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .player-details.expanded {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 20px 0 15px 0;
+        }
+
+        .org-info {
+            font-size: 1.125rem;
+            color: #bfdbfe;
+            margin-bottom: 5px;
+        }
+
+        .org-level {
+            font-size: 0.875rem;
+            color: #93c5fd;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            text-center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #93c5fd;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .empty-state {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚾ Fantasy Baseball Dashboard</h1>
+            <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
         </div>
 
-        {/* Upload Section */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-          <div className="flex items-center gap-4 mb-4">
-            <Upload className="text-blue-300" size={24} />
-            <h2 className="text-2xl font-bold text-white">Import Roster</h2>
-          </div>
-          
-          <div className="flex flex-col gap-4">
-            <label className="cursor-pointer">
-              <div className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg inline-flex items-center gap-2 transition-colors">
-                <Upload size={20} />
-                Upload Fantrax CSV
-              </div>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
-            
-            <div className="text-sm text-blue-200">
-              <p>Export your roster from Fantrax as CSV and upload it here.</p>
-              <p className="mt-1">You can then manually add organization and stats data for each player.</p>
-            </div>
-          </div>
+        <div class="upload-section">
+            <h2>📤 Import Roster</h2>
+            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                📁 Upload Fantrax CSV
+            </button>
+            <p style="margin-top: 15px; font-size: 0.875rem; color: #bfdbfe;">
+                Upload your CSV and click any player to automatically fetch their career stats from MLB's API.
+                <br><strong>Shows MLB stats if available, otherwise Minor League stats.</strong>
+            </p>
         </div>
 
-        {/* Search Bar */}
-        {players.length > 0 && (
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 mb-6 border border-white/20">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-300" size={20} />
-              <input
-                type="text"
-                placeholder="Search players..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-          </div>
-        )}
+        <div class="search-box hidden" id="searchBox">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search players...">
+        </div>
 
-        {/* Player Cards */}
-        {players.length === 0 ? (
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-12 border border-white/20 text-center">
-            <Upload className="mx-auto text-blue-300 mb-4" size={64} />
-            <h3 className="text-2xl font-bold text-white mb-2">No Roster Loaded</h3>
-            <p className="text-blue-200">Upload your Fantrax CSV to get started</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredPlayers.map((player) => (
-              <PlayerCard 
-                key={player.id} 
-                player={player}
-                updatePlayerStats={updatePlayerStats}
-                updatePlayerStatField={updatePlayerStatField}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+        <div class="empty-state" id="emptyState">
+            <div style="font-size: 4rem;">📊</div>
+            <h3>No Roster Loaded</h3>
+            <p style="color: #bfdbfe;">Upload your Fantrax CSV to get started</p>
+        </div>
+
+        <div class="players-grid hidden" id="playersGrid"></div>
     </div>
-  );
-};
 
-const PlayerCard = ({ player, updatePlayerStats, updatePlayerStatField }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [editing, setEditing] = useState(false);
+    <script>
+        let players = [];
 
-  const isHitter = player.playerType.toLowerCase().includes('hitting');
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    parseCSV(event.target.result);
+                };
+                reader.readAsText(file);
+            }
+        });
 
-  return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 overflow-hidden hover:border-blue-400 transition-all">
-      {/* Player Header */}
-      <div 
-        className="p-6 cursor-pointer hover:bg-white/5 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <h3 className="text-3xl font-bold text-white mb-3">{player.name}</h3>
-            <div className="flex gap-2 flex-wrap">
-              {player.team && (
-                <span className="bg-green-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                  {player.team}
-                </span>
-              )}
-              <span className="bg-blue-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                {player.position}
-              </span>
-              {player.status && (
-                <span className="bg-yellow-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                  {player.status}
-                </span>
-              )}
-              {player.age && (
-                <span className="bg-purple-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                  {player.age} yrs
-                </span>
-              )}
-            </div>
-          </div>
-          <button className="text-blue-300 hover:text-blue-100 transition-colors flex-shrink-0 ml-4">
-            <TrendingUp size={28} />
-          </button>
-        </div>
-      </div>
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            renderPlayers(searchTerm);
+        });
 
-      {/* Expanded Details */}
-      {expanded && (
-        <div className="px-6 pb-6 border-t border-white/20">
-          <div className="pt-4">
-            {/* Edit Button */}
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditing(!editing);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                <Edit2 size={16} />
-                {editing ? 'Done Editing' : 'Edit Info'}
-              </button>
-            </div>
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            players = [];
 
-            {/* Organization Info */}
-            <div className="mb-4 pb-4 border-b border-white/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Award className="text-yellow-400" size={18} />
-                <h4 className="text-white font-semibold">Organization</h4>
-              </div>
-              {editing ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="MLB Organization (e.g., Arizona Diamondbacks)"
-                    value={player.mlbOrg}
-                    onChange={(e) => updatePlayerStats(player.id, 'mlbOrg', e.target.value)}
-                    className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Minor League Level (e.g., AAA, AA, A+)"
-                    value={player.minorLeagueLevel}
-                    onChange={(e) => updatePlayerStats(player.id, 'minorLeagueLevel', e.target.value)}
-                    className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    onClick={(e) => e.stopPropagation()}
-                  />
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let char of line) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                const idValue = values[0] || '';
+                const playerName = values[2] || '';
+                const posValue = values[1] || '';
+                
+                if (!playerName || 
+                    playerName === 'Player' || 
+                    playerName.toLowerCase() === 'player' ||
+                    idValue === 'ID' || 
+                    idValue === '' ||
+                    idValue.includes('ID') ||
+                    posValue === 'Pos' ||
+                    playerName.includes('Fantasy Points') ||
+                    playerName.includes('Average Fantasy')) {
+                    continue;
+                }
+                
+                const teamCode = values[3] || '';
+                
+                players.push({
+                    id: i,
+                    name: playerName,
+                    position: posValue,
+                    team: teamCode,
+                    status: values[5] || '',
+                    age: values[6] || '',
+                    playerType: 'Hitting',
+                    mlbOrg: '',
+                    minorLeagueLevel: '',
+                    stats: null,
+                    statsLoaded: false
+                });
+            }
+
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('searchBox').classList.remove('hidden');
+            document.getElementById('playersGrid').classList.remove('hidden');
+            renderPlayers();
+        }
+
+        function renderPlayers(searchTerm = '') {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+
+            const filteredPlayers = players.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) || 
+                p.position.toLowerCase().includes(searchTerm)
+            );
+
+            filteredPlayers.forEach(player => {
+                const card = createPlayerCard(player);
+                grid.appendChild(card);
+            });
+        }
+
+        function createPlayerCard(player) {
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.innerHTML = `
+                <div class="player-header" onclick="toggleCard(${player.id})">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-badges">
+                        ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
+                        <span class="badge badge-position">${player.position}</span>
+                        ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
+                        ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
+                    </div>
                 </div>
-              ) : (
-                <>
-                  <p className="text-blue-100 text-lg">{player.mlbOrg || 'Not set'}</p>
-                  <p className="text-blue-300 text-sm mt-1">Level: {player.minorLeagueLevel || 'Not set'}</p>
-                </>
-              )}
-            </div>
-
-            {/* Stats */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar className="text-green-400" size={18} />
-                <h4 className="text-white font-semibold">2024 Stats</h4>
-              </div>
-              
-              {editing ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {isHitter ? (
-                    <>
-                      <StatInput label="AVG" value={player.stats.avg} onChange={(v) => updatePlayerStatField(player.id, 'avg', v)} />
-                      <StatInput label="HR" value={player.stats.hr} onChange={(v) => updatePlayerStatField(player.id, 'hr', v)} />
-                      <StatInput label="RBI" value={player.stats.rbi} onChange={(v) => updatePlayerStatField(player.id, 'rbi', v)} />
-                      <StatInput label="SB" value={player.stats.sb} onChange={(v) => updatePlayerStatField(player.id, 'sb', v)} />
-                      <StatInput label="OPS" value={player.stats.ops} onChange={(v) => updatePlayerStatField(player.id, 'ops', v)} />
-                      <StatInput label="G" value={player.stats.games} onChange={(v) => updatePlayerStatField(player.id, 'games', v)} />
-                    </>
-                  ) : (
-                    <>
-                      <StatInput label="ERA" value={player.stats.era} onChange={(v) => updatePlayerStatField(player.id, 'era', v)} />
-                      <StatInput label="W" value={player.stats.w} onChange={(v) => updatePlayerStatField(player.id, 'w', v)} />
-                      <StatInput label="L" value={player.stats.l} onChange={(v) => updatePlayerStatField(player.id, 'l', v)} />
-                      <StatInput label="SO" value={player.stats.so} onChange={(v) => updatePlayerStatField(player.id, 'so', v)} />
-                      <StatInput label="WHIP" value={player.stats.whip} onChange={(v) => updatePlayerStatField(player.id, 'whip', v)} />
-                      <StatInput label="G" value={player.stats.games} onChange={(v) => updatePlayerStatField(player.id, 'games', v)} />
-                    </>
-                  )}
+                <div class="player-details" id="details-${player.id}">
+                    <div id="content-${player.id}"></div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-3 gap-3">
-                  {isHitter ? (
-                    <>
-                      <StatBox label="AVG" value={player.stats.avg || '-'} />
-                      <StatBox label="HR" value={player.stats.hr || '-'} />
-                      <StatBox label="RBI" value={player.stats.rbi || '-'} />
-                      <StatBox label="SB" value={player.stats.sb || '-'} />
-                      <StatBox label="OPS" value={player.stats.ops || '-'} />
-                      <StatBox label="G" value={player.stats.games || '-'} />
-                    </>
-                  ) : (
-                    <>
-                      <StatBox label="ERA" value={player.stats.era || '-'} />
-                      <StatBox label="W" value={player.stats.w || '-'} />
-                      <StatBox label="L" value={player.stats.l || '-'} />
-                      <StatBox label="SO" value={player.stats.so || '-'} />
-                      <StatBox label="WHIP" value={player.stats.whip || '-'} />
-                      <StatBox label="G" value={player.stats.games || '-'} />
-                    </>
-                  )}
+            `;
+            return card;
+        }
+
+        async function toggleCard(id) {
+            const details = document.getElementById(`details-${id}`);
+            const content = document.getElementById(`content-${id}`);
+            const player = players.find(p => p.id === id);
+
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                return;
+            }
+
+            details.classList.add('expanded');
+
+            if (!player.statsLoaded) {
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player stats...</p></div>';
+                await fetchPlayerStats(player);
+                updatePlayerCard(id);
+            }
+        }
+
+        async function fetchPlayerStats(player) {
+            try {
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(player.name)}`;
+                const searchRes = await fetch(searchUrl);
+                const searchData = await searchRes.json();
+
+                if (!searchData.people || searchData.people.length === 0) {
+                    player.stats = { error: 'Player not found in MLB database' };
+                    player.statsLoaded = true;
+                    return;
+                }
+
+                const playerId = searchData.people[0].id;
+                const currentYear = new Date().getFullYear();
+                const lastCompletedSeason = currentYear;
+
+                const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,season],season=${lastCompletedSeason})`;
+                const mlbRes = await fetch(mlbStatsUrl);
+                const mlbData = await mlbRes.json();
+
+                const playerInfo = mlbData.people[0];
+                player.mlbOrg = playerInfo.currentTeam?.name || 'Free Agent';
+
+                let hasMLBStats = false;
+                let careerStats = {};
+                let seasonStats = {};
+
+                const isPitcher = playerInfo.primaryPosition?.abbreviation === 'P' || 
+                                playerInfo.primaryPosition?.code === '1';
+                
+                if (playerInfo.stats && playerInfo.stats.length > 0) {
+                    for (const statGroup of playerInfo.stats) {
+                        const isCareerStats = statGroup.type?.displayName === 'career';
+                        const isSeasonStats = statGroup.type?.displayName === 'season';
+                        
+                        if (isPitcher && statGroup.group.displayName === 'pitching') {
+                            if (statGroup.splits && statGroup.splits.length > 0) {
+                                let totalGames = 0;
+                                let aggregatedStats = {};
+                                
+                                for (const split of statGroup.splits) {
+                                    const stat = split.stat;
+                                    totalGames += stat.gamesPlayed || 0;
+                                    aggregatedStats.era = stat.era || '0.00';
+                                    aggregatedStats.w = (aggregatedStats.w || 0) + (stat.wins || 0);
+                                    aggregatedStats.l = (aggregatedStats.l || 0) + (stat.losses || 0);
+                                    aggregatedStats.so = (aggregatedStats.so || 0) + (stat.strikeOuts || 0);
+                                    aggregatedStats.whip = stat.whip || '0.00';
+                                }
+                                
+                                if (totalGames > 0) {
+                                    const statsObj = {
+                                        type: 'pitching',
+                                        level: 'MLB',
+                                        era: aggregatedStats.era,
+                                        w: aggregatedStats.w,
+                                        l: aggregatedStats.l,
+                                        so: aggregatedStats.so,
+                                        whip: aggregatedStats.whip,
+                                        games: totalGames
+                                    };
+                                    
+                                    if (isCareerStats) {
+                                        hasMLBStats = true;
+                                        careerStats = statsObj;
+                                    } else if (isSeasonStats) {
+                                        seasonStats = statsObj;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (statGroup.group.displayName === 'hitting' && !isPitcher) {
+                            if (statGroup.splits && statGroup.splits.length > 0) {
+                                let totalGames = 0;
+                                let aggregatedStats = {};
+                                
+                                for (const split of statGroup.splits) {
+                                    const stat = split.stat;
+                                    totalGames += stat.gamesPlayed || 0;
+                                    aggregatedStats.avg = stat.avg || '.000';
+                                    aggregatedStats.hr = (aggregatedStats.hr || 0) + (stat.homeRuns || 0);
+                                    aggregatedStats.rbi = (aggregatedStats.rbi || 0) + (stat.rbi || 0);
+                                    aggregatedStats.sb = (aggregatedStats.sb || 0) + (stat.stolenBases || 0);
+                                    aggregatedStats.ops = stat.ops || '.000';
+                                }
+                                
+                                if (totalGames > 0) {
+                                    const statsObj = {
+                                        type: 'hitting',
+                                        level: 'MLB',
+                                        avg: aggregatedStats.avg,
+                                        hr: aggregatedStats.hr,
+                                        rbi: aggregatedStats.rbi,
+                                        sb: aggregatedStats.sb,
+                                        ops: aggregatedStats.ops,
+                                        games: totalGames
+                                    };
+                                    
+                                    if (isCareerStats) {
+                                        hasMLBStats = true;
+                                        careerStats = statsObj;
+                                    } else if (isSeasonStats) {
+                                        seasonStats = statsObj;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!hasMLBStats) {
+                    const minorLevels = [
+                        { id: 11, name: 'AAA' },
+                        { id: 12, name: 'AA' },
+                        { id: 13, name: 'A+' },
+                        { id: 14, name: 'A' },
+                        { id: 16, name: 'Rookie' }
+                    ];
+
+                    let aggregatedCareerStats = { games: 0 };
+                    let mostRecentSeasonStats = null;
+
+                    for (const level of minorLevels) {
+                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[career,season],sportId=${level.id},season=${lastCompletedSeason})`;
+                        const minorRes = await fetch(minorUrl);
+                        const minorData = await minorRes.json();
+
+                        if (minorData.people[0].stats && minorData.people[0].stats.length > 0) {
+                            for (const statGroup of minorData.people[0].stats) {
+                                const isCareerStats = statGroup.type?.displayName === 'career';
+                                const isSeasonStats = statGroup.type?.displayName === 'season';
+                                
+                                if (statGroup.splits && statGroup.splits.length > 0) {
+                                    const stat = statGroup.splits[0].stat;
+                                    
+                                    if (isPitcher && statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
+                                        if (isCareerStats) {
+                                            aggregatedCareerStats.type = 'pitching';
+                                            aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
+                                            aggregatedCareerStats.w = (aggregatedCareerStats.w || 0) + (stat.wins || 0);
+                                            aggregatedCareerStats.l = (aggregatedCareerStats.l || 0) + (stat.losses || 0);
+                                            aggregatedCareerStats.so = (aggregatedCareerStats.so || 0) + (stat.strikeOuts || 0);
+                                            if (!aggregatedCareerStats.era) {
+                                                aggregatedCareerStats.era = stat.era || '0.00';
+                                                aggregatedCareerStats.whip = stat.whip || '0.00';
+                                            }
+                                        }
+                                        if (isSeasonStats && !mostRecentSeasonStats) {
+                                            mostRecentSeasonStats = {
+                                                type: 'pitching',
+                                                level: level.name,
+                                                era: stat.era || '0.00',
+                                                w: stat.wins || 0,
+                                                l: stat.losses || 0,
+                                                so: stat.strikeOuts || 0,
+                                                whip: stat.whip || '0.00',
+                                                games: stat.gamesPlayed || 0
+                                            };
+                                            player.minorLeagueLevel = level.name;
+                                        }
+                                    } else if (!isPitcher && statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
+                                        if (isCareerStats) {
+                                            aggregatedCareerStats.type = 'hitting';
+                                            aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
+                                            aggregatedCareerStats.hr = (aggregatedCareerStats.hr || 0) + (stat.homeRuns || 0);
+                                            aggregatedCareerStats.rbi = (aggregatedCareerStats.rbi || 0) + (stat.rbi || 0);
+                                            aggregatedCareerStats.sb = (aggregatedCareerStats.sb || 0) + (stat.stolenBases || 0);
+                                            if (!aggregatedCareerStats.avg) {
+                                                aggregatedCareerStats.avg = stat.avg || '.000';
+                                                aggregatedCareerStats.ops = stat.ops || '.000';
+                                            }
+                                        }
+                                        if (isSeasonStats && !mostRecentSeasonStats) {
+                                            mostRecentSeasonStats = {
+                                                type: 'hitting',
+                                                level: level.name,
+                                                avg: stat.avg || '.000',
+                                                hr: stat.homeRuns || 0,
+                                                rbi: stat.rbi || 0,
+                                                sb: stat.stolenBases || 0,
+                                                ops: stat.ops || '.000',
+                                                games: stat.gamesPlayed || 0
+                                            };
+                                            player.minorLeagueLevel = level.name;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (aggregatedCareerStats.games > 0) {
+                        aggregatedCareerStats.level = 'MiLB Career';
+                        careerStats = aggregatedCareerStats;
+                        seasonStats = mostRecentSeasonStats || {};
+                    }
+                }
+
+                player.stats = { career: careerStats, season: seasonStats };
+                player.statsLoaded = true;
+
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+                player.stats = { error: error.message };
+                player.statsLoaded = true;
+            }
+        }
+
+        function updatePlayerCard(id) {
+            const content = document.getElementById(`content-${id}`);
+            const player = players.find(p => p.id === id);
+
+            if (player.stats && player.stats.error) {
+                content.innerHTML = `<div class="error-msg">${player.stats.error}</div>`;
+                return;
+            }
+
+            const careerStats = player.stats?.career;
+            const seasonStats = player.stats?.season;
+
+            if (!careerStats || !careerStats.games) {
+                content.innerHTML = `<div class="error-msg">No stats available for this player</div>`;
+                return;
+            }
+
+            const isHitter = careerStats.type === 'hitting';
+            const currentYear = new Date().getFullYear();
+
+            content.innerHTML = `
+                <div class="section-title">🏆 Organization</div>
+                <div class="org-info">${player.mlbOrg}</div>
+                ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+                
+                ${seasonStats && seasonStats.games > 0 ? `
+                    <div class="section-title">📊 ${currentYear} Stats (${seasonStats.level})</div>
+                    <div class="stats-grid">
+                        ${isHitter ? `
+                            <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${seasonStats.avg}</div></div>
+                            <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${seasonStats.hr}</div></div>
+                            <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${seasonStats.rbi}</div></div>
+                            <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${seasonStats.sb}</div></div>
+                            <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${seasonStats.ops}</div></div>
+                            <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${seasonStats.games}</div></div>
+                        ` : `
+                            <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${seasonStats.era}</div></div>
+                            <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${seasonStats.w}</div></div>
+                            <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${seasonStats.l}</div></div>
+                            <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${seasonStats.so}</div></div>
+                            <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${seasonStats.whip}</div></div>
+                            <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${seasonStats.games}</div></div>
+                        `}
+                    </div>
+                ` : ''}
+                
+                <div class="section-title">📈 Career Stats (${careerStats.level})</div>
+                <div class="stats-grid">
+                    ${isHitter ? `
+                        <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${careerStats.avg}</div></div>
+                        <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${careerStats.hr}</div></div>
+                        <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${careerStats.rbi}</div></div>
+                        <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${careerStats.sb}</div></div>
+                        <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${careerStats.ops}</div></div>
+                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${careerStats.games}</div></div>
+                    ` : `
+                        <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${careerStats.era}</div></div>
+                        <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${careerStats.w}</div></div>
+                        <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${careerStats.l}</div></div>
+                        <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${careerStats.so}</div></div>
+                        <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${careerStats.whip}</div></div>
+                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${careerStats.games}</div></div>
+                    `}
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const StatBox = ({ label, value }) => (
-  <div className="bg-white/10 rounded-lg p-2 text-center">
-    <p className="text-blue-300 text-xs font-semibold mb-1">{label}</p>
-    <p className="text-white text-lg font-bold">{value}</p>
-  </div>
-);
-
-const StatInput = ({ label, value, onChange }) => (
-  <div>
-    <label className="text-blue-200 text-xs font-semibold mb-1 block">{label}</label>
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full px-2 py-1 bg-white/20 border border-white/30 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-      onClick={(e) => e.stopPropagation()}
-    />
-  </div>
-);
-
-export default FantasyBaseballDashboard;
+            `;
+        }
+    </script>
+</body>
+</html>
