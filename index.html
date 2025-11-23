@@ -485,13 +485,17 @@
                                 
                                 console.log(`Comparing: "${fullName}" with "${searchName}" | First: "${pFirstName}" vs "${searchFirstName}" | Last: "${pLastName}" vs "${searchLastName}"`);
                                 
-                                return (
-                                    fullName === searchName ||
-                                    fullName.includes(searchName) ||
-                                    searchName.includes(fullName) ||
-                                    (pFirstName === searchFirstName && pLastName === searchLastName) ||
-                                    (pFirstName.includes(searchFirstName) && pLastName.includes(searchLastName))
-                                );
+                                // Exact match on full name
+                                if (fullName === searchName) return true;
+                                
+                                // Both first and last names must match exactly (not just contain)
+                                if (pFirstName === searchFirstName && pLastName === searchLastName) return true;
+                                
+                                // Handle suffixes like "Jr.", "II", "III"
+                                const nameWithoutSuffix = searchName.replace(/\s+(jr\.?|sr\.?|ii|iii|iv)$/i, '').trim();
+                                if (fullName === nameWithoutSuffix) return true;
+                                
+                                return false;
                             });
                             if (bestMatch) {
                                 console.log('✓ Found match via last name:', bestMatch.fullName, bestMatch.id);
