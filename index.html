@@ -295,14 +295,34 @@
 
                 const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
                 
-                if (values[3]) {
+                // Fantrax combines Player Name and Team in one column
+                // Format: "Player Name TEAM" in column 3
+                const playerAndTeam = values[3] || '';
+                
+                // Split player name from team code (team is last 2-3 uppercase letters)
+                const parts = playerAndTeam.trim().split(' ');
+                let playerName = '';
+                let teamCode = '';
+                
+                if (parts.length > 0) {
+                    // Last part is usually the team code (2-4 uppercase letters)
+                    const lastPart = parts[parts.length - 1];
+                    if (lastPart.length <= 4 && lastPart === lastPart.toUpperCase()) {
+                        teamCode = lastPart;
+                        playerName = parts.slice(0, -1).join(' ');
+                    } else {
+                        playerName = playerAndTeam;
+                    }
+                }
+                
+                if (playerName) {
                     players.push({
                         id: i,
-                        name: values[3],
+                        name: playerName,
                         position: values[2] || '',
-                        team: values[4] || '',
-                        status: values[6] || '',
-                        age: values[7] || '',
+                        team: teamCode,
+                        status: values[5] || '',
+                        age: values[6] || '',
                         playerType: values[0] || 'Hitting',
                         mlbOrg: '',
                         minorLeagueLevel: '',
