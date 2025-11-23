@@ -610,6 +610,10 @@
 
                 player.stats = { career: careerStats, season: seasonStats };
                 player.statsLoaded = true;
+                
+                console.log('Final stats object:', player.stats);
+                console.log('Career stats:', careerStats);
+                console.log('Season stats:', seasonStats);
 
             } catch (error) {
                 console.error('Error fetching stats:', error);
