@@ -503,11 +503,13 @@
                     }
                     
                     if (!searchData.people || searchData.people.length === 0) {
+                        const mlbSearchUrl = `https://www.mlb.com/search?q=${encodeURIComponent(player.name)}`;
                         player.stats = { 
                             error: `"${player.name}" not found in MLB database. This player may be:<br>
                             • A recent draft pick not yet in the system<br>
                             • Playing in independent/international leagues<br>
                             • Name spelled differently in MLB records<br><br>
+                            <a href="${mlbSearchUrl}" target="_blank" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 10px; border: 1px solid rgba(255, 255, 255, 0.3);">🔍 Search "${player.name}" on MLB.com</a><br><br>
                             <small>The MLB API can take time to update for new players. Check back later or add stats manually.</small>` 
                         };
                         player.statsLoaded = true;
