@@ -573,29 +573,29 @@
                         
                         if (isPitcher && statGroup.group.displayName === 'pitching') {
                             if (statGroup.splits && statGroup.splits.length > 0) {
-                                let totalGames = 0;
-                                let aggregatedStats = {};
-                                
-                                for (const split of statGroup.splits) {
-                                    const stat = split.stat;
-                                    totalGames += stat.gamesPlayed || 0;
-                                    aggregatedStats.era = stat.era || '0.00';
-                                    aggregatedStats.w = (aggregatedStats.w || 0) + (stat.wins || 0);
-                                    aggregatedStats.l = (aggregatedStats.l || 0) + (stat.losses || 0);
-                                    aggregatedStats.so = (aggregatedStats.so || 0) + (stat.strikeOuts || 0);
-                                    aggregatedStats.whip = stat.whip || '0.00';
+                                // If multiple splits exist (traded players), use the one without a team (season total)
+                                // Otherwise use the first/only split
+                                let bestSplit = statGroup.splits[0];
+                                if (statGroup.splits.length > 1) {
+                                    // Look for the split without a team (this is the season total)
+                                    const totalSplit = statGroup.splits.find(split => !split.team);
+                                    if (totalSplit) {
+                                        bestSplit = totalSplit;
+                                        console.log('Found season total split (no team) for pitcher');
+                                    }
                                 }
                                 
-                                if (totalGames > 0) {
+                                const stat = bestSplit.stat;
+                                if (stat.gamesPlayed > 0) {
                                     const statsObj = {
                                         type: 'pitching',
                                         level: 'MLB',
-                                        era: aggregatedStats.era,
-                                        w: aggregatedStats.w,
-                                        l: aggregatedStats.l,
-                                        so: aggregatedStats.so,
-                                        whip: aggregatedStats.whip,
-                                        games: totalGames
+                                        era: stat.era || '0.00',
+                                        w: stat.wins || 0,
+                                        l: stat.losses || 0,
+                                        so: stat.strikeOuts || 0,
+                                        whip: stat.whip || '0.00',
+                                        games: stat.gamesPlayed || 0
                                     };
                                     
                                     if (isCareerStats) {
@@ -610,29 +610,29 @@
                         
                         if (statGroup.group.displayName === 'hitting' && !isPitcher) {
                             if (statGroup.splits && statGroup.splits.length > 0) {
-                                let totalGames = 0;
-                                let aggregatedStats = {};
-                                
-                                for (const split of statGroup.splits) {
-                                    const stat = split.stat;
-                                    totalGames += stat.gamesPlayed || 0;
-                                    aggregatedStats.avg = stat.avg || '.000';
-                                    aggregatedStats.hr = (aggregatedStats.hr || 0) + (stat.homeRuns || 0);
-                                    aggregatedStats.rbi = (aggregatedStats.rbi || 0) + (stat.rbi || 0);
-                                    aggregatedStats.sb = (aggregatedStats.sb || 0) + (stat.stolenBases || 0);
-                                    aggregatedStats.ops = stat.ops || '.000';
+                                // If multiple splits exist (traded players), use the one without a team (season total)
+                                // Otherwise use the first/only split
+                                let bestSplit = statGroup.splits[0];
+                                if (statGroup.splits.length > 1) {
+                                    // Look for the split without a team (this is the season total)
+                                    const totalSplit = statGroup.splits.find(split => !split.team);
+                                    if (totalSplit) {
+                                        bestSplit = totalSplit;
+                                        console.log('Found season total split (no team) for hitter');
+                                    }
                                 }
                                 
-                                if (totalGames > 0) {
+                                const stat = bestSplit.stat;
+                                if (stat.gamesPlayed > 0) {
                                     const statsObj = {
                                         type: 'hitting',
                                         level: 'MLB',
-                                        avg: aggregatedStats.avg,
-                                        hr: aggregatedStats.hr,
-                                        rbi: aggregatedStats.rbi,
-                                        sb: aggregatedStats.sb,
-                                        ops: aggregatedStats.ops,
-                                        games: totalGames
+                                        avg: stat.avg || '.000',
+                                        hr: stat.homeRuns || 0,
+                                        rbi: stat.rbi || 0,
+                                        sb: stat.stolenBases || 0,
+                                        ops: stat.ops || '.000',
+                                        games: stat.gamesPlayed || 0
                                     };
                                     
                                     if (isCareerStats) {
