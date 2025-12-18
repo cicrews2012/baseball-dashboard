@@ -301,7 +301,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.2</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.3</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -942,7 +942,12 @@
             const content = document.getElementById(`content-${id}`);
             const player = players.find(p => p.id === id);
 
+            console.log('updatePlayerCard - player:', player.name);
+            console.log('updatePlayerCard - content element:', content);
+            console.log('updatePlayerCard - player.stats:', player.stats);
+
             if (player.stats && player.stats.error) {
+                console.log('Showing error message');
                 content.innerHTML = `<div class="error-msg">${player.stats.error}</div>`;
                 return;
             }
@@ -950,13 +955,19 @@
             const careerStats = player.stats?.career;
             const seasonStats = player.stats?.season;
 
+            console.log('careerStats:', careerStats);
+            console.log('seasonStats:', seasonStats);
+
             if (!careerStats || !careerStats.games) {
+                console.log('No career stats available');
                 content.innerHTML = `<div class="error-msg">No stats available for this player</div>`;
                 return;
             }
 
             const isHitter = careerStats.type === 'hitting';
             const displayYear = 2024; // Current completed season
+
+            console.log('Building HTML content...');
 
             let contentHTML = `
                 <div class="section-title">🏆 Organization</div>
@@ -1073,6 +1084,7 @@
             `;
 
             content.innerHTML = contentHTML;
+            console.log('Content HTML set, length:', contentHTML.length);
         }
     </script>
 </body>
