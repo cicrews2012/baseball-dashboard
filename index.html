@@ -301,7 +301,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard</h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.0</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -514,6 +514,12 @@
                 
                 const injuryUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=currentInjury`;
                 const response = await fetch(injuryUrl);
+                
+                if (!response.ok) {
+                    console.log('Injury API returned:', response.status);
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.people && data.people[0].currentInjury) {
@@ -533,9 +539,15 @@
             try {
                 if (!player.mlbId) return;
                 
-                const currentYear = new Date().getFullYear();
-                const transUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}/transactions?season=${currentYear}`;
+                // Use 2024 for transactions since 2025 season hasn't started
+                const transUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}/transactions?season=2024`;
                 const response = await fetch(transUrl);
+                
+                if (!response.ok) {
+                    console.log('Transactions API returned:', response.status);
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.transactions && data.transactions.length > 0) {
@@ -558,6 +570,12 @@
                 // Try to get prospect ranking from MLB Pipeline
                 const prospectUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=prospectRanking`;
                 const response = await fetch(prospectUrl);
+                
+                if (!response.ok) {
+                    console.log('Prospect rank API returned:', response.status);
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.people && data.people[0].prospectRanking) {
@@ -578,12 +596,18 @@
             try {
                 if (!player.mlbId) return;
                 
-                const currentYear = new Date().getFullYear();
+                // Use 2024 stats for recent performance since 2025 season hasn't started
                 const isPitcher = player.stats?.career?.type === 'pitching';
                 
-                // Fetch last 30 days stats
-                const recentUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=lastXGames,limit=10,season=${currentYear})`;
+                // Fetch last 30 days stats from 2024 season
+                const recentUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=lastXGames,limit=10,season=2024)`;
                 const response = await fetch(recentUrl);
+                
+                if (!response.ok) {
+                    console.log('Recent performance API returned:', response.status);
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.people && data.people[0].stats && data.people[0].stats.length > 0) {
@@ -685,7 +709,8 @@
                 const playerId = searchData.people[0].id;
                 player.mlbId = playerId; // Store for other API calls
                 const currentYear = new Date().getFullYear();
-                const lastCompletedSeason = currentYear;
+                // Use 2024 since 2025 season hasn't started yet
+                const lastCompletedSeason = currentYear > 2024 && new Date().getMonth() >= 3 ? currentYear : 2024;
 
                 const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,season],season=${lastCompletedSeason})`;
                 const mlbRes = await fetch(mlbStatsUrl);
@@ -899,6 +924,8 @@
 
             const isHitter = careerStats.type === 'hitting';
             const currentYear = new Date().getFullYear();
+            // Show 2024 since 2025 season hasn't started yet
+            const displayYear = currentYear > 2024 && new Date().getMonth() >= 3 ? currentYear : 2024;
 
             let contentHTML = `
                 <div class="section-title">🏆 Organization</div>
@@ -954,7 +981,7 @@
                 
                 contentHTML += `
                     <div class="recent-stats-highlight">
-                        <div class="section-title" style="margin-top: 0;">${trendEmoji} ${trendText} - Last 10 Games</div>
+                        <div class="section-title" style="margin-top: 0;">${trendEmoji} ${trendText} - Last 10 Games (2024)</div>
                 `;
                 if (isHitter) {
                     contentHTML += `
@@ -971,7 +998,7 @@
             // Season Stats
             if (seasonStats && seasonStats.games > 0) {
                 contentHTML += `
-                    <div class="section-title">📊 ${currentYear} Stats (${seasonStats.level})</div>
+                    <div class="section-title">📊 ${displayYear} Stats (${seasonStats.level})</div>
                     <div class="stats-grid">
                         ${isHitter ? `
                             <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${seasonStats.avg}</div></div>
