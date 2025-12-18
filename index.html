@@ -159,6 +159,11 @@
         .badge-position { background: #3b82f6; }
         .badge-status { background: #eab308; }
         .badge-age { background: #a855f7; }
+        .badge-injury { background: #ef4444; }
+        .badge-prospect { background: #f59e0b; }
+        .badge-hot { background: #22c55e; }
+        .badge-cold { background: #3b82f6; }
+        .badge-transaction { background: #8b5cf6; }
 
         .player-details {
             padding: 0 25px 25px 25px;
@@ -218,7 +223,7 @@
             background: rgba(255, 255, 255, 0.1);
             padding: 12px;
             border-radius: 10px;
-            text-center;
+            text-align: center;
         }
 
         .stat-label {
@@ -231,6 +236,34 @@
         .stat-value {
             font-size: 1.25rem;
             font-weight: bold;
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-box.injury {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
+        .info-box.transaction {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+        }
+
+        .info-box.prospect {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+        }
+
+        .trend-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 1.5rem;
         }
 
         .error-msg {
@@ -255,21 +288,12 @@
             display: none;
         }
 
-        .bbref-link {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 8px 16px;
+        .recent-stats-highlight {
+            background: rgba(34, 197, 94, 0.15);
+            border-left: 4px solid #22c55e;
+            padding: 12px;
             border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 600;
-            transition: background 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .bbref-link:hover {
-            background: rgba(255, 255, 255, 0.3);
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -292,7 +316,7 @@
                 📁 Upload Fantrax CSV
             </button>
             <p style="margin-top: 15px; font-size: 0.875rem; color: #bfdbfe;">
-                Upload your CSV and click any player to automatically fetch their career stats from MLB's API.
+                Upload your CSV and click any player to automatically fetch their stats, injuries, transactions, and prospect rankings.
                 <br><strong>Shows MLB stats if available, otherwise Minor League stats.</strong>
             </p>
         </div>
@@ -380,10 +404,13 @@
                     age: values[6] || '',
                     playerType: 'Hitting',
                     mlbOrg: '',
-                    mlbPlayerId: null,
                     minorLeagueLevel: '',
                     stats: null,
-                    statsLoaded: false
+                    statsLoaded: false,
+                    injury: null,
+                    transactions: [],
+                    prospectRank: null,
+                    recentPerformance: null
                 });
             }
 
@@ -411,6 +438,31 @@
         function createPlayerCard(player) {
             const card = document.createElement('div');
             card.className = 'player-card';
+            
+            let injuryBadge = '';
+            if (player.injury) {
+                injuryBadge = `<span class="badge badge-injury">🏥 ${player.injury.status}</span>`;
+            }
+            
+            let prospectBadge = '';
+            if (player.prospectRank && player.prospectRank.orgRank) {
+                prospectBadge = `<span class="badge badge-prospect">📈 #${player.prospectRank.orgRank} Prospect</span>`;
+            }
+            
+            let trendBadge = '';
+            if (player.recentPerformance) {
+                if (player.recentPerformance.trend === 'hot') {
+                    trendBadge = `<span class="badge badge-hot">🔥 Hot</span>`;
+                } else if (player.recentPerformance.trend === 'cold') {
+                    trendBadge = `<span class="badge badge-cold">🧊 Cold</span>`;
+                }
+            }
+            
+            let transactionBadge = '';
+            if (player.transactions && player.transactions.length > 0) {
+                transactionBadge = `<span class="badge badge-transaction">📋 Recent Move</span>`;
+            }
+            
             card.innerHTML = `
                 <div class="player-header" onclick="toggleCard(${player.id})">
                     <div class="player-name">${player.name}</div>
@@ -419,6 +471,10 @@
                         <span class="badge badge-position">${player.position}</span>
                         ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
                         ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
+                        ${injuryBadge}
+                        ${prospectBadge}
+                        ${trendBadge}
+                        ${transactionBadge}
                     </div>
                 </div>
                 <div class="player-details" id="details-${player.id}">
@@ -441,50 +497,136 @@
             details.classList.add('expanded');
 
             if (!player.statsLoaded) {
-                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player stats...</p></div>';
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
                 await fetchPlayerStats(player);
+                await fetchInjuryStatus(player);
+                await fetchTransactions(player);
+                await fetchProspectRank(player);
+                await fetchRecentPerformance(player);
                 updatePlayerCard(id);
+                renderPlayers(); // Re-render to update badges
+            }
+        }
+
+        async function fetchInjuryStatus(player) {
+            try {
+                if (!player.mlbId) return;
+                
+                const injuryUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=currentInjury`;
+                const response = await fetch(injuryUrl);
+                const data = await response.json();
+                
+                if (data.people && data.people[0].currentInjury) {
+                    const injury = data.people[0].currentInjury;
+                    player.injury = {
+                        status: injury.injuryStatus || 'Injured',
+                        description: injury.description || 'No details available'
+                    };
+                    console.log('Injury found for', player.name, ':', player.injury);
+                }
+            } catch (error) {
+                console.error('Error fetching injury status:', error);
+            }
+        }
+
+        async function fetchTransactions(player) {
+            try {
+                if (!player.mlbId) return;
+                
+                const currentYear = new Date().getFullYear();
+                const transUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}/transactions?season=${currentYear}`;
+                const response = await fetch(transUrl);
+                const data = await response.json();
+                
+                if (data.transactions && data.transactions.length > 0) {
+                    player.transactions = data.transactions.slice(0, 3).map(t => ({
+                        date: new Date(t.date).toLocaleDateString(),
+                        description: t.description,
+                        type: t.typeCode
+                    }));
+                    console.log('Transactions found for', player.name, ':', player.transactions);
+                }
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+            }
+        }
+
+        async function fetchProspectRank(player) {
+            try {
+                if (!player.mlbId) return;
+                
+                // Try to get prospect ranking from MLB Pipeline
+                const prospectUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=prospectRanking`;
+                const response = await fetch(prospectUrl);
+                const data = await response.json();
+                
+                if (data.people && data.people[0].prospectRanking) {
+                    const ranking = data.people[0].prospectRanking;
+                    player.prospectRank = {
+                        orgRank: ranking.orgRank,
+                        overallRank: ranking.rank,
+                        eta: ranking.eta
+                    };
+                    console.log('Prospect rank found for', player.name, ':', player.prospectRank);
+                }
+            } catch (error) {
+                console.error('Error fetching prospect rank:', error);
+            }
+        }
+
+        async function fetchRecentPerformance(player) {
+            try {
+                if (!player.mlbId) return;
+                
+                const currentYear = new Date().getFullYear();
+                const isPitcher = player.stats?.career?.type === 'pitching';
+                
+                // Fetch last 30 days stats
+                const recentUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=lastXGames,limit=10,season=${currentYear})`;
+                const response = await fetch(recentUrl);
+                const data = await response.json();
+                
+                if (data.people && data.people[0].stats && data.people[0].stats.length > 0) {
+                    const statGroup = data.people[0].stats[0];
+                    if (statGroup.splits && statGroup.splits.length > 0) {
+                        const recentStats = statGroup.splits[0].stat;
+                        
+                        // Simple hot/cold logic based on recent performance
+                        let trend = null;
+                        if (isPitcher) {
+                            const era = parseFloat(recentStats.era);
+                            if (era < 3.00) trend = 'hot';
+                            else if (era > 5.00) trend = 'cold';
+                        } else {
+                            const avg = parseFloat(recentStats.avg);
+                            if (avg > 0.280) trend = 'hot';
+                            else if (avg < 0.200) trend = 'cold';
+                        }
+                        
+                        player.recentPerformance = {
+                            stats: recentStats,
+                            trend: trend
+                        };
+                        console.log('Recent performance for', player.name, ':', player.recentPerformance);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching recent performance:', error);
             }
         }
 
         async function fetchPlayerStats(player) {
             try {
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(player.name)}`;
-                console.log('Searching for player:', player.name, 'Position:', player.position, 'URL:', searchUrl);
+                console.log('Searching for player:', player.name, 'URL:', searchUrl);
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
                 
                 console.log('Search results for', player.name, ':', searchData);
 
-                // If multiple results, try to filter by position
-                if (searchData.people && searchData.people.length > 1) {
-                    console.log(`Multiple players found named "${player.name}", filtering by position: ${player.position}`);
-                    
-                    const isPitcherPosition = player.position === 'P' || player.position === 'SP' || player.position === 'RP';
-                    
-                    const positionMatch = searchData.people.filter(p => {
-                        const playerIsPitcher = p.primaryPosition?.abbreviation === 'P' || p.primaryPosition?.code === '1';
-                        console.log(`- ${p.fullName} (ID: ${p.id}): Position ${p.primaryPosition?.abbreviation}, isPitcher: ${playerIsPitcher}, looking for pitcher: ${isPitcherPosition}`);
-                        return isPitcherPosition === playerIsPitcher;
-                    });
-                    
-                    if (positionMatch.length === 1) {
-                        console.log('✓ Found unique position match:', positionMatch[0].fullName, positionMatch[0].id);
-                        searchData.people = positionMatch;
-                    } else if (positionMatch.length > 1) {
-                        console.log(`Still ${positionMatch.length} matches after position filter, using first one`);
-                        searchData.people = [positionMatch[0]];
-                    } else {
-                        console.log('No position matches found, using first result');
-                        searchData.people = [searchData.people[0]];
-                    }
-                }
-
                 if (!searchData.people || searchData.people.length === 0) {
-                    // Try alternative searches
                     console.log('No exact match, trying alternative searches...');
                     
-                    // Try with just last name
                     const nameParts = player.name.split(' ');
                     if (nameParts.length > 1) {
                         const lastName = nameParts[nameParts.length - 1];
@@ -498,7 +640,6 @@
                         if (altSearchData.people && altSearchData.people.length > 0) {
                             console.log('Found people with last name:', altSearchData.people.map(p => `${p.fullName} (ID: ${p.id})`));
                             
-                            // Find best match by checking if both first and last name match
                             const bestMatch = altSearchData.people.find(p => {
                                 const fullName = p.fullName.toLowerCase();
                                 const searchName = player.name.toLowerCase();
@@ -509,17 +650,13 @@
                                 
                                 console.log(`Comparing: "${fullName}" with "${searchName}" | First: "${pFirstName}" vs "${searchFirstName}" | Last: "${pLastName}" vs "${searchLastName}"`);
                                 
-                                // Exact match on full name
-                                if (fullName === searchName) return true;
-                                
-                                // Both first and last names must match exactly (not just contain)
-                                if (pFirstName === searchFirstName && pLastName === searchLastName) return true;
-                                
-                                // Handle suffixes like "Jr.", "II", "III"
-                                const nameWithoutSuffix = searchName.replace(/\s+(jr\.?|sr\.?|ii|iii|iv)$/i, '').trim();
-                                if (fullName === nameWithoutSuffix) return true;
-                                
-                                return false;
+                                return (
+                                    fullName === searchName ||
+                                    fullName.includes(searchName) ||
+                                    searchName.includes(fullName) ||
+                                    (pFirstName === searchFirstName && pLastName === searchLastName) ||
+                                    (pFirstName.includes(searchFirstName) && pLastName.includes(searchLastName))
+                                );
                             });
                             if (bestMatch) {
                                 console.log('✓ Found match via last name:', bestMatch.fullName, bestMatch.id);
@@ -531,13 +668,11 @@
                     }
                     
                     if (!searchData.people || searchData.people.length === 0) {
-                        const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(player.name + ' milb')}`;
                         player.stats = { 
                             error: `"${player.name}" not found in MLB database. This player may be:<br>
                             • A recent draft pick not yet in the system<br>
                             • Playing in independent/international leagues<br>
                             • Name spelled differently in MLB records<br><br>
-                            <a href="${googleSearchUrl}" target="_blank" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 10px; border: 1px solid rgba(255, 255, 255, 0.3);">🔍 Google "${player.name} milb"</a><br><br>
                             <small>The MLB API can take time to update for new players. Check back later or add stats manually.</small>` 
                         };
                         player.statsLoaded = true;
@@ -548,7 +683,7 @@
                 }
 
                 const playerId = searchData.people[0].id;
-                player.mlbPlayerId = playerId; // Store the MLB player ID
+                player.mlbId = playerId; // Store for other API calls
                 const currentYear = new Date().getFullYear();
                 const lastCompletedSeason = currentYear;
 
@@ -573,29 +708,29 @@
                         
                         if (isPitcher && statGroup.group.displayName === 'pitching') {
                             if (statGroup.splits && statGroup.splits.length > 0) {
-                                // If multiple splits exist (traded players), use the one without a team (season total)
-                                // Otherwise use the first/only split
-                                let bestSplit = statGroup.splits[0];
-                                if (statGroup.splits.length > 1) {
-                                    // Look for the split without a team (this is the season total)
-                                    const totalSplit = statGroup.splits.find(split => !split.team);
-                                    if (totalSplit) {
-                                        bestSplit = totalSplit;
-                                        console.log('Found season total split (no team) for pitcher');
-                                    }
+                                let totalGames = 0;
+                                let aggregatedStats = {};
+                                
+                                for (const split of statGroup.splits) {
+                                    const stat = split.stat;
+                                    totalGames += stat.gamesPlayed || 0;
+                                    aggregatedStats.era = stat.era || '0.00';
+                                    aggregatedStats.w = (aggregatedStats.w || 0) + (stat.wins || 0);
+                                    aggregatedStats.l = (aggregatedStats.l || 0) + (stat.losses || 0);
+                                    aggregatedStats.so = (aggregatedStats.so || 0) + (stat.strikeOuts || 0);
+                                    aggregatedStats.whip = stat.whip || '0.00';
                                 }
                                 
-                                const stat = bestSplit.stat;
-                                if (stat.gamesPlayed > 0) {
+                                if (totalGames > 0) {
                                     const statsObj = {
                                         type: 'pitching',
                                         level: 'MLB',
-                                        era: stat.era || '0.00',
-                                        w: stat.wins || 0,
-                                        l: stat.losses || 0,
-                                        so: stat.strikeOuts || 0,
-                                        whip: stat.whip || '0.00',
-                                        games: stat.gamesPlayed || 0
+                                        era: aggregatedStats.era,
+                                        w: aggregatedStats.w,
+                                        l: aggregatedStats.l,
+                                        so: aggregatedStats.so,
+                                        whip: aggregatedStats.whip,
+                                        games: totalGames
                                     };
                                     
                                     if (isCareerStats) {
@@ -610,29 +745,29 @@
                         
                         if (statGroup.group.displayName === 'hitting' && !isPitcher) {
                             if (statGroup.splits && statGroup.splits.length > 0) {
-                                // If multiple splits exist (traded players), use the one without a team (season total)
-                                // Otherwise use the first/only split
-                                let bestSplit = statGroup.splits[0];
-                                if (statGroup.splits.length > 1) {
-                                    // Look for the split without a team (this is the season total)
-                                    const totalSplit = statGroup.splits.find(split => !split.team);
-                                    if (totalSplit) {
-                                        bestSplit = totalSplit;
-                                        console.log('Found season total split (no team) for hitter');
-                                    }
+                                let totalGames = 0;
+                                let aggregatedStats = {};
+                                
+                                for (const split of statGroup.splits) {
+                                    const stat = split.stat;
+                                    totalGames += stat.gamesPlayed || 0;
+                                    aggregatedStats.avg = stat.avg || '.000';
+                                    aggregatedStats.hr = (aggregatedStats.hr || 0) + (stat.homeRuns || 0);
+                                    aggregatedStats.rbi = (aggregatedStats.rbi || 0) + (stat.rbi || 0);
+                                    aggregatedStats.sb = (aggregatedStats.sb || 0) + (stat.stolenBases || 0);
+                                    aggregatedStats.ops = stat.ops || '.000';
                                 }
                                 
-                                const stat = bestSplit.stat;
-                                if (stat.gamesPlayed > 0) {
+                                if (totalGames > 0) {
                                     const statsObj = {
                                         type: 'hitting',
                                         level: 'MLB',
-                                        avg: stat.avg || '.000',
-                                        hr: stat.homeRuns || 0,
-                                        rbi: stat.rbi || 0,
-                                        sb: stat.stolenBases || 0,
-                                        ops: stat.ops || '.000',
-                                        games: stat.gamesPlayed || 0
+                                        avg: aggregatedStats.avg,
+                                        hr: aggregatedStats.hr,
+                                        rbi: aggregatedStats.rbi,
+                                        sb: aggregatedStats.sb,
+                                        ops: aggregatedStats.ops,
+                                        games: totalGames
                                     };
                                     
                                     if (isCareerStats) {
@@ -659,7 +794,6 @@
                     let aggregatedCareerStats = { games: 0 };
                     let mostRecentSeasonStats = null;
 
-                    // Loop through levels to get both career and season stats
                     for (const level of minorLevels) {
                         const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[career,season],sportId=${level.id},season=${lastCompletedSeason})`;
                         const minorRes = await fetch(minorUrl);
@@ -675,17 +809,14 @@
                                     
                                     if (isPitcher && statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
                                         if (isCareerStats) {
-                                            // Aggregate career stats across all levels
                                             aggregatedCareerStats.type = 'pitching';
                                             aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
                                             aggregatedCareerStats.w = (aggregatedCareerStats.w || 0) + (stat.wins || 0);
                                             aggregatedCareerStats.l = (aggregatedCareerStats.l || 0) + (stat.losses || 0);
                                             aggregatedCareerStats.so = (aggregatedCareerStats.so || 0) + (stat.strikeOuts || 0);
-                                            // For rates like ERA/WHIP, use weighted average or last meaningful value
-                                            if (stat.inningsPitched > (aggregatedCareerStats.maxIP || 0)) {
+                                            if (!aggregatedCareerStats.era) {
                                                 aggregatedCareerStats.era = stat.era || '0.00';
                                                 aggregatedCareerStats.whip = stat.whip || '0.00';
-                                                aggregatedCareerStats.maxIP = stat.inningsPitched;
                                             }
                                         }
                                         if (isSeasonStats && !mostRecentSeasonStats) {
@@ -703,17 +834,14 @@
                                         }
                                     } else if (!isPitcher && statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
                                         if (isCareerStats) {
-                                            // Aggregate career stats across all levels
                                             aggregatedCareerStats.type = 'hitting';
                                             aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
                                             aggregatedCareerStats.hr = (aggregatedCareerStats.hr || 0) + (stat.homeRuns || 0);
                                             aggregatedCareerStats.rbi = (aggregatedCareerStats.rbi || 0) + (stat.rbi || 0);
                                             aggregatedCareerStats.sb = (aggregatedCareerStats.sb || 0) + (stat.stolenBases || 0);
-                                            // For rates like AVG/OPS, use weighted average or last meaningful value
-                                            if (stat.atBats > (aggregatedCareerStats.maxAB || 0)) {
+                                            if (!aggregatedCareerStats.avg) {
                                                 aggregatedCareerStats.avg = stat.avg || '.000';
                                                 aggregatedCareerStats.ops = stat.ops || '.000';
-                                                aggregatedCareerStats.maxAB = stat.atBats;
                                             }
                                         }
                                         if (isSeasonStats && !mostRecentSeasonStats) {
@@ -771,24 +899,78 @@
 
             const isHitter = careerStats.type === 'hitting';
             const currentYear = new Date().getFullYear();
-            
-            // Generate MLB.com player page URL
-            const mlbUrl = player.mlbPlayerId 
-                ? `https://www.mlb.com/player/${player.mlbPlayerId}` 
-                : `https://www.mlb.com/search?q=${encodeURIComponent(player.name)}`;
 
-            content.innerHTML = `
+            let contentHTML = `
                 <div class="section-title">🏆 Organization</div>
                 <div class="org-info">${player.mlbOrg}</div>
                 ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+            `;
+
+            // Injury Section
+            if (player.injury) {
+                contentHTML += `
+                    <div class="info-box injury">
+                        <div class="section-title" style="margin-top: 0;">🏥 Injury Status</div>
+                        <div><strong>${player.injury.status}</strong></div>
+                        <div style="font-size: 0.875rem; margin-top: 5px;">${player.injury.description}</div>
+                    </div>
+                `;
+            }
+
+            // Transactions Section
+            if (player.transactions && player.transactions.length > 0) {
+                contentHTML += `
+                    <div class="info-box transaction">
+                        <div class="section-title" style="margin-top: 0;">📋 Recent Transactions</div>
+                `;
+                player.transactions.forEach(trans => {
+                    contentHTML += `
+                        <div style="margin-bottom: 8px;">
+                            <strong>${trans.date}:</strong> ${trans.description}
+                        </div>
+                    `;
+                });
+                contentHTML += `</div>`;
+            }
+
+            // Prospect Ranking Section
+            if (player.prospectRank) {
+                contentHTML += `
+                    <div class="info-box prospect">
+                        <div class="section-title" style="margin-top: 0;">📈 Prospect Ranking</div>
+                        <div><strong>Organization Rank:</strong> #${player.prospectRank.orgRank}</div>
+                        ${player.prospectRank.overallRank ? `<div><strong>Overall Rank:</strong> #${player.prospectRank.overallRank}</div>` : ''}
+                        ${player.prospectRank.eta ? `<div><strong>ETA:</strong> ${player.prospectRank.eta}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            // Recent Performance Highlight
+            if (player.recentPerformance && player.recentPerformance.trend) {
+                const trend = player.recentPerformance.trend;
+                const recentStats = player.recentPerformance.stats;
+                const trendEmoji = trend === 'hot' ? '🔥' : '🧊';
+                const trendText = trend === 'hot' ? 'Hot Streak' : 'Cold Streak';
                 
-                <div style="margin: 15px 0;">
-                    <a href="${mlbUrl}" target="_blank" class="bbref-link">
-                        🔗 MLB.com Player Page
-                    </a>
-                </div>
-                
-                ${seasonStats && seasonStats.games > 0 ? `
+                contentHTML += `
+                    <div class="recent-stats-highlight">
+                        <div class="section-title" style="margin-top: 0;">${trendEmoji} ${trendText} - Last 10 Games</div>
+                `;
+                if (isHitter) {
+                    contentHTML += `
+                        <div>AVG: ${recentStats.avg} | HR: ${recentStats.homeRuns} | RBI: ${recentStats.rbi}</div>
+                    `;
+                } else {
+                    contentHTML += `
+                        <div>ERA: ${recentStats.era} | W-L: ${recentStats.wins}-${recentStats.losses} | SO: ${recentStats.strikeOuts}</div>
+                    `;
+                }
+                contentHTML += `</div>`;
+            }
+
+            // Season Stats
+            if (seasonStats && seasonStats.games > 0) {
+                contentHTML += `
                     <div class="section-title">📊 ${currentYear} Stats (${seasonStats.level})</div>
                     <div class="stats-grid">
                         ${isHitter ? `
@@ -807,8 +989,11 @@
                             <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${seasonStats.games}</div></div>
                         `}
                     </div>
-                ` : ''}
-                
+                `;
+            }
+
+            // Career Stats
+            contentHTML += `
                 <div class="section-title">📈 Career Stats (${careerStats.level})</div>
                 <div class="stats-grid">
                     ${isHitter ? `
@@ -828,6 +1013,8 @@
                     `}
                 </div>
             `;
+
+            content.innerHTML = contentHTML;
         }
     </script>
 </body>
