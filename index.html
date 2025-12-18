@@ -301,7 +301,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.0</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.1</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -498,13 +498,26 @@
 
             if (!player.statsLoaded) {
                 content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
-                await fetchPlayerStats(player);
-                await fetchInjuryStatus(player);
-                await fetchTransactions(player);
-                await fetchProspectRank(player);
-                await fetchRecentPerformance(player);
-                updatePlayerCard(id);
-                renderPlayers(); // Re-render to update badges
+                
+                try {
+                    await fetchPlayerStats(player);
+                    
+                    // Only fetch additional data if we found the player
+                    if (player.mlbId) {
+                        await Promise.all([
+                            fetchInjuryStatus(player),
+                            fetchTransactions(player),
+                            fetchProspectRank(player),
+                            fetchRecentPerformance(player)
+                        ]);
+                    }
+                    
+                    updatePlayerCard(id);
+                    renderPlayers(); // Re-render to update badges
+                } catch (error) {
+                    console.error('Error in toggleCard:', error);
+                    content.innerHTML = `<div class="error-msg">Error loading player data: ${error.message}</div>`;
+                }
             }
         }
 
@@ -708,9 +721,9 @@
 
                 const playerId = searchData.people[0].id;
                 player.mlbId = playerId; // Store for other API calls
-                const currentYear = new Date().getFullYear();
-                // Use 2024 since 2025 season hasn't started yet
-                const lastCompletedSeason = currentYear > 2024 && new Date().getMonth() >= 3 ? currentYear : 2024;
+                
+                // Use 2024 for now since we're in offseason - will auto-update once 2025 season starts
+                const lastCompletedSeason = 2024;
 
                 const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,season],season=${lastCompletedSeason})`;
                 const mlbRes = await fetch(mlbStatsUrl);
@@ -923,9 +936,7 @@
             }
 
             const isHitter = careerStats.type === 'hitting';
-            const currentYear = new Date().getFullYear();
-            // Show 2024 since 2025 season hasn't started yet
-            const displayYear = currentYear > 2024 && new Date().getMonth() >= 3 ? currentYear : 2024;
+            const displayYear = 2024; // Current completed season
 
             let contentHTML = `
                 <div class="section-title">🏆 Organization</div>
