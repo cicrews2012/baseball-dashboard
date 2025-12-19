@@ -355,7 +355,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.0</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.1</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -1198,18 +1198,21 @@
                     if (!value || value === '.000' || value === '0.00') return 'split-neutral';
                     
                     if (isPitcher) {
-                        if (isRate) { // ERA, WHIP - lower is better
+                        if (isRate) {
                             const num = parseFloat(value);
-                            return num < 3.50 ? 'split-good' : num > 4.50 ? 'split-bad' : 'split-neutral';
+                            // For pitchers, lower is better (AVG against, OPS against, ERA, WHIP)
+                            if (value.includes('.') && num < 1) { // AVG or OPS against
+                                return num < 0.240 ? 'split-good' : num > 0.280 ? 'split-bad' : 'split-neutral';
+                            } else { // ERA, WHIP
+                                return num < 3.50 ? 'split-good' : num > 4.50 ? 'split-bad' : 'split-neutral';
+                            }
                         } else { // SO - higher is better
                             return 'split-neutral';
                         }
                     } else {
-                        if (isRate) { // AVG, OPS - higher is better
+                        if (isRate) { // AVG, OPS - higher is better for hitters
                             const num = parseFloat(value);
-                            if (value.includes('.')) { // AVG or OPS
-                                return num > 0.270 ? 'split-good' : num < 0.220 ? 'split-bad' : 'split-neutral';
-                            }
+                            return num > 0.270 ? 'split-good' : num < 0.220 ? 'split-bad' : 'split-neutral';
                         }
                         return 'split-neutral';
                     }
@@ -1240,12 +1243,12 @@
                                         </div>
                                     ` : `
                                         <div class="split-stat">
-                                            <div class="split-label">ERA</div>
-                                            <div class="split-value ${getStatClass(vl.era, true, true)}">${vl.era || '0.00'}</div>
+                                            <div class="split-label">AVG</div>
+                                            <div class="split-value ${getStatClass(vl.avg, true, true)}">${vl.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
-                                            <div class="split-label">WHIP</div>
-                                            <div class="split-value ${getStatClass(vl.whip, true, true)}">${vl.whip || '0.00'}</div>
+                                            <div class="split-label">OPS</div>
+                                            <div class="split-value ${getStatClass(vl.ops, true, true)}">${vl.ops || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">K</div>
@@ -1278,12 +1281,12 @@
                                         </div>
                                     ` : `
                                         <div class="split-stat">
-                                            <div class="split-label">ERA</div>
-                                            <div class="split-value ${getStatClass(vr.era, true, true)}">${vr.era || '0.00'}</div>
+                                            <div class="split-label">AVG</div>
+                                            <div class="split-value ${getStatClass(vr.avg, true, true)}">${vr.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
-                                            <div class="split-label">WHIP</div>
-                                            <div class="split-value ${getStatClass(vr.whip, true, true)}">${vr.whip || '0.00'}</div>
+                                            <div class="split-label">OPS</div>
+                                            <div class="split-value ${getStatClass(vr.ops, true, true)}">${vr.ops || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">K</div>
