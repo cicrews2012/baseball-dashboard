@@ -445,7 +445,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.3</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.4</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -1275,6 +1275,28 @@
                 <div class="section-title">🏆 Organization</div>
                 <div class="org-info">${player.mlbOrg}</div>
                 ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+                
+                <div class="section-title">🔗 Links</div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                    ${player.mlbId ? `
+                        <a href="https://www.mlb.com/player/${player.mlbId}" target="_blank" 
+                           style="background: rgba(255, 255, 255, 0.2); color: white; padding: 8px 16px; 
+                                  border-radius: 8px; text-decoration: none; font-size: 0.875rem; font-weight: 600;
+                                  display: inline-block; transition: background 0.3s;"
+                           onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'"
+                           onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                            📊 MLB Profile
+                        </a>
+                    ` : ''}
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' MiLB baseball')}" target="_blank"
+                       style="background: rgba(255, 255, 255, 0.2); color: white; padding: 8px 16px; 
+                              border-radius: 8px; text-decoration: none; font-size: 0.875rem; font-weight: 600;
+                              display: inline-block; transition: background 0.3s;"
+                       onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'"
+                       onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                        🔍 Google Search
+                    </a>
+                </div>
             `;
 
             // Injury Section
