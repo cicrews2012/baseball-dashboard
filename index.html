@@ -295,13 +295,67 @@
             border-radius: 8px;
             margin-bottom: 15px;
         }
+
+        .splits-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .split-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .split-header {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #93c5fd;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .split-stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.875rem;
+        }
+
+        .split-stat {
+            text-align: center;
+        }
+
+        .split-label {
+            color: #93c5fd;
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+        }
+
+        .split-value {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .split-good {
+            color: #22c55e;
+        }
+
+        .split-bad {
+            color: #ef4444;
+        }
+
+        .split-neutral {
+            color: #fff;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.5</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.0</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -410,7 +464,8 @@
                     injury: null,
                     transactions: [],
                     prospectRank: null,
-                    recentPerformance: null
+                    recentPerformance: null,
+                    splits: null  // Will store LHP/RHP and Home/Away splits
                 });
             }
 
@@ -557,7 +612,8 @@
                             fetchInjuryStatus(player),
                             fetchTransactions(player),
                             fetchProspectRank(player),
-                            fetchRecentPerformance(player)
+                            fetchRecentPerformance(player),
+                            fetchPlayerSplits(player)
                         ]);
                         console.log('Additional data fetched');
                     }
@@ -666,6 +722,58 @@
                 }
             } catch (error) {
                 console.error('Error fetching prospect rank:', error);
+            }
+        }
+
+        async function fetchPlayerSplits(player) {
+            try {
+                if (!player.mlbId) return;
+                
+                const isPitcher = player.stats?.career?.type === 'pitching';
+                
+                // Fetch 2025 season splits
+                const splitsUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=statSplits,season=2025,sitCodes=[h,a,vl,vr])`;
+                console.log('Fetching splits from:', splitsUrl);
+                const response = await fetch(splitsUrl);
+                
+                if (!response.ok) {
+                    console.log('Splits API returned:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.people && data.people[0].stats && data.people[0].stats.length > 0) {
+                    const statGroup = data.people[0].stats[0];
+                    if (statGroup.splits && statGroup.splits.length > 0) {
+                        const splits = {
+                            vsLeft: null,
+                            vsRight: null,
+                            home: null,
+                            away: null
+                        };
+                        
+                        for (const split of statGroup.splits) {
+                            const sitCode = split.split?.code;
+                            const stat = split.stat;
+                            
+                            if (sitCode === 'vl') { // vs Left
+                                splits.vsLeft = stat;
+                            } else if (sitCode === 'vr') { // vs Right
+                                splits.vsRight = stat;
+                            } else if (sitCode === 'h') { // Home
+                                splits.home = stat;
+                            } else if (sitCode === 'a') { // Away
+                                splits.away = stat;
+                            }
+                        }
+                        
+                        player.splits = splits;
+                        console.log('Splits found for', player.name, ':', player.splits);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching splits:', error);
             }
         }
 
@@ -1079,6 +1187,199 @@
                     `;
                 }
                 contentHTML += `</div>`;
+            }
+
+            // Splits Section
+            if (player.splits && (player.splits.vsLeft || player.splits.vsRight || player.splits.home || player.splits.away)) {
+                contentHTML += `<div class="section-title">📊 2025 Splits</div>`;
+                
+                // Helper function to determine if a stat is good/bad
+                const getStatClass = (value, isRate, isPitcher) => {
+                    if (!value || value === '.000' || value === '0.00') return 'split-neutral';
+                    
+                    if (isPitcher) {
+                        if (isRate) { // ERA, WHIP - lower is better
+                            const num = parseFloat(value);
+                            return num < 3.50 ? 'split-good' : num > 4.50 ? 'split-bad' : 'split-neutral';
+                        } else { // SO - higher is better
+                            return 'split-neutral';
+                        }
+                    } else {
+                        if (isRate) { // AVG, OPS - higher is better
+                            const num = parseFloat(value);
+                            if (value.includes('.')) { // AVG or OPS
+                                return num > 0.270 ? 'split-good' : num < 0.220 ? 'split-bad' : 'split-neutral';
+                            }
+                        }
+                        return 'split-neutral';
+                    }
+                };
+                
+                // Handedness Splits
+                if (player.splits.vsLeft || player.splits.vsRight) {
+                    contentHTML += `<div class="splits-container">`;
+                    
+                    if (player.splits.vsLeft) {
+                        const vl = player.splits.vsLeft;
+                        contentHTML += `
+                            <div class="split-box">
+                                <div class="split-header">vs LHP</div>
+                                <div class="split-stats">
+                                    ${isHitter ? `
+                                        <div class="split-stat">
+                                            <div class="split-label">AVG</div>
+                                            <div class="split-value ${getStatClass(vl.avg, true, false)}">${vl.avg || '.000'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">HR</div>
+                                            <div class="split-value">${vl.homeRuns || 0}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">OPS</div>
+                                            <div class="split-value ${getStatClass(vl.ops, true, false)}">${vl.ops || '.000'}</div>
+                                        </div>
+                                    ` : `
+                                        <div class="split-stat">
+                                            <div class="split-label">ERA</div>
+                                            <div class="split-value ${getStatClass(vl.era, true, true)}">${vl.era || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">WHIP</div>
+                                            <div class="split-value ${getStatClass(vl.whip, true, true)}">${vl.whip || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">K</div>
+                                            <div class="split-value">${vl.strikeOuts || 0}</div>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (player.splits.vsRight) {
+                        const vr = player.splits.vsRight;
+                        contentHTML += `
+                            <div class="split-box">
+                                <div class="split-header">vs RHP</div>
+                                <div class="split-stats">
+                                    ${isHitter ? `
+                                        <div class="split-stat">
+                                            <div class="split-label">AVG</div>
+                                            <div class="split-value ${getStatClass(vr.avg, true, false)}">${vr.avg || '.000'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">HR</div>
+                                            <div class="split-value">${vr.homeRuns || 0}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">OPS</div>
+                                            <div class="split-value ${getStatClass(vr.ops, true, false)}">${vr.ops || '.000'}</div>
+                                        </div>
+                                    ` : `
+                                        <div class="split-stat">
+                                            <div class="split-label">ERA</div>
+                                            <div class="split-value ${getStatClass(vr.era, true, true)}">${vr.era || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">WHIP</div>
+                                            <div class="split-value ${getStatClass(vr.whip, true, true)}">${vr.whip || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">K</div>
+                                            <div class="split-value">${vr.strikeOuts || 0}</div>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    contentHTML += `</div>`;
+                }
+                
+                // Home/Away Splits
+                if (player.splits.home || player.splits.away) {
+                    contentHTML += `<div class="splits-container">`;
+                    
+                    if (player.splits.home) {
+                        const home = player.splits.home;
+                        contentHTML += `
+                            <div class="split-box">
+                                <div class="split-header">🏠 Home</div>
+                                <div class="split-stats">
+                                    ${isHitter ? `
+                                        <div class="split-stat">
+                                            <div class="split-label">AVG</div>
+                                            <div class="split-value ${getStatClass(home.avg, true, false)}">${home.avg || '.000'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">HR</div>
+                                            <div class="split-value">${home.homeRuns || 0}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">OPS</div>
+                                            <div class="split-value ${getStatClass(home.ops, true, false)}">${home.ops || '.000'}</div>
+                                        </div>
+                                    ` : `
+                                        <div class="split-stat">
+                                            <div class="split-label">ERA</div>
+                                            <div class="split-value ${getStatClass(home.era, true, true)}">${home.era || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">WHIP</div>
+                                            <div class="split-value ${getStatClass(home.whip, true, true)}">${home.whip || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">K</div>
+                                            <div class="split-value">${home.strikeOuts || 0}</div>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (player.splits.away) {
+                        const away = player.splits.away;
+                        contentHTML += `
+                            <div class="split-box">
+                                <div class="split-header">✈️ Away</div>
+                                <div class="split-stats">
+                                    ${isHitter ? `
+                                        <div class="split-stat">
+                                            <div class="split-label">AVG</div>
+                                            <div class="split-value ${getStatClass(away.avg, true, false)}">${away.avg || '.000'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">HR</div>
+                                            <div class="split-value">${away.homeRuns || 0}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">OPS</div>
+                                            <div class="split-value ${getStatClass(away.ops, true, false)}">${away.ops || '.000'}</div>
+                                        </div>
+                                    ` : `
+                                        <div class="split-stat">
+                                            <div class="split-label">ERA</div>
+                                            <div class="split-value ${getStatClass(away.era, true, true)}">${away.era || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">WHIP</div>
+                                            <div class="split-value ${getStatClass(away.whip, true, true)}">${away.whip || '0.00'}</div>
+                                        </div>
+                                        <div class="split-stat">
+                                            <div class="split-label">K</div>
+                                            <div class="split-value">${away.strikeOuts || 0}</div>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    contentHTML += `</div>`;
+                }
             }
 
             // Season Stats
