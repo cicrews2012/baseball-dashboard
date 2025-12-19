@@ -301,7 +301,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.4</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.5</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -617,11 +617,11 @@
                 const data = await response.json();
                 
                 if (data.transactions && data.transactions.length > 0) {
-                    // Filter to 2024 season and get last 3
+                    // Filter to 2025 season and get last 3
                     const recentTransactions = data.transactions
                         .filter(t => {
                             const year = new Date(t.date).getFullYear();
-                            return year === 2024 || year === 2025;
+                            return year === 2025;
                         })
                         .slice(0, 3)
                         .map(t => ({
@@ -673,11 +673,11 @@
             try {
                 if (!player.mlbId) return;
                 
-                // Use 2024 stats for recent performance since 2025 season hasn't started
+                // Use 2025 stats for recent performance
                 const isPitcher = player.stats?.career?.type === 'pitching';
                 
-                // Fetch last 30 days stats from 2024 season
-                const recentUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=lastXGames,limit=10,season=2024)`;
+                // Fetch last 10 games from 2025 season
+                const recentUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=lastXGames,limit=10,season=2025)`;
                 const response = await fetch(recentUrl);
                 
                 if (!response.ok) {
@@ -786,8 +786,8 @@
                 const playerId = searchData.people[0].id;
                 player.mlbId = playerId; // Store for other API calls
                 
-                // Use 2024 for now since we're in offseason - will auto-update once 2025 season starts
-                const lastCompletedSeason = 2024;
+                // Use 2025 - the most recently completed season
+                const lastCompletedSeason = 2025;
 
                 const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,season],season=${lastCompletedSeason})`;
                 const mlbRes = await fetch(mlbStatsUrl);
@@ -1009,7 +1009,7 @@
             }
 
             const isHitter = careerStats.type === 'hitting';
-            const displayYear = 2024; // Current completed season
+            const displayYear = 2025; // Most recently completed season
 
             console.log('Building HTML content...');
 
@@ -1067,7 +1067,7 @@
                 
                 contentHTML += `
                     <div class="recent-stats-highlight">
-                        <div class="section-title" style="margin-top: 0;">${trendEmoji} ${trendText} - Last 10 Games (2024)</div>
+                        <div class="section-title" style="margin-top: 0;">${trendEmoji} ${trendText} - Last 10 Games (2025)</div>
                 `;
                 if (isHitter) {
                     contentHTML += `
