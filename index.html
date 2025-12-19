@@ -301,7 +301,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.3</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v2.4</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -484,6 +484,50 @@
             return card;
         }
 
+        function updatePlayerBadges(id) {
+            const player = players.find(p => p.id === id);
+            const card = document.querySelector(`[onclick="toggleCard(${id})"]`);
+            if (!card) return;
+            
+            const badgesContainer = card.querySelector('.player-badges');
+            if (!badgesContainer) return;
+            
+            let injuryBadge = '';
+            if (player.injury) {
+                injuryBadge = `<span class="badge badge-injury">🏥 ${player.injury.status}</span>`;
+            }
+            
+            let prospectBadge = '';
+            if (player.prospectRank && player.prospectRank.orgRank) {
+                prospectBadge = `<span class="badge badge-prospect">📈 #${player.prospectRank.orgRank} Prospect</span>`;
+            }
+            
+            let trendBadge = '';
+            if (player.recentPerformance) {
+                if (player.recentPerformance.trend === 'hot') {
+                    trendBadge = `<span class="badge badge-hot">🔥 Hot</span>`;
+                } else if (player.recentPerformance.trend === 'cold') {
+                    trendBadge = `<span class="badge badge-cold">🧊 Cold</span>`;
+                }
+            }
+            
+            let transactionBadge = '';
+            if (player.transactions && player.transactions.length > 0) {
+                transactionBadge = `<span class="badge badge-transaction">📋 Recent Move</span>`;
+            }
+            
+            badgesContainer.innerHTML = `
+                ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
+                <span class="badge badge-position">${player.position}</span>
+                ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
+                ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
+                ${injuryBadge}
+                ${prospectBadge}
+                ${trendBadge}
+                ${transactionBadge}
+            `;
+        }
+
         async function toggleCard(id) {
             const details = document.getElementById(`details-${id}`);
             const content = document.getElementById(`content-${id}`);
@@ -520,8 +564,8 @@
                     
                     console.log('Calling updatePlayerCard for:', player.name);
                     updatePlayerCard(id);
-                    console.log('Re-rendering players');
-                    renderPlayers(); // Re-render to update badges
+                    updatePlayerBadges(id); // Update just this player's badges
+                    console.log('Card update complete');
                 } catch (error) {
                     console.error('Error in toggleCard:', error);
                     content.innerHTML = `<div class="error-msg">Error loading player data: ${error.message}</div>`;
