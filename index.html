@@ -349,13 +349,103 @@
         .split-neutral {
             color: #fff;
         }
+
+        .tabs-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 0;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tab.active {
+            background: #2563eb;
+            color: white;
+            border-color: #1d4ed8;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .lineup-placeholder {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            margin-top: 20px;
+        }
+
+        .lineup-placeholder h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .lineup-placeholder p {
+            font-size: 1.125rem;
+            color: #bfdbfe;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .lineup-placeholder ul {
+            text-align: left;
+            max-width: 600px;
+            margin: 30px auto;
+            padding-left: 20px;
+            color: #93c5fd;
+            line-height: 2;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            color: #fbbf24;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.1</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.3</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -379,6 +469,15 @@
             <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search players...">
         </div>
 
+        <div class="tabs-container hidden" id="tabsContainer">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('all')">All Players</div>
+                <div class="tab" onclick="switchTab('hitters')">⚾ Hitters</div>
+                <div class="tab" onclick="switchTab('pitchers')">🥎 Pitchers</div>
+                <div class="tab" onclick="switchTab('lineup')">🎯 Lineup Optimizer</div>
+            </div>
+        </div>
+
         <div class="empty-state" id="emptyState">
             <div style="font-size: 4rem;">📊</div>
             <h3>No Roster Loaded</h3>
@@ -386,10 +485,53 @@
         </div>
 
         <div class="players-grid hidden" id="playersGrid"></div>
+
+        <div class="lineup-placeholder hidden" id="lineupPlaceholder">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🎯</div>
+            <h2>Lineup Optimizer - Coming Soon!</h2>
+            <p>
+                This feature will automatically generate your optimal daily lineup based on:
+            </p>
+            <ul>
+                <li>📊 <strong>Today's probable pitchers</strong> and matchups</li>
+                <li>🔥 <strong>Player splits vs handedness</strong> (LHP/RHP performance)</li>
+                <li>🏠 <strong>Home/Away splits</strong> for each player</li>
+                <li>📈 <strong>Recent performance trends</strong> (hot/cold streaks)</li>
+                <li>⚡ <strong>Smart scoring</strong> to maximize your fantasy points</li>
+            </ul>
+            <p>
+                This feature requires live game data and will be available during the 2026 MLB season.
+                The dashboard will automatically pull today's scheduled games and generate 
+                sit/start recommendations for your entire roster.
+            </p>
+            <div class="feature-badge">🚀 Available During Season</div>
+        </div>
     </div>
 
     <script>
         let players = [];
+        let currentTab = 'all';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab styling
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide appropriate content
+            if (tab === 'lineup') {
+                document.getElementById('playersGrid').classList.add('hidden');
+                document.getElementById('lineupPlaceholder').classList.remove('hidden');
+            } else {
+                document.getElementById('playersGrid').classList.remove('hidden');
+                document.getElementById('lineupPlaceholder').classList.add('hidden');
+                
+                // Re-render with current filter
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                renderPlayers(searchTerm);
+            }
+        }
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -471,6 +613,7 @@
 
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('searchBox').classList.remove('hidden');
+            document.getElementById('tabsContainer').classList.remove('hidden');
             document.getElementById('playersGrid').classList.remove('hidden');
             renderPlayers();
         }
@@ -479,10 +622,17 @@
             const grid = document.getElementById('playersGrid');
             grid.innerHTML = '';
 
-            const filteredPlayers = players.filter(p => 
+            let filteredPlayers = players.filter(p => 
                 p.name.toLowerCase().includes(searchTerm) || 
                 p.position.toLowerCase().includes(searchTerm)
             );
+
+            // Filter by tab
+            if (currentTab === 'hitters') {
+                filteredPlayers = filteredPlayers.filter(p => p.position !== 'P');
+            } else if (currentTab === 'pitchers') {
+                filteredPlayers = filteredPlayers.filter(p => p.position === 'P');
+            }
 
             filteredPlayers.forEach(player => {
                 const card = createPlayerCard(player);
@@ -1194,25 +1344,29 @@
                 contentHTML += `<div class="section-title">📊 2025 Splits</div>`;
                 
                 // Helper function to determine if a stat is good/bad
-                const getStatClass = (value, isRate, isPitcher) => {
+                const getStatClass = (value, statType, isPitcher) => {
                     if (!value || value === '.000' || value === '0.00') return 'split-neutral';
                     
+                    const num = parseFloat(value);
+                    
                     if (isPitcher) {
-                        if (isRate) {
-                            const num = parseFloat(value);
-                            // For pitchers, lower is better (AVG against, OPS against, ERA, WHIP)
-                            if (value.includes('.') && num < 1) { // AVG or OPS against
-                                return num < 0.240 ? 'split-good' : num > 0.280 ? 'split-bad' : 'split-neutral';
-                            } else { // ERA, WHIP
-                                return num < 3.50 ? 'split-good' : num > 4.50 ? 'split-bad' : 'split-neutral';
-                            }
-                        } else { // SO - higher is better
-                            return 'split-neutral';
+                        // For pitchers, lower is better for all these stats
+                        if (statType === 'avg') { // AVG against
+                            return num < 0.240 ? 'split-good' : num > 0.280 ? 'split-bad' : 'split-neutral';
+                        } else if (statType === 'ops') { // OPS against
+                            return num < 0.700 ? 'split-good' : num > 0.800 ? 'split-bad' : 'split-neutral';
+                        } else if (statType === 'era') { // ERA
+                            return num < 3.50 ? 'split-good' : num > 4.50 ? 'split-bad' : 'split-neutral';
+                        } else if (statType === 'whip') { // WHIP
+                            return num < 1.20 ? 'split-good' : num > 1.40 ? 'split-bad' : 'split-neutral';
                         }
+                        return 'split-neutral';
                     } else {
-                        if (isRate) { // AVG, OPS - higher is better for hitters
-                            const num = parseFloat(value);
+                        // For hitters, higher is better
+                        if (statType === 'avg') { // AVG
                             return num > 0.270 ? 'split-good' : num < 0.220 ? 'split-bad' : 'split-neutral';
+                        } else if (statType === 'ops') { // OPS
+                            return num > 0.800 ? 'split-good' : num < 0.700 ? 'split-bad' : 'split-neutral';
                         }
                         return 'split-neutral';
                     }
@@ -1231,7 +1385,7 @@
                                     ${isHitter ? `
                                         <div class="split-stat">
                                             <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vl.avg, true, false)}">${vl.avg || '.000'}</div>
+                                            <div class="split-value ${getStatClass(vl.avg, 'avg', false)}">${vl.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">HR</div>
@@ -1239,16 +1393,16 @@
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(vl.ops, true, false)}">${vl.ops || '.000'}</div>
+                                            <div class="split-value ${getStatClass(vl.ops, 'ops', false)}">${vl.ops || '.000'}</div>
                                         </div>
                                     ` : `
                                         <div class="split-stat">
                                             <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vl.avg, true, true)}">${vl.avg || '.000'}</div>
+                                            <div class="split-value ${getStatClass(vl.avg, 'avg', true)}">${vl.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(vl.ops, true, true)}">${vl.ops || '.000'}</div>
+                                            <div class="split-value ${getStatClass(vl.ops, 'ops', true)}">${vl.ops || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">K</div>
@@ -1269,24 +1423,24 @@
                                     ${isHitter ? `
                                         <div class="split-stat">
                                             <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vr.avg, true, false)}">${vr.avg || '.000'}</div>
+                                            <div class="split-value ${getStatClass(vr.avg, 'avg', false)}">${vr.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">HR</div>
                                             <div class="split-value">${vr.homeRuns || 0}</div>
                                         </div>
                                         <div class="split-stat">
-                                            <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(vr.ops, true, false)}">${vr.ops || '.000'}</div>
+                                            <div class="label">OPS</div>
+                                            <div class="split-value ${getStatClass(vr.ops, 'ops', false)}">${vr.ops || '.000'}</div>
                                         </div>
                                     ` : `
                                         <div class="split-stat">
                                             <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vr.avg, true, true)}">${vr.avg || '.000'}</div>
+                                            <div class="split-value ${getStatClass(vr.avg, 'avg', true)}">${vr.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(vr.ops, true, true)}">${vr.ops || '.000'}</div>
+                                            <div class="split-value ${getStatClass(vr.ops, 'ops', true)}">${vr.ops || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">K</div>
@@ -1314,7 +1468,7 @@
                                     ${isHitter ? `
                                         <div class="split-stat">
                                             <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(home.avg, true, false)}">${home.avg || '.000'}</div>
+                                            <div class="split-value ${getStatClass(home.avg, 'avg', false)}">${home.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">HR</div>
@@ -1322,16 +1476,16 @@
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(home.ops, true, false)}">${home.ops || '.000'}</div>
+                                            <div class="split-value ${getStatClass(home.ops, 'ops', false)}">${home.ops || '.000'}</div>
                                         </div>
                                     ` : `
                                         <div class="split-stat">
                                             <div class="split-label">ERA</div>
-                                            <div class="split-value ${getStatClass(home.era, true, true)}">${home.era || '0.00'}</div>
+                                            <div class="split-value ${getStatClass(home.era, 'era', true)}">${home.era || '0.00'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">WHIP</div>
-                                            <div class="split-value ${getStatClass(home.whip, true, true)}">${home.whip || '0.00'}</div>
+                                            <div class="split-value ${getStatClass(home.whip, 'whip', true)}">${home.whip || '0.00'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">K</div>
@@ -1352,7 +1506,7 @@
                                     ${isHitter ? `
                                         <div class="split-stat">
                                             <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(away.avg, true, false)}">${away.avg || '.000'}</div>
+                                            <div class="split-value ${getStatClass(away.avg, 'avg', false)}">${away.avg || '.000'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">HR</div>
@@ -1360,16 +1514,16 @@
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(away.ops, true, false)}">${away.ops || '.000'}</div>
+                                            <div class="split-value ${getStatClass(away.ops, 'ops', false)}">${away.ops || '.000'}</div>
                                         </div>
                                     ` : `
                                         <div class="split-stat">
                                             <div class="split-label">ERA</div>
-                                            <div class="split-value ${getStatClass(away.era, true, true)}">${away.era || '0.00'}</div>
+                                            <div class="split-value ${getStatClass(away.era, 'era', true)}">${away.era || '0.00'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">WHIP</div>
-                                            <div class="split-value ${getStatClass(away.whip, true, true)}">${away.whip || '0.00'}</div>
+                                            <div class="split-value ${getStatClass(away.whip, 'whip', true)}">${away.whip || '0.00'}</div>
                                         </div>
                                         <div class="split-stat">
                                             <div class="split-label">K</div>
