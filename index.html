@@ -501,13 +501,78 @@
             font-size: 0.875rem;
             margin-top: 10px;
         }
+
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            margin-top: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-dropdown.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover {
+            background: rgba(59, 130, 246, 0.3);
+        }
+
+        .autocomplete-item-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .autocomplete-item-info {
+            font-size: 0.875rem;
+            color: #93c5fd;
+        }
+
+        .autocomplete-loading {
+            padding: 12px 20px;
+            text-align: center;
+            color: #93c5fd;
+            font-size: 0.875rem;
+        }
+
+        .autocomplete-empty {
+            padding: 12px 20px;
+            text-align: center;
+            color: #93c5fd;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.0</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.1</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -577,7 +642,10 @@
             </p>
             
             <div class="search-form">
-                <input type="text" id="playerSearchInput" placeholder="Enter player name (e.g., Paul Skenes, Elly De La Cruz)">
+                <div class="autocomplete-container">
+                    <input type="text" id="playerSearchInput" placeholder="Enter player name (e.g., Paul Skenes, Elly De La Cruz)" autocomplete="off">
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                </div>
                 <div class="search-hint">Try searching for prospects, free agents, or players on other teams</div>
                 <button onclick="searchForPlayer()" id="searchPlayerBtn">Search Player</button>
             </div>
@@ -590,12 +658,71 @@
         let players = [];
         let currentTab = 'all';
         let searchedPlayers = []; // Store searched players separately
+        let autocompleteTimeout = null;
+
+        async function handleAutocomplete(searchTerm) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            if (!searchTerm || searchTerm.length < 2) {
+                dropdown.classList.remove('active');
+                return;
+            }
+            
+            dropdown.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
+            dropdown.classList.add('active');
+            
+            try {
+                // Search MLB API for players matching the search term
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchTerm)}`;
+                const response = await fetch(searchUrl);
+                const data = await response.json();
+                
+                if (!data.people || data.people.length === 0) {
+                    dropdown.innerHTML = '<div class="autocomplete-empty">No players found</div>';
+                    return;
+                }
+                
+                // Display up to 10 results
+                dropdown.innerHTML = '';
+                const results = data.people.slice(0, 10);
+                
+                results.forEach(player => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    
+                    const position = player.primaryPosition?.abbreviation || '?';
+                    const team = player.currentTeam?.name || 'Free Agent';
+                    const age = player.currentAge ? `${player.currentAge} yrs` : '';
+                    
+                    item.innerHTML = `
+                        <div class="autocomplete-item-name">${player.fullName}</div>
+                        <div class="autocomplete-item-info">${position} • ${team} ${age ? '• ' + age : ''}</div>
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        document.getElementById('playerSearchInput').value = player.fullName;
+                        dropdown.classList.remove('active');
+                        searchForPlayer();
+                    });
+                    
+                    dropdown.appendChild(item);
+                });
+                
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+                dropdown.innerHTML = '<div class="autocomplete-empty">Error loading suggestions</div>';
+            }
+        }
 
         async function searchForPlayer() {
             const searchInput = document.getElementById('playerSearchInput');
             const searchBtn = document.getElementById('searchPlayerBtn');
             const resultsDiv = document.getElementById('searchResults');
+            const dropdown = document.getElementById('autocompleteDropdown');
             const playerName = searchInput.value.trim();
+            
+            // Close autocomplete dropdown
+            dropdown.classList.remove('active');
             
             if (!playerName) {
                 alert('Please enter a player name');
@@ -662,13 +789,41 @@
         // Allow Enter key to trigger search
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('playerSearchInput');
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
             if (searchInput) {
+                // Handle input for autocomplete
+                searchInput.addEventListener('input', function(e) {
+                    clearTimeout(autocompleteTimeout);
+                    autocompleteTimeout = setTimeout(() => {
+                        handleAutocomplete(e.target.value);
+                    }, 300); // Debounce for 300ms
+                });
+                
+                // Handle Enter key
                 searchInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
+                        dropdown.classList.remove('active');
                         searchForPlayer();
                     }
                 });
+                
+                // Handle Escape key to close dropdown
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dropdown.classList.remove('active');
+                    }
+                });
             }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (dropdown && searchInput) {
+                    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.classList.remove('active');
+                    }
+                }
+            });
         });
 
         function switchTab(tab) {
