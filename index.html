@@ -439,13 +439,75 @@
             font-weight: 600;
             margin-top: 20px;
         }
+
+        .player-search-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 20px;
+        }
+
+        .search-form {
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .search-form input {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.125rem;
+            margin-bottom: 15px;
+        }
+
+        .search-form input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-form button {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-form button:hover {
+            background: #1d4ed8;
+        }
+
+        .search-form button:disabled {
+            background: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+        }
+
+        .search-results {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .search-hint {
+            text-align: center;
+            color: #93c5fd;
+            font-size: 0.875rem;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v3.5</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.0</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -474,6 +536,7 @@
                 <div class="tab active" onclick="switchTab('all')">All Players</div>
                 <div class="tab" onclick="switchTab('hitters')">⚾ Hitters</div>
                 <div class="tab" onclick="switchTab('pitchers')">🥎 Pitchers</div>
+                <div class="tab" onclick="switchTab('search')">🔍 Player Search</div>
                 <div class="tab" onclick="switchTab('lineup')">🎯 Lineup Optimizer</div>
             </div>
         </div>
@@ -506,11 +569,107 @@
             </p>
             <div class="feature-badge">🚀 Available During Season</div>
         </div>
+
+        <div class="player-search-container hidden" id="playerSearchContainer">
+            <h2 style="text-align: center; margin-bottom: 30px; font-size: 2rem;">🔍 Search Any Player</h2>
+            <p style="text-align: center; color: #bfdbfe; margin-bottom: 30px;">
+                Research players for trades, waiver pickups, or draft prep
+            </p>
+            
+            <div class="search-form">
+                <input type="text" id="playerSearchInput" placeholder="Enter player name (e.g., Paul Skenes, Elly De La Cruz)">
+                <div class="search-hint">Try searching for prospects, free agents, or players on other teams</div>
+                <button onclick="searchForPlayer()" id="searchPlayerBtn">Search Player</button>
+            </div>
+
+            <div class="search-results" id="searchResults"></div>
+        </div>
     </div>
 
     <script>
         let players = [];
         let currentTab = 'all';
+        let searchedPlayers = []; // Store searched players separately
+
+        async function searchForPlayer() {
+            const searchInput = document.getElementById('playerSearchInput');
+            const searchBtn = document.getElementById('searchPlayerBtn');
+            const resultsDiv = document.getElementById('searchResults');
+            const playerName = searchInput.value.trim();
+            
+            if (!playerName) {
+                alert('Please enter a player name');
+                return;
+            }
+            
+            // Disable button and show loading
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching for player...</p></div>';
+            
+            try {
+                // Create a temporary player object
+                const tempPlayer = {
+                    id: 'search-' + Date.now(),
+                    name: playerName,
+                    position: '?',
+                    team: '',
+                    status: '',
+                    age: '',
+                    playerType: 'Hitting',
+                    mlbOrg: '',
+                    minorLeagueLevel: '',
+                    stats: null,
+                    statsLoaded: false,
+                    injury: null,
+                    transactions: [],
+                    prospectRank: null,
+                    recentPerformance: null,
+                    splits: null
+                };
+                
+                // Fetch all player data
+                await fetchPlayerStats(tempPlayer);
+                
+                if (tempPlayer.mlbId) {
+                    await Promise.all([
+                        fetchInjuryStatus(tempPlayer),
+                        fetchTransactions(tempPlayer),
+                        fetchProspectRank(tempPlayer),
+                        fetchRecentPerformance(tempPlayer),
+                        fetchPlayerSplits(tempPlayer)
+                    ]);
+                }
+                
+                // Add to searched players array
+                searchedPlayers.push(tempPlayer);
+                
+                // Render the card
+                resultsDiv.innerHTML = '';
+                const card = createPlayerCard(tempPlayer);
+                card.querySelector('.player-header').click(); // Auto-expand
+                resultsDiv.appendChild(card);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = `<div class="error-msg">Error searching for player: ${error.message}</div>`;
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search Player';
+            }
+        }
+
+        // Allow Enter key to trigger search
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('playerSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchForPlayer();
+                    }
+                });
+            }
+        });
 
         function switchTab(tab) {
             currentTab = tab;
@@ -520,12 +679,16 @@
             event.target.classList.add('active');
             
             // Show/hide appropriate content
+            document.getElementById('playersGrid').classList.add('hidden');
+            document.getElementById('lineupPlaceholder').classList.add('hidden');
+            document.getElementById('playerSearchContainer').classList.add('hidden');
+            
             if (tab === 'lineup') {
-                document.getElementById('playersGrid').classList.add('hidden');
                 document.getElementById('lineupPlaceholder').classList.remove('hidden');
+            } else if (tab === 'search') {
+                document.getElementById('playerSearchContainer').classList.remove('hidden');
             } else {
                 document.getElementById('playersGrid').classList.remove('hidden');
-                document.getElementById('lineupPlaceholder').classList.add('hidden');
                 
                 // Re-render with current filter
                 const searchTerm = document.getElementById('searchInput').value.toLowerCase();
