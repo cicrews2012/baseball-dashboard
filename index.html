@@ -572,7 +572,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.2</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.3</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -991,7 +991,7 @@
             }
             
             card.innerHTML = `
-                <div class="player-header" onclick="toggleCard(${player.id})">
+                <div class="player-header" onclick="toggleCard('${player.id}')">
                     <div class="player-name">${player.name}</div>
                     <div class="player-badges">
                         ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
@@ -1023,7 +1023,7 @@
                 return;
             }
             
-            const card = document.querySelector(`[onclick="toggleCard(${id})"]`);
+            const card = document.querySelector(`[onclick="toggleCard('${id}')"]`);
             if (!card) return;
             
             const badgesContainer = card.querySelector('.player-badges');
