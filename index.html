@@ -572,7 +572,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.3</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.4</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -1118,6 +1118,11 @@
                     console.error('Error in toggleCard:', error);
                     content.innerHTML = `<div class="error-msg">Error loading player data: ${error.message}</div>`;
                 }
+            } else {
+                // Stats already loaded, just display them
+                console.log('Stats already loaded, displaying for:', player.name);
+                updatePlayerCard(id);
+                updatePlayerBadges(id);
             }
         }
 
