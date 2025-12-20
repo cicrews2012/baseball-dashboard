@@ -572,7 +572,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.1</span></h1>
+                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.2</span></h1>
                 <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
             </div>
             <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
@@ -774,8 +774,12 @@
                 // Render the card
                 resultsDiv.innerHTML = '';
                 const card = createPlayerCard(tempPlayer);
-                card.querySelector('.player-header').click(); // Auto-expand
                 resultsDiv.appendChild(card);
+                
+                // Auto-expand the card
+                setTimeout(() => {
+                    toggleCard(tempPlayer.id);
+                }, 100);
                 
             } catch (error) {
                 console.error('Search error:', error);
@@ -1008,7 +1012,17 @@
         }
 
         function updatePlayerBadges(id) {
-            const player = players.find(p => p.id === id);
+            // Check both players arrays
+            let player = players.find(p => p.id === id);
+            if (!player) {
+                player = searchedPlayers.find(p => p.id === id);
+            }
+            
+            if (!player) {
+                console.error('Player not found in updatePlayerBadges:', id);
+                return;
+            }
+            
             const card = document.querySelector(`[onclick="toggleCard(${id})"]`);
             if (!card) return;
             
@@ -1054,7 +1068,17 @@
         async function toggleCard(id) {
             const details = document.getElementById(`details-${id}`);
             const content = document.getElementById(`content-${id}`);
-            const player = players.find(p => p.id === id);
+            
+            // Check both players arrays
+            let player = players.find(p => p.id === id);
+            if (!player) {
+                player = searchedPlayers.find(p => p.id === id);
+            }
+            
+            if (!player) {
+                console.error('Player not found:', id);
+                return;
+            }
 
             console.log('toggleCard called for player:', player.name, 'statsLoaded:', player.statsLoaded);
 
@@ -1562,7 +1586,17 @@
 
         function updatePlayerCard(id) {
             const content = document.getElementById(`content-${id}`);
-            const player = players.find(p => p.id === id);
+            
+            // Check both players arrays
+            let player = players.find(p => p.id === id);
+            if (!player) {
+                player = searchedPlayers.find(p => p.id === id);
+            }
+            
+            if (!player) {
+                console.error('Player not found in updatePlayerCard:', id);
+                return;
+            }
 
             console.log('updatePlayerCard - player:', player.name);
             console.log('updatePlayerCard - content element:', content);
