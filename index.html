@@ -738,8 +738,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Elite Prospect Scouting Dashboard</h1>
-            <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                <div>
+                    <h1>🎯 Elite Prospect Scouting Dashboard</h1>
+                    <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.2.0</p>
+                </div>
+            </div>
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
                 <button class="tab-btn" onclick="switchTab('research')">🔬 Player Research</button>
@@ -751,6 +756,9 @@
                 </button>
                 <button class="compare-btn" id="compareBtn" onclick="openComparison()" disabled>
                     📊 Compare Selected (0)
+                </button>
+                <button class="upload-btn" id="clearBtn" onclick="clearComparison()" style="background: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.5); display: none;">
+                    ✕ Clear Selection
                 </button>
             </div>
         </div>
@@ -1167,14 +1175,21 @@
 
             // Level-by-level breakdown with YEAR
             if (player.levelBreakdown && player.levelBreakdown.length > 1) {
+                // Sort by year descending (most recent first), then by level
+                const levelOrder = { 'MLB': 0, 'AAA': 1, 'AA': 2, 'A+': 3, 'A': 4, 'Rookie': 5 };
+                const sortedLevels = [...player.levelBreakdown].sort((a, b) => {
+                    if (a.year !== b.year) return b.year - a.year; // Most recent year first
+                    return (levelOrder[a.level] || 99) - (levelOrder[b.level] || 99);
+                });
+                
                 html += `
                     <div class="section-title">📊 Level-by-Level Performance</div>
                     <div class="timeline">
                 `;
-                player.levelBreakdown.reverse().forEach(level => {
+                sortedLevels.forEach(level => {
                     html += `
                         <div class="timeline-item">
-                            <div class="timeline-date">${level.year ? level.year + ' - ' : ''}${level.level} - ${level.games}G</div>
+                            <div class="timeline-date">${level.year || 'N/A'} - ${level.level} - ${level.games}G</div>
                             <div class="timeline-content">
                                 ${isHitter ? 
                                     `AVG: ${level.avg} | HR: ${level.hr} | RBI: ${level.rbi} | SB: ${level.sb} | OPS: ${level.ops}` :
@@ -1385,9 +1400,23 @@
 
         function updateCompareButton() {
             const btn = document.getElementById('compareBtn');
+            const clearBtn = document.getElementById('clearBtn');
             const count = selectedForComparison.size;
             btn.textContent = `📊 Compare Selected (${count})`;
             btn.disabled = count < 2;
+            
+            // Show/hide clear button
+            if (count > 0) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        function clearComparison() {
+            selectedForComparison.clear();
+            updateCompareButton();
+            renderPlayers(players); // Re-render to update checkbox states
         }
 
         function openComparison() {
@@ -1539,24 +1568,31 @@
                         { id: 16, name: 'Rookie' }
                     ];
 
-                    for (const level of minorLevels) {
-                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[career,season],sportId=${level.id},season=${currentYear})`;
-                        const minorRes = await fetch(minorUrl);
-                        const minorData = await minorRes.json();
+                    // Fetch stats for last 5 years to get complete history
+                    const years = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4];
+                    
+                    for (const year of years) {
+                        for (const level of minorLevels) {
+                            const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[season],sportId=${level.id},season=${year})`;
+                            const minorRes = await fetch(minorUrl);
+                            const minorData = await minorRes.json();
 
-                        if (minorData.people[0].stats && minorData.people[0].stats.length > 0) {
-                            for (const statGroup of minorData.people[0].stats) {
-                                const groupName = isPitcher ? 'pitching' : 'hitting';
-                                if (statGroup.group.displayName === groupName && statGroup.splits && statGroup.splits.length > 0) {
-                                    for (const split of statGroup.splits) {
-                                        const stat = split.stat;
-                                        if (stat.gamesPlayed > 0) {
-                                            const levelStats = buildStatObject(stat, level.name, isPitcher, split);
-                                            player.levelBreakdown.push(levelStats);
-                                            
-                                            if (!seasonStats.games && statGroup.type?.displayName === 'season') {
-                                                seasonStats = levelStats;
-                                                player.minorLeagueLevel = level.name;
+                            if (minorData.people[0].stats && minorData.people[0].stats.length > 0) {
+                                for (const statGroup of minorData.people[0].stats) {
+                                    const groupName = isPitcher ? 'pitching' : 'hitting';
+                                    if (statGroup.group.displayName === groupName && statGroup.splits && statGroup.splits.length > 0) {
+                                        for (const split of statGroup.splits) {
+                                            const stat = split.stat;
+                                            if (stat.gamesPlayed > 0) {
+                                                const levelStats = buildStatObject(stat, level.name, isPitcher, split);
+                                                levelStats.year = year; // Explicitly set year
+                                                player.levelBreakdown.push(levelStats);
+                                                
+                                                // Use most recent season stats
+                                                if (!seasonStats.games && year === currentYear) {
+                                                    seasonStats = levelStats;
+                                                    player.minorLeagueLevel = level.name;
+                                                }
                                             }
                                         }
                                     }
@@ -1565,7 +1601,7 @@
                         }
                     }
 
-                    // Aggregate career stats from all minor league levels
+                    // Aggregate career stats from all levels/years
                     if (player.levelBreakdown.length > 0) {
                         careerStats = aggregateCareerStats(player.levelBreakdown, isPitcher);
                         careerStats.level = 'MiLB Career';
