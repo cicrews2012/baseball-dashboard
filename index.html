@@ -733,6 +733,74 @@
             background: rgba(34, 197, 94, 0.2);
             border: 1px solid #22c55e;
         }
+
+        .prospects-subtab {
+            display: none;
+        }
+
+        .prospects-subtab.active {
+            display: block;
+        }
+
+        .prospect-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .prospect-table th {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.5);
+            position: sticky;
+            top: 0;
+        }
+
+        .prospect-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .prospect-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .prospect-rank {
+            font-weight: bold;
+            color: #60a5fa;
+            font-size: 1.1rem;
+        }
+
+        .prospect-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .prospect-owned {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #86efac;
+        }
+
+        .prospect-action-btn {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            color: #60a5fa;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .prospect-action-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -742,12 +810,13 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.3.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.4.0</p>
                 </div>
             </div>
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
                 <button class="tab-btn" onclick="switchTab('research')">🔬 Player Research</button>
+                <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
             </div>
             <div class="controls-row">
                 <input type="file" id="fileInput" accept=".csv" style="display: none;">
@@ -836,6 +905,84 @@
                     <button class="research-btn" onclick="researchPlayer()">🔍 Search Player</button>
                 </div>
                 <div id="researchResults"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="prospectsTab">
+            <div class="research-section">
+                <h2 style="margin-bottom: 20px;">🏆 Top Prospects</h2>
+                <div class="tabs" style="margin-bottom: 20px;">
+                    <button class="tab-btn active" onclick="switchProspectsSubTab('top100')">Top 100</button>
+                    <button class="tab-btn" onclick="switchProspectsSubTab('byteam')">By Team</button>
+                    <button class="tab-btn" onclick="switchProspectsSubTab('breakout')">Breakout Watch</button>
+                </div>
+
+                <!-- Top 100 Sub-tab -->
+                <div id="prospects-top100" class="prospects-subtab active">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <select class="filter-select" id="prospectPositionFilter">
+                            <option value="">All Positions</option>
+                            <option value="C">C</option>
+                            <option value="1B">1B</option>
+                            <option value="2B">2B</option>
+                            <option value="3B">3B</option>
+                            <option value="SS">SS</option>
+                            <option value="OF">OF</option>
+                            <option value="RHP">RHP</option>
+                            <option value="LHP">LHP</option>
+                        </select>
+                        <select class="filter-select" id="prospectTeamFilter">
+                            <option value="">All Teams</option>
+                        </select>
+                        <select class="filter-select" id="prospectETAFilter">
+                            <option value="">All ETAs</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027+</option>
+                        </select>
+                        <button class="upload-btn" onclick="loadTop100Prospects()">🔄 Refresh Rankings</button>
+                    </div>
+                    <div id="top100Results">
+                        <div class="empty-state">
+                            <div style="font-size: 3rem;">🏆</div>
+                            <h3>Top 100 Prospects</h3>
+                            <p style="color: #94a3b8; margin-top: 10px;">Click "Refresh Rankings" to load the latest top prospects from MLB Pipeline</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- By Team Sub-tab -->
+                <div id="prospects-byteam" class="prospects-subtab" style="display: none;">
+                    <div style="margin-bottom: 20px;">
+                        <select class="filter-select" id="teamProspectsSelect" style="width: 300px;" onchange="loadTeamProspects(this.value)">
+                            <option value="">Select a Team...</option>
+                        </select>
+                    </div>
+                    <div id="teamProspectsResults">
+                        <div class="empty-state">
+                            <div style="font-size: 3rem;">⚾</div>
+                            <h3>Team Prospects</h3>
+                            <p style="color: #94a3b8; margin-top: 10px;">Select a team to view their top prospects</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Breakout Watch Sub-tab -->
+                <div id="prospects-breakout" class="prospects-subtab" style="display: none;">
+                    <div style="margin-bottom: 20px;">
+                        <p style="color: #94a3b8; margin-bottom: 15px;">
+                            Finding prospects with elite recent performance: high OPS hitters, high K/9 pitchers, young for their level
+                        </p>
+                        <button class="research-btn" onclick="findBreakoutCandidates()">🔥 Find Breakout Candidates</button>
+                    </div>
+                    <div id="breakoutResults">
+                        <div class="empty-state">
+                            <div style="font-size: 3rem;">📈</div>
+                            <h3>Breakout Candidates</h3>
+                            <p style="color: #94a3b8; margin-top: 10px;">Click to analyze your roster and find potential breakout prospects</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -998,6 +1145,7 @@
             // Hide all tabs
             document.getElementById('rosterTab').classList.remove('active');
             document.getElementById('researchTab').classList.remove('active');
+            document.getElementById('prospectsTab').classList.remove('active');
             
             // Remove active from all buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1009,6 +1157,32 @@
             } else if (tabName === 'research') {
                 document.getElementById('researchTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            } else if (tabName === 'prospects') {
+                document.getElementById('prospectsTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                populateTeamDropdowns();
+            }
+        }
+
+        function switchProspectsSubTab(subtabName) {
+            // Hide all sub-tabs
+            document.getElementById('prospects-top100').classList.remove('active');
+            document.getElementById('prospects-byteam').classList.remove('active');
+            document.getElementById('prospects-breakout').classList.remove('active');
+            
+            // Remove active from all sub-tab buttons
+            document.querySelectorAll('#prospectsTab .tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected sub-tab
+            if (subtabName === 'top100') {
+                document.getElementById('prospects-top100').classList.add('active');
+                document.querySelectorAll('#prospectsTab .tab-btn')[0].classList.add('active');
+            } else if (subtabName === 'byteam') {
+                document.getElementById('prospects-byteam').classList.add('active');
+                document.querySelectorAll('#prospectsTab .tab-btn')[1].classList.add('active');
+            } else if (subtabName === 'breakout') {
+                document.getElementById('prospects-breakout').classList.add('active');
+                document.querySelectorAll('#prospectsTab .tab-btn')[2].classList.add('active');
             }
         }
 
@@ -1555,9 +1729,12 @@
                                 stolenBases: 0,
                                 strikeOuts: 0,
                                 baseOnBalls: 0,
+                                totalBases: 0,
+                                hitByPitch: 0,
+                                sacFlies: 0,
                                 wins: 0,
                                 losses: 0,
-                                inningsPitched: '0.0',
+                                inningsPitched: 0,
                                 earnedRuns: 0,
                                 hits_allowed: 0,
                                 walks: 0
@@ -1579,8 +1756,9 @@
                                         aggregated.losses += stat.losses || 0;
                                         aggregated.strikeOuts += stat.strikeOuts || 0;
                                         aggregated.baseOnBalls += stat.baseOnBalls || 0;
-                                        const ip = parseFloat(stat.inningsPitched || '0');
-                                        aggregated.inningsPitched = (parseFloat(aggregated.inningsPitched) + ip).toFixed(1);
+                                        aggregated.inningsPitched += parseFloat(stat.inningsPitched || '0');
+                                        aggregated.earnedRuns += stat.earnedRuns || 0;
+                                        aggregated.hits_allowed += stat.hits || 0;
                                     } else {
                                         aggregated.atBats += stat.atBats || 0;
                                         aggregated.hits += stat.hits || 0;
@@ -1589,12 +1767,21 @@
                                         aggregated.stolenBases += stat.stolenBases || 0;
                                         aggregated.strikeOuts += stat.strikeOuts || 0;
                                         aggregated.baseOnBalls += stat.baseOnBalls || 0;
+                                        aggregated.totalBases += stat.totalBases || 0;
+                                        aggregated.hitByPitch += stat.hitByPitch || 0;
+                                        aggregated.sacFlies += stat.sacFlies || 0;
                                     }
                                 }
                             }
                             
                             if (hasData) {
-                                // Use first split for rate stats, but use aggregated counting stats
+                                // Format IP properly
+                                if (isPitcher) {
+                                    aggregated.inningsPitched = aggregated.inningsPitched.toFixed(1);
+                                    aggregated.hits = aggregated.hits_allowed; // For WHIP calculation
+                                }
+                                
+                                // Merge aggregated stats with first split (for any fields we don't aggregate)
                                 const combinedStat = { ...firstSplit.stat, ...aggregated };
                                 
                                 if (isCareerStats) {
@@ -1678,16 +1865,34 @@
             const year = split?.season || null;
             
             if (isPitcher) {
+                // Recalculate ERA if we have the data
+                let era = stat.era || '0.00';
+                if (stat.earnedRuns && stat.inningsPitched) {
+                    const ip = parseFloat(stat.inningsPitched);
+                    if (ip > 0) {
+                        era = ((stat.earnedRuns / ip) * 9).toFixed(2);
+                    }
+                }
+                
+                // Recalculate WHIP if we have the data
+                let whip = stat.whip || '0.00';
+                if (stat.hits && stat.baseOnBalls && stat.inningsPitched) {
+                    const ip = parseFloat(stat.inningsPitched);
+                    if (ip > 0) {
+                        whip = ((stat.hits + stat.baseOnBalls) / ip).toFixed(2);
+                    }
+                }
+                
                 return {
                     type: 'pitching',
                     level: level,
                     year: year,
-                    era: stat.era || '0.00',
+                    era: era,
                     w: stat.wins || 0,
                     l: stat.losses || 0,
                     so: stat.strikeOuts || 0,
                     bb: stat.baseOnBalls || 0,
-                    whip: stat.whip || '0.00',
+                    whip: whip,
                     games: stat.gamesPlayed || 0,
                     ip: stat.inningsPitched || '0.0',
                     kPer9: stat.strikeoutsPer9Inn || '0.0',
@@ -1695,19 +1900,48 @@
                     kbb: stat.strikeOuts && stat.baseOnBalls ? (stat.strikeOuts / Math.max(stat.baseOnBalls, 1)).toFixed(2) : '0.00'
                 };
             } else {
+                // Recalculate AVG if we have the data
+                let avg = stat.avg || '.000';
+                if (stat.hits && stat.atBats && stat.atBats > 0) {
+                    avg = (stat.hits / stat.atBats).toFixed(3);
+                }
+                
+                // Recalculate OBP if we have the data
+                let obp = stat.obp || '.000';
+                if (stat.hits && stat.baseOnBalls && stat.atBats) {
+                    const hitByPitch = stat.hitByPitch || 0;
+                    const sacFlies = stat.sacFlies || 0;
+                    const denominator = stat.atBats + stat.baseOnBalls + hitByPitch + sacFlies;
+                    if (denominator > 0) {
+                        obp = ((stat.hits + stat.baseOnBalls + hitByPitch) / denominator).toFixed(3);
+                    }
+                }
+                
+                // Recalculate SLG if we have the data
+                let slg = stat.slg || '.000';
+                if (stat.totalBases && stat.atBats && stat.atBats > 0) {
+                    slg = (stat.totalBases / stat.atBats).toFixed(3);
+                }
+                
+                // Calculate OPS
+                let ops = stat.ops || '.000';
+                if (obp !== '.000' && slg !== '.000') {
+                    ops = (parseFloat(obp) + parseFloat(slg)).toFixed(3);
+                }
+                
                 return {
                     type: 'hitting',
                     level: level,
                     year: year,
-                    avg: stat.avg || '.000',
+                    avg: avg,
                     hr: stat.homeRuns || 0,
                     rbi: stat.rbi || 0,
                     sb: stat.stolenBases || 0,
-                    ops: stat.ops || '.000',
+                    ops: ops,
                     games: stat.gamesPlayed || 0,
                     ab: stat.atBats || 0,
-                    obp: stat.obp || '.000',
-                    slg: stat.slg || '.000',
+                    obp: obp,
+                    slg: slg,
                     kPercent: stat.strikeOuts && stat.atBats ? ((stat.strikeOuts / stat.atBats) * 100).toFixed(1) : '0.0',
                     bbPercent: stat.baseOnBalls && stat.atBats ? ((stat.baseOnBalls / stat.atBats) * 100).toFixed(1) : '0.0'
                 };
@@ -1894,6 +2128,327 @@
                     <div class="stat-value">${stats.games}</div>
                 </div>
             `;
+        }
+
+        // ========== TOP PROSPECTS FUNCTIONALITY ==========
+        
+        const mlbTeams = [
+            { id: 109, name: 'Arizona Diamondbacks', abbr: 'ARI' },
+            { id: 144, name: 'Atlanta Braves', abbr: 'ATL' },
+            { id: 110, name: 'Baltimore Orioles', abbr: 'BAL' },
+            { id: 111, name: 'Boston Red Sox', abbr: 'BOS' },
+            { id: 112, name: 'Chicago Cubs', abbr: 'CHC' },
+            { id: 145, name: 'Chicago White Sox', abbr: 'CHW' },
+            { id: 113, name: 'Cincinnati Reds', abbr: 'CIN' },
+            { id: 114, name: 'Cleveland Guardians', abbr: 'CLE' },
+            { id: 115, name: 'Colorado Rockies', abbr: 'COL' },
+            { id: 116, name: 'Detroit Tigers', abbr: 'DET' },
+            { id: 117, name: 'Houston Astros', abbr: 'HOU' },
+            { id: 118, name: 'Kansas City Royals', abbr: 'KC' },
+            { id: 108, name: 'Los Angeles Angels', abbr: 'LAA' },
+            { id: 119, name: 'Los Angeles Dodgers', abbr: 'LAD' },
+            { id: 146, name: 'Miami Marlins', abbr: 'MIA' },
+            { id: 158, name: 'Milwaukee Brewers', abbr: 'MIL' },
+            { id: 142, name: 'Minnesota Twins', abbr: 'MIN' },
+            { id: 121, name: 'New York Mets', abbr: 'NYM' },
+            { id: 147, name: 'New York Yankees', abbr: 'NYY' },
+            { id: 133, name: 'Oakland Athletics', abbr: 'OAK' },
+            { id: 143, name: 'Philadelphia Phillies', abbr: 'PHI' },
+            { id: 134, name: 'Pittsburgh Pirates', abbr: 'PIT' },
+            { id: 135, name: 'San Diego Padres', abbr: 'SD' },
+            { id: 137, name: 'San Francisco Giants', abbr: 'SF' },
+            { id: 136, name: 'Seattle Mariners', abbr: 'SEA' },
+            { id: 138, name: 'St. Louis Cardinals', abbr: 'STL' },
+            { id: 139, name: 'Tampa Bay Rays', abbr: 'TB' },
+            { id: 140, name: 'Texas Rangers', abbr: 'TEX' },
+            { id: 141, name: 'Toronto Blue Jays', abbr: 'TOR' },
+            { id: 120, name: 'Washington Nationals', abbr: 'WSH' }
+        ];
+
+        function populateTeamDropdowns() {
+            const teamFilter = document.getElementById('prospectTeamFilter');
+            const teamSelect = document.getElementById('teamProspectsSelect');
+            
+            // Clear existing options (except first)
+            teamFilter.innerHTML = '<option value="">All Teams</option>';
+            teamSelect.innerHTML = '<option value="">Select a Team...</option>';
+            
+            mlbTeams.forEach(team => {
+                const option1 = document.createElement('option');
+                option1.value = team.id;
+                option1.textContent = team.name;
+                teamFilter.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = team.id;
+                option2.textContent = team.name;
+                teamSelect.appendChild(option2);
+            });
+        }
+
+        async function loadTop100Prospects() {
+            const resultsDiv = document.getElementById('top100Results');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading Top 100 Prospects from MLB Pipeline...</p></div>';
+            
+            try {
+                // Fetch top prospects from MLB API
+                const response = await fetch('https://statsapi.mlb.com/api/v1/prospects?sportId=1');
+                const data = await response.json();
+                
+                if (!data.prospects || data.prospects.length === 0) {
+                    resultsDiv.innerHTML = '<div class="error-msg">No prospects data available</div>';
+                    return;
+                }
+                
+                // Display prospects in table format
+                let html = `
+                    <table class="prospect-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Pos</th>
+                                <th>Team</th>
+                                <th>Age</th>
+                                <th>ETA</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.prospects.slice(0, 100).forEach((prospect, index) => {
+                    const team = prospect.team?.name || 'N/A';
+                    const position = prospect.primaryPosition?.abbreviation || 'N/A';
+                    const age = prospect.currentAge || 'N/A';
+                    const eta = prospect.mlbDebutDate || 'TBD';
+                    const isOwned = players.some(p => p.name === prospect.fullName);
+                    
+                    html += `
+                        <tr>
+                            <td><span class="prospect-rank">${index + 1}</span></td>
+                            <td><span class="prospect-name">${prospect.fullName}</span></td>
+                            <td>${position}</td>
+                            <td>${team}</td>
+                            <td>${age}</td>
+                            <td>${eta}</td>
+                            <td>${isOwned ? '<span class="prospect-owned">✓ On Roster</span>' : ''}</td>
+                            <td>
+                                <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.fullName}')">
+                                    📊 View Stats
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading prospects:', error);
+                resultsDiv.innerHTML = '<div class="error-msg">Error loading prospects. Please try again.</div>';
+            }
+        }
+
+        async function loadTeamProspects(teamId) {
+            if (!teamId) return;
+            
+            const resultsDiv = document.getElementById('teamProspectsResults');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading team prospects...</p></div>';
+            
+            try {
+                const response = await fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/prospects`);
+                const data = await response.json();
+                
+                if (!data.prospects || data.prospects.length === 0) {
+                    resultsDiv.innerHTML = '<div class="error-msg">No prospects found for this team</div>';
+                    return;
+                }
+                
+                let html = `
+                    <table class="prospect-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Pos</th>
+                                <th>Age</th>
+                                <th>Level</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.prospects.forEach(prospect => {
+                    const position = prospect.primaryPosition?.abbreviation || 'N/A';
+                    const age = prospect.currentAge || 'N/A';
+                    const level = prospect.currentTeam?.name || 'N/A';
+                    const isOwned = players.some(p => p.name === prospect.fullName);
+                    
+                    html += `
+                        <tr>
+                            <td><span class="prospect-name">${prospect.fullName}</span></td>
+                            <td>${position}</td>
+                            <td>${age}</td>
+                            <td>${level}</td>
+                            <td>${isOwned ? '<span class="prospect-owned">✓ On Roster</span>' : ''}</td>
+                            <td>
+                                <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.fullName}')">
+                                    📊 View Stats
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading team prospects:', error);
+                resultsDiv.innerHTML = '<div class="error-msg">Error loading team prospects. Please try again.</div>';
+            }
+        }
+
+        function researchProspectByName(playerName) {
+            // Switch to research tab and populate search
+            switchTab('research');
+            document.getElementById('researchInput').value = playerName;
+            researchPlayer();
+        }
+
+        async function findBreakoutCandidates() {
+            const resultsDiv = document.getElementById('breakoutResults');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing prospects for breakout potential...</p></div>';
+            
+            if (players.length === 0) {
+                resultsDiv.innerHTML = '<div class="error-msg">Please upload your roster first to find breakout candidates</div>';
+                return;
+            }
+            
+            // Filter for prospects with loaded stats
+            const prospects = players.filter(p => p.status === 'Min' && p.statsLoaded);
+            
+            if (prospects.length === 0) {
+                resultsDiv.innerHTML = '<div class="error-msg">No prospects with loaded stats. Click on prospects in your roster to load their stats first.</div>';
+                return;
+            }
+            
+            const breakouts = [];
+            
+            prospects.forEach(prospect => {
+                if (!prospect.stats || !prospect.stats.season) return;
+                
+                const seasonStats = prospect.stats.season;
+                let score = 0;
+                const reasons = [];
+                
+                if (seasonStats.type === 'hitting') {
+                    const ops = parseFloat(seasonStats.ops);
+                    const kPercent = parseFloat(seasonStats.kPercent);
+                    const bbPercent = parseFloat(seasonStats.bbPercent);
+                    
+                    if (ops > 0.850) {
+                        score += 3;
+                        reasons.push('Elite OPS');
+                    }
+                    if (kPercent < 20) {
+                        score += 2;
+                        reasons.push('Low K%');
+                    }
+                    if (bbPercent > 10) {
+                        score += 2;
+                        reasons.push('Good BB%');
+                    }
+                    if (seasonStats.sb >= 10 && seasonStats.games < 80) {
+                        score += 2;
+                        reasons.push('Speed threat');
+                    }
+                } else {
+                    const era = parseFloat(seasonStats.era);
+                    const kbb = parseFloat(seasonStats.kbb);
+                    
+                    if (era < 3.50) {
+                        score += 3;
+                        reasons.push('Low ERA');
+                    }
+                    if (kbb > 3.0) {
+                        score += 3;
+                        reasons.push('Elite K/BB');
+                    }
+                }
+                
+                // Age bonus
+                if (prospect.age <= 21 && ['AA', 'AAA'].includes(seasonStats.level)) {
+                    score += 2;
+                    reasons.push('Young for level');
+                }
+                
+                if (score >= 3) {
+                    breakouts.push({ prospect, score, reasons });
+                }
+            });
+            
+            // Sort by score
+            breakouts.sort((a, b) => b.score - a.score);
+            
+            if (breakouts.length === 0) {
+                resultsDiv.innerHTML = '<div class="error-msg">No breakout candidates found in your roster based on current criteria</div>';
+                return;
+            }
+            
+            let html = `
+                <table class="prospect-table">
+                    <thead>
+                        <tr>
+                            <th>Score</th>
+                            <th>Name</th>
+                            <th>Pos</th>
+                            <th>Age</th>
+                            <th>Level</th>
+                            <th>Breakout Indicators</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            breakouts.forEach(item => {
+                const p = item.prospect;
+                html += `
+                    <tr>
+                        <td><span class="prospect-rank">${item.score}</span></td>
+                        <td><span class="prospect-name">${p.name}</span></td>
+                        <td>${p.position}</td>
+                        <td>${p.age}</td>
+                        <td>${p.stats.season.level}</td>
+                        <td>${item.reasons.map(r => `<span class="green-flag" style="display: inline-block; margin: 2px;">${r}</span>`).join(' ')}</td>
+                        <td>
+                            <button class="prospect-action-btn" onclick="toggleCard(${p.id})">
+                                📊 View Full Stats
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            resultsDiv.innerHTML = html;
         }
     </script>
 </body>
