@@ -742,7 +742,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.2.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.3.0</p>
                 </div>
             </div>
             <div class="tabs">
@@ -1107,6 +1107,10 @@
                 <div class="org-info-box">
                     <div class="org-name">${player.mlbOrg}</div>
                     ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' MLB baseball')}" 
+                       target="_blank" class="search-link" style="margin-top: 10px; display: inline-block;">
+                        🔍 Search "${player.name}" Online
+                    </a>
                 </div>
             `;
 
@@ -1541,17 +1545,65 @@
                         const groupName = isPitcher ? 'pitching' : 'hitting';
                         
                         if (statGroup.group.displayName === groupName && statGroup.splits && statGroup.splits.length > 0) {
+                            // Aggregate across all splits (handles multi-team players)
+                            let aggregated = {
+                                gamesPlayed: 0,
+                                atBats: 0,
+                                hits: 0,
+                                homeRuns: 0,
+                                rbi: 0,
+                                stolenBases: 0,
+                                strikeOuts: 0,
+                                baseOnBalls: 0,
+                                wins: 0,
+                                losses: 0,
+                                inningsPitched: '0.0',
+                                earnedRuns: 0,
+                                hits_allowed: 0,
+                                walks: 0
+                            };
+                            
+                            let hasData = false;
+                            let firstSplit = null;
+                            
                             for (const split of statGroup.splits) {
                                 const stat = split.stat;
                                 if (stat.gamesPlayed > 0) {
-                                    if (isCareerStats) {
-                                        hasMLBStats = true;
-                                        careerStats = buildStatObject(stat, 'MLB', isPitcher, split);
-                                    } else if (isSeasonStats) {
-                                        seasonStats = buildStatObject(stat, 'MLB', isPitcher, split);
-                                    } else if (isAdvanced) {
-                                        advancedStats = stat;
+                                    hasData = true;
+                                    if (!firstSplit) firstSplit = split;
+                                    
+                                    aggregated.gamesPlayed += stat.gamesPlayed || 0;
+                                    
+                                    if (isPitcher) {
+                                        aggregated.wins += stat.wins || 0;
+                                        aggregated.losses += stat.losses || 0;
+                                        aggregated.strikeOuts += stat.strikeOuts || 0;
+                                        aggregated.baseOnBalls += stat.baseOnBalls || 0;
+                                        const ip = parseFloat(stat.inningsPitched || '0');
+                                        aggregated.inningsPitched = (parseFloat(aggregated.inningsPitched) + ip).toFixed(1);
+                                    } else {
+                                        aggregated.atBats += stat.atBats || 0;
+                                        aggregated.hits += stat.hits || 0;
+                                        aggregated.homeRuns += stat.homeRuns || 0;
+                                        aggregated.rbi += stat.rbi || 0;
+                                        aggregated.stolenBases += stat.stolenBases || 0;
+                                        aggregated.strikeOuts += stat.strikeOuts || 0;
+                                        aggregated.baseOnBalls += stat.baseOnBalls || 0;
                                     }
+                                }
+                            }
+                            
+                            if (hasData) {
+                                // Use first split for rate stats, but use aggregated counting stats
+                                const combinedStat = { ...firstSplit.stat, ...aggregated };
+                                
+                                if (isCareerStats) {
+                                    hasMLBStats = true;
+                                    careerStats = buildStatObject(combinedStat, 'MLB', isPitcher, firstSplit);
+                                } else if (isSeasonStats) {
+                                    seasonStats = buildStatObject(combinedStat, 'MLB', isPitcher, firstSplit);
+                                } else if (isAdvanced) {
+                                    advancedStats = combinedStat;
                                 }
                             }
                         }
