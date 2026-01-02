@@ -89,6 +89,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            position: relative;
         }
 
         .research-input {
@@ -99,6 +100,58 @@
             background: rgba(255, 255, 255, 0.1);
             color: white;
             font-size: 1rem;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 180px;
+            background: #1e293b;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            border-radius: 10px;
+            margin-top: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-dropdown.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .autocomplete-info {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .autocomplete-loading {
+            padding: 12px 20px;
+            text-align: center;
+            color: #94a3b8;
         }
 
         .research-btn {
@@ -767,7 +820,11 @@
                 <div class="research-input-row">
                     <input type="text" class="research-input" id="researchInput" 
                            placeholder="Enter player name (e.g., Paul Skenes, Jackson Holliday)"
-                           onkeypress="if(event.key === 'Enter') researchPlayer()">
+                           autocomplete="off"
+                           oninput="handleResearchInput(this.value)"
+                           onkeydown="handleResearchKeydown(event)"
+                           onfocus="if(this.value.length >= 2) handleResearchInput(this.value)">
+                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
                     <button class="research-btn" onclick="researchPlayer()">🔍 Search Player</button>
                 </div>
                 <div id="researchResults"></div>
@@ -788,6 +845,146 @@
     <script>
         let players = [];
         let selectedForComparison = new Set();
+        let autocompleteTimeout;
+        let selectedAutocompleteIndex = -1;
+        let autocompleteResults = [];
+
+        // Close autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.research-input-row')) {
+                document.getElementById('autocompleteDropdown').classList.remove('active');
+            }
+        });
+
+        function handleResearchInput(value) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            // Clear previous timeout
+            if (autocompleteTimeout) {
+                clearTimeout(autocompleteTimeout);
+            }
+
+            // Reset selection
+            selectedAutocompleteIndex = -1;
+            
+            if (value.length < 2) {
+                dropdown.classList.remove('active');
+                return;
+            }
+
+            // Show loading
+            dropdown.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
+            dropdown.classList.add('active');
+
+            // Debounce the API call
+            autocompleteTimeout = setTimeout(async () => {
+                await fetchAutocompleteSuggestions(value);
+            }, 300);
+        }
+
+        async function fetchAutocompleteSuggestions(query) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            
+            try {
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(query)}`;
+                const response = await fetch(searchUrl);
+                const data = await response.json();
+
+                if (!data.people || data.people.length === 0) {
+                    dropdown.innerHTML = '<div class="autocomplete-loading">No players found</div>';
+                    autocompleteResults = [];
+                    return;
+                }
+
+                // Store results for keyboard navigation
+                autocompleteResults = data.people.slice(0, 10); // Limit to 10 results
+                
+                // Render suggestions
+                dropdown.innerHTML = '';
+                autocompleteResults.forEach((person, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.dataset.index = index;
+                    
+                    const position = person.primaryPosition?.abbreviation || 'N/A';
+                    const team = person.currentTeam?.name || 'Free Agent';
+                    const birthDate = person.birthDate ? new Date(person.birthDate).getFullYear() : '';
+                    const age = birthDate ? new Date().getFullYear() - birthDate : '';
+                    
+                    item.innerHTML = `
+                        <div class="autocomplete-name">${person.fullName}</div>
+                        <div class="autocomplete-info">${position} • ${team}${age ? ' • ' + age + ' yrs' : ''}</div>
+                    `;
+                    
+                    item.onclick = () => selectAutocompleteItem(person.fullName);
+                    dropdown.appendChild(item);
+                });
+
+                dropdown.classList.add('active');
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+                dropdown.innerHTML = '<div class="autocomplete-loading">Error loading suggestions</div>';
+                autocompleteResults = [];
+            }
+        }
+
+        function handleResearchKeydown(event) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            
+            if (!dropdown.classList.contains('active') || items.length === 0) {
+                if (event.key === 'Enter') {
+                    researchPlayer();
+                }
+                return;
+            }
+
+            switch(event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    selectedAutocompleteIndex = Math.min(selectedAutocompleteIndex + 1, items.length - 1);
+                    updateAutocompleteSelection(items);
+                    break;
+                
+                case 'ArrowUp':
+                    event.preventDefault();
+                    selectedAutocompleteIndex = Math.max(selectedAutocompleteIndex - 1, -1);
+                    updateAutocompleteSelection(items);
+                    break;
+                
+                case 'Enter':
+                    event.preventDefault();
+                    if (selectedAutocompleteIndex >= 0 && autocompleteResults[selectedAutocompleteIndex]) {
+                        selectAutocompleteItem(autocompleteResults[selectedAutocompleteIndex].fullName);
+                    } else {
+                        researchPlayer();
+                    }
+                    break;
+                
+                case 'Escape':
+                    dropdown.classList.remove('active');
+                    selectedAutocompleteIndex = -1;
+                    break;
+            }
+        }
+
+        function updateAutocompleteSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedAutocompleteIndex) {
+                    item.style.background = 'rgba(59, 130, 246, 0.3)';
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.style.background = '';
+                }
+            });
+        }
+
+        function selectAutocompleteItem(playerName) {
+            document.getElementById('researchInput').value = playerName;
+            document.getElementById('autocompleteDropdown').classList.remove('active');
+            selectedAutocompleteIndex = -1;
+            researchPlayer();
+        }
 
         function switchTab(tabName) {
             // Hide all tabs
