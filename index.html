@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fantasy Baseball Minor League Dashboard</title>
+    <title>Elite Prospect Scouting Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -13,139 +13,182 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #166534 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             min-height: 100vh;
             padding: 20px;
             color: #fff;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .header-content h1 {
+        .header h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .refresh-btn {
-            background: rgba(255, 255, 255, 0.2);
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .upload-btn, .compare-btn, .filter-btn {
+            background: rgba(59, 130, 246, 0.3);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.5);
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+        .upload-btn:hover, .compare-btn:hover, .filter-btn:hover {
+            background: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
         }
 
-        .upload-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .upload-btn {
-            background: #2563eb;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .upload-btn:hover {
-            background: #1d4ed8;
-        }
-
-        .search-box {
-            background: rgba(255, 255, 255, 0.1);
+        .search-filter-section {
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-input, .filter-select {
+            padding: 12px 20px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            margin-right: 10px;
         }
 
         .search-input {
-            width: 100%;
-            padding: 12px 20px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 1rem;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .filter-select {
+            min-width: 150px;
         }
 
         .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-summary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-box {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #60a5fa;
         }
 
         .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
             gap: 20px;
         }
 
         .player-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
             transition: all 0.3s;
         }
 
         .player-card:hover {
             border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+
+        .player-card.comparing {
+            border-color: #34d399;
+            border-width: 2px;
         }
 
         .player-header {
             padding: 25px;
             cursor: pointer;
+            position: relative;
         }
 
         .player-header:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .compare-checkbox {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
         }
 
         .player-name {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: bold;
             margin-bottom: 15px;
+            padding-right: 40px;
         }
 
         .player-badges {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            margin-bottom: 15px;
         }
 
         .badge {
@@ -159,20 +202,225 @@
         .badge-position { background: #3b82f6; }
         .badge-status { background: #eab308; }
         .badge-age { background: #a855f7; }
-        .badge-injury { background: #ef4444; }
-        .badge-prospect { background: #f59e0b; }
-        .badge-hot { background: #22c55e; }
-        .badge-cold { background: #3b82f6; }
-        .badge-transaction { background: #8b5cf6; }
+        .badge-ranking { background: #ec4899; }
+        .badge-eta { background: #f59e0b; }
+
+        .flags-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .flag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .green-flag {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #86efac;
+        }
+
+        .red-flag {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
 
         .player-details {
             padding: 0 25px 25px 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: none;
         }
 
         .player-details.expanded {
             display: block;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .org-info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .org-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 5px;
+        }
+
+        .org-level {
+            font-size: 0.875rem;
+            color: #93c5fd;
+        }
+
+        .stats-section {
+            margin-bottom: 25px;
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stats-level {
+            font-size: 1rem;
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-box.highlight {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: #22c55e;
+        }
+
+        .stat-box.concern {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .scouting-grades {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .grade-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .grade-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .grade-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .grade-20-35 { color: #ef4444; }
+        .grade-40-45 { color: #f59e0b; }
+        .grade-50-55 { color: #eab308; }
+        .grade-60-65 { color: #22c55e; }
+        .grade-70-80 { color: #3b82f6; }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #3b82f6, #22c55e);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 2px solid #0f172a;
+        }
+
+        .timeline-date {
+            font-size: 0.875rem;
+            color: #60a5fa;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            color: #cbd5e1;
+        }
+
+        .news-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .news-date {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .news-text {
+            color: #cbd5e1;
+            line-height: 1.6;
         }
 
         .loading {
@@ -181,7 +429,7 @@
         }
 
         .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
             border-top: 3px solid #60a5fa;
             border-radius: 50%;
             width: 50px;
@@ -195,79 +443,8 @@
             100% { transform: rotate(360deg); }
         }
 
-        .section-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin: 20px 0 15px 0;
-        }
-
-        .org-info {
-            font-size: 1.125rem;
-            color: #bfdbfe;
-            margin-bottom: 5px;
-        }
-
-        .org-level {
-            font-size: 0.875rem;
-            color: #93c5fd;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stat-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: #93c5fd;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-
-        .info-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .info-box.injury {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-        }
-
-        .info-box.transaction {
-            background: rgba(139, 92, 246, 0.2);
-            border: 1px solid rgba(139, 92, 246, 0.5);
-        }
-
-        .info-box.prospect {
-            background: rgba(245, 158, 11, 0.2);
-            border: 1px solid rgba(245, 158, 11, 0.5);
-        }
-
-        .trend-indicator {
-            display: inline-block;
-            margin-left: 8px;
-            font-size: 1.5rem;
-        }
-
         .error-msg {
-            background: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.15);
             border: 1px solid rgba(239, 68, 68, 0.5);
             color: #fca5a5;
             padding: 15px;
@@ -276,584 +453,227 @@
         }
 
         .empty-state {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 60px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .comparison-modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .comparison-content {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 20px;
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .close-comparison {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
         }
 
         .hidden {
             display: none;
         }
 
-        .recent-stats-highlight {
-            background: rgba(34, 197, 94, 0.15);
-            border-left: 4px solid #22c55e;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.875rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-left: 8px;
         }
 
-        .splits-container {
+        .trend-up {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .trend-down {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .advanced-metrics {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
         }
 
-        .split-box {
-            background: rgba(255, 255, 255, 0.1);
+        .metric-card {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 12px;
             border-radius: 10px;
-            padding: 15px;
-        }
-
-        .split-header {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #93c5fd;
-            margin-bottom: 10px;
             text-align: center;
         }
 
-        .split-stats {
-            display: flex;
-            justify-content: space-around;
-            font-size: 0.875rem;
-        }
-
-        .split-stat {
-            text-align: center;
-        }
-
-        .split-label {
-            color: #93c5fd;
+        .metric-label {
             font-size: 0.75rem;
-            margin-bottom: 3px;
+            color: #a5b4fc;
+            margin-bottom: 5px;
         }
 
-        .split-value {
+        .metric-value {
+            font-size: 1.25rem;
             font-weight: bold;
-            font-size: 1rem;
+            color: #818cf8;
         }
 
-        .split-good {
-            color: #22c55e;
-        }
-
-        .split-bad {
-            color: #ef4444;
-        }
-
-        .split-neutral {
-            color: #fff;
-        }
-
-        .tabs-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 0;
-        }
-
-        .tab {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.7);
-            padding: 12px 24px;
+        .depth-chart {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            margin: 15px 0;
         }
 
-        .tab:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.9);
+        .depth-position {
+            margin-bottom: 10px;
         }
 
-        .tab.active {
-            background: #2563eb;
-            color: white;
-            border-color: #1d4ed8;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .lineup-placeholder {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 60px 40px;
-            text-align: center;
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            margin-top: 20px;
-        }
-
-        .lineup-placeholder h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-
-        .lineup-placeholder p {
-            font-size: 1.125rem;
-            color: #bfdbfe;
-            line-height: 1.8;
-            max-width: 800px;
-            margin: 0 auto 30px;
-        }
-
-        .lineup-placeholder ul {
-            text-align: left;
-            max-width: 600px;
-            margin: 30px auto;
-            padding-left: 20px;
-            color: #93c5fd;
-            line-height: 2;
-        }
-
-        .feature-badge {
-            display: inline-block;
-            background: rgba(245, 158, 11, 0.2);
-            border: 1px solid rgba(245, 158, 11, 0.5);
-            color: #fbbf24;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-
-        .player-search-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            margin-top: 20px;
-        }
-
-        .search-form {
-            max-width: 600px;
-            margin: 0 auto 40px;
-        }
-
-        .search-form input {
-            width: 100%;
-            padding: 16px 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 1.125rem;
-            margin-bottom: 15px;
-        }
-
-        .search-form input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .search-form button {
-            width: 100%;
-            background: #2563eb;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            border: none;
-            font-size: 1.125rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .search-form button:hover {
-            background: #1d4ed8;
-        }
-
-        .search-form button:disabled {
-            background: rgba(255, 255, 255, 0.3);
-            cursor: not-allowed;
-        }
-
-        .search-results {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .search-hint {
-            text-align: center;
-            color: #93c5fd;
-            font-size: 0.875rem;
-            margin-top: 10px;
-        }
-
-        .autocomplete-container {
-            position: relative;
-        }
-
-        .autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            margin-top: 5px;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-
-        .autocomplete-dropdown.active {
-            display: block;
-        }
-
-        .autocomplete-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: background 0.2s;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        .autocomplete-item:hover {
-            background: rgba(59, 130, 246, 0.3);
-        }
-
-        .autocomplete-item-name {
-            font-weight: 600;
-            font-size: 1rem;
-            color: white;
-            margin-bottom: 4px;
-        }
-
-        .autocomplete-item-info {
-            font-size: 0.875rem;
-            color: #93c5fd;
-        }
-
-        .autocomplete-loading {
-            padding: 12px 20px;
-            text-align: center;
-            color: #93c5fd;
+        .depth-player {
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            margin-bottom: 5px;
             font-size: 0.875rem;
         }
 
-        .autocomplete-empty {
-            padding: 12px 20px;
-            text-align: center;
-            color: #93c5fd;
-            font-size: 0.875rem;
+        .depth-player.current {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="header-content">
-                <h1>⚾ Fantasy Baseball Dashboard <span style="font-size: 0.5em; color: #93c5fd;">v4.4</span></h1>
-                <p>Import your Fantrax roster - Stats automatically fetched from MLB API</p>
+            <h1>🎯 Elite Prospect Scouting Dashboard</h1>
+            <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
+            <div class="controls-row">
+                <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    📁 Upload Fantrax CSV
+                </button>
+                <button class="compare-btn" id="compareBtn" onclick="openComparison()" disabled>
+                    📊 Compare Selected (0)
+                </button>
             </div>
-            <button class="refresh-btn" onclick="location.reload()" title="Refresh Page (⌘R)">
-                🔄 Refresh
-            </button>
         </div>
 
-        <div class="upload-section">
-            <h2>📤 Import Roster</h2>
-            <input type="file" id="fileInput" accept=".csv" style="display: none;">
-            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                📁 Upload Fantrax CSV
-            </button>
-            <p style="margin-top: 15px; font-size: 0.875rem; color: #bfdbfe;">
-                Upload your CSV and click any player to automatically fetch their stats, injuries, transactions, and prospect rankings.
-                <br><strong>Shows MLB stats if available, otherwise Minor League stats.</strong>
-            </p>
+        <div class="stat-summary hidden" id="statSummary">
+            <div class="summary-box">
+                <div class="summary-label">Total Players</div>
+                <div class="summary-value" id="totalPlayers">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-label">MLB Players</div>
+                <div class="summary-value" id="mlbPlayers">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-label">Prospects</div>
+                <div class="summary-value" id="prospects">0</div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-label">Avg Age</div>
+                <div class="summary-value" id="avgAge">0</div>
+            </div>
         </div>
 
-        <div class="search-box hidden" id="searchBox">
-            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search players...">
-        </div>
-
-        <div class="tabs-container hidden" id="tabsContainer">
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('all')">All Players</div>
-                <div class="tab" onclick="switchTab('hitters')">⚾ Hitters</div>
-                <div class="tab" onclick="switchTab('pitchers')">🥎 Pitchers</div>
-                <div class="tab" onclick="switchTab('search')">🔍 Player Search</div>
-                <div class="tab" onclick="switchTab('lineup')">🎯 Lineup Optimizer</div>
+        <div class="search-filter-section hidden" id="searchSection">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search players by name, team, position...">
+                <select class="filter-select" id="positionFilter">
+                    <option value="">All Positions</option>
+                    <option value="C">C</option>
+                    <option value="1B">1B</option>
+                    <option value="2B">2B</option>
+                    <option value="3B">3B</option>
+                    <option value="SS">SS</option>
+                    <option value="OF">OF</option>
+                    <option value="P">P</option>
+                    <option value="SP">SP</option>
+                    <option value="RP">RP</option>
+                </select>
+                <select class="filter-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Act">Active (MLB)</option>
+                    <option value="Min">Minors</option>
+                    <option value="Res">Reserve</option>
+                </select>
+                <select class="filter-select" id="sortFilter">
+                    <option value="name">Name (A-Z)</option>
+                    <option value="age">Age (Young→Old)</option>
+                    <option value="team">Team</option>
+                </select>
             </div>
         </div>
 
         <div class="empty-state" id="emptyState">
-            <div style="font-size: 4rem;">📊</div>
+            <div style="font-size: 4rem;">🔬</div>
             <h3>No Roster Loaded</h3>
-            <p style="color: #bfdbfe;">Upload your Fantrax CSV to get started</p>
+            <p style="color: #94a3b8; margin-top: 10px;">Upload your Fantrax CSV to start advanced prospect analysis</p>
         </div>
 
         <div class="players-grid hidden" id="playersGrid"></div>
+    </div>
 
-        <div class="lineup-placeholder hidden" id="lineupPlaceholder">
-            <div style="font-size: 4rem; margin-bottom: 20px;">🎯</div>
-            <h2>Lineup Optimizer - Coming Soon!</h2>
-            <p>
-                This feature will automatically generate your optimal daily lineup based on:
-            </p>
-            <ul>
-                <li>📊 <strong>Today's probable pitchers</strong> and matchups</li>
-                <li>🔥 <strong>Player splits vs handedness</strong> (LHP/RHP performance)</li>
-                <li>🏠 <strong>Home/Away splits</strong> for each player</li>
-                <li>📈 <strong>Recent performance trends</strong> (hot/cold streaks)</li>
-                <li>⚡ <strong>Smart scoring</strong> to maximize your fantasy points</li>
-            </ul>
-            <p>
-                This feature requires live game data and will be available during the 2026 MLB season.
-                The dashboard will automatically pull today's scheduled games and generate 
-                sit/start recommendations for your entire roster.
-            </p>
-            <div class="feature-badge">🚀 Available During Season</div>
-        </div>
-
-        <div class="player-search-container hidden" id="playerSearchContainer">
-            <h2 style="text-align: center; margin-bottom: 30px; font-size: 2rem;">🔍 Search Any Player</h2>
-            <p style="text-align: center; color: #bfdbfe; margin-bottom: 30px;">
-                Research players for trades, waiver pickups, or draft prep
-            </p>
-            
-            <div class="search-form">
-                <div class="autocomplete-container">
-                    <input type="text" id="playerSearchInput" placeholder="Enter player name (e.g., Paul Skenes, Elly De La Cruz)" autocomplete="off">
-                    <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
-                </div>
-                <div class="search-hint">Try searching for prospects, free agents, or players on other teams</div>
-                <button onclick="searchForPlayer()" id="searchPlayerBtn">Search Player</button>
+    <div class="comparison-modal" id="comparisonModal">
+        <div class="comparison-content">
+            <div class="comparison-header">
+                <h2>📊 Player Comparison</h2>
+                <button class="close-comparison" onclick="closeComparison()">✕ Close</button>
             </div>
-
-            <div class="search-results" id="searchResults"></div>
+            <div class="comparison-grid" id="comparisonGrid"></div>
         </div>
     </div>
 
     <script>
         let players = [];
-        let currentTab = 'all';
-        let searchedPlayers = []; // Store searched players separately
-        let autocompleteTimeout = null;
-
-        async function handleAutocomplete(searchTerm) {
-            const dropdown = document.getElementById('autocompleteDropdown');
-            
-            if (!searchTerm || searchTerm.length < 2) {
-                dropdown.classList.remove('active');
-                return;
-            }
-            
-            dropdown.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
-            dropdown.classList.add('active');
-            
-            try {
-                // Search MLB API for players matching the search term
-                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchTerm)}`;
-                const response = await fetch(searchUrl);
-                const data = await response.json();
-                
-                if (!data.people || data.people.length === 0) {
-                    dropdown.innerHTML = '<div class="autocomplete-empty">No players found</div>';
-                    return;
-                }
-                
-                // Display up to 10 results
-                dropdown.innerHTML = '';
-                const results = data.people.slice(0, 10);
-                
-                results.forEach(player => {
-                    const item = document.createElement('div');
-                    item.className = 'autocomplete-item';
-                    
-                    const position = player.primaryPosition?.abbreviation || '?';
-                    const team = player.currentTeam?.name || 'Free Agent';
-                    const age = player.currentAge ? `${player.currentAge} yrs` : '';
-                    
-                    item.innerHTML = `
-                        <div class="autocomplete-item-name">${player.fullName}</div>
-                        <div class="autocomplete-item-info">${position} • ${team} ${age ? '• ' + age : ''}</div>
-                    `;
-                    
-                    item.addEventListener('click', () => {
-                        document.getElementById('playerSearchInput').value = player.fullName;
-                        dropdown.classList.remove('active');
-                        searchForPlayer();
-                    });
-                    
-                    dropdown.appendChild(item);
-                });
-                
-            } catch (error) {
-                console.error('Autocomplete error:', error);
-                dropdown.innerHTML = '<div class="autocomplete-empty">Error loading suggestions</div>';
-            }
-        }
-
-        async function searchForPlayer() {
-            const searchInput = document.getElementById('playerSearchInput');
-            const searchBtn = document.getElementById('searchPlayerBtn');
-            const resultsDiv = document.getElementById('searchResults');
-            const dropdown = document.getElementById('autocompleteDropdown');
-            const playerName = searchInput.value.trim();
-            
-            // Close autocomplete dropdown
-            dropdown.classList.remove('active');
-            
-            if (!playerName) {
-                alert('Please enter a player name');
-                return;
-            }
-            
-            // Disable button and show loading
-            searchBtn.disabled = true;
-            searchBtn.textContent = 'Searching...';
-            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching for player...</p></div>';
-            
-            try {
-                // Create a temporary player object
-                const tempPlayer = {
-                    id: 'search-' + Date.now(),
-                    name: playerName,
-                    position: '?',
-                    team: '',
-                    status: '',
-                    age: '',
-                    playerType: 'Hitting',
-                    mlbOrg: '',
-                    minorLeagueLevel: '',
-                    stats: null,
-                    statsLoaded: false,
-                    injury: null,
-                    transactions: [],
-                    prospectRank: null,
-                    recentPerformance: null,
-                    splits: null
-                };
-                
-                // Fetch all player data
-                await fetchPlayerStats(tempPlayer);
-                
-                if (tempPlayer.mlbId) {
-                    await Promise.all([
-                        fetchInjuryStatus(tempPlayer),
-                        fetchTransactions(tempPlayer),
-                        fetchProspectRank(tempPlayer),
-                        fetchRecentPerformance(tempPlayer),
-                        fetchPlayerSplits(tempPlayer)
-                    ]);
-                }
-                
-                // Add to searched players array
-                searchedPlayers.push(tempPlayer);
-                
-                // Render the card
-                resultsDiv.innerHTML = '';
-                const card = createPlayerCard(tempPlayer);
-                resultsDiv.appendChild(card);
-                
-                // Auto-expand the card
-                setTimeout(() => {
-                    toggleCard(tempPlayer.id);
-                }, 100);
-                
-            } catch (error) {
-                console.error('Search error:', error);
-                resultsDiv.innerHTML = `<div class="error-msg">Error searching for player: ${error.message}</div>`;
-            } finally {
-                searchBtn.disabled = false;
-                searchBtn.textContent = 'Search Player';
-            }
-        }
-
-        // Allow Enter key to trigger search
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('playerSearchInput');
-            const dropdown = document.getElementById('autocompleteDropdown');
-            
-            if (searchInput) {
-                // Handle input for autocomplete
-                searchInput.addEventListener('input', function(e) {
-                    clearTimeout(autocompleteTimeout);
-                    autocompleteTimeout = setTimeout(() => {
-                        handleAutocomplete(e.target.value);
-                    }, 300); // Debounce for 300ms
-                });
-                
-                // Handle Enter key
-                searchInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        dropdown.classList.remove('active');
-                        searchForPlayer();
-                    }
-                });
-                
-                // Handle Escape key to close dropdown
-                searchInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        dropdown.classList.remove('active');
-                    }
-                });
-            }
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (dropdown && searchInput) {
-                    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-                        dropdown.classList.remove('active');
-                    }
-                }
-            });
-        });
-
-        function switchTab(tab) {
-            currentTab = tab;
-            
-            // Update tab styling
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Show/hide appropriate content
-            document.getElementById('playersGrid').classList.add('hidden');
-            document.getElementById('lineupPlaceholder').classList.add('hidden');
-            document.getElementById('playerSearchContainer').classList.add('hidden');
-            
-            if (tab === 'lineup') {
-                document.getElementById('lineupPlaceholder').classList.remove('hidden');
-            } else if (tab === 'search') {
-                document.getElementById('playerSearchContainer').classList.remove('hidden');
-            } else {
-                document.getElementById('playersGrid').classList.remove('hidden');
-                
-                // Re-render with current filter
-                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                renderPlayers(searchTerm);
-            }
-        }
+        let selectedForComparison = new Set();
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -866,18 +686,27 @@
             }
         });
 
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            renderPlayers(searchTerm);
-        });
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('positionFilter').addEventListener('change', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('sortFilter').addEventListener('change', applyFilters);
 
         function parseCSV(text) {
             const lines = text.split('\n');
             players = [];
+            let currentSection = '';
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
+
+                if (line.includes('"","Hitting"')) {
+                    currentSection = 'hitting';
+                    continue;
+                } else if (line.includes('"","Pitching"')) {
+                    currentSection = 'pitching';
+                    continue;
+                }
 
                 const values = [];
                 let current = '';
@@ -904,59 +733,84 @@
                     playerName.toLowerCase() === 'player' ||
                     idValue === 'ID' || 
                     idValue === '' ||
-                    idValue.includes('ID') ||
-                    posValue === 'Pos' ||
-                    playerName.includes('Fantasy Points') ||
-                    playerName.includes('Average Fantasy')) {
+                    posValue === 'Pos') {
                     continue;
                 }
                 
                 const teamCode = values[3] || '';
                 
                 players.push({
-                    id: i,
+                    id: players.length,
                     name: playerName,
                     position: posValue,
                     team: teamCode,
                     status: values[5] || '',
-                    age: values[6] || '',
-                    playerType: 'Hitting',
+                    age: parseInt(values[6]) || 0,
+                    playerType: currentSection,
                     mlbOrg: '',
                     minorLeagueLevel: '',
                     stats: null,
                     statsLoaded: false,
-                    injury: null,
-                    transactions: [],
-                    prospectRank: null,
-                    recentPerformance: null,
-                    splits: null  // Will store LHP/RHP and Home/Away splits
+                    levelBreakdown: [],
+                    flags: [],
+                    ranking: null,
+                    scoutingGrades: null,
+                    news: []
                 });
             }
 
+            updateSummaryStats();
             document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('searchBox').classList.remove('hidden');
-            document.getElementById('tabsContainer').classList.remove('hidden');
+            document.getElementById('statSummary').classList.remove('hidden');
+            document.getElementById('searchSection').classList.remove('hidden');
             document.getElementById('playersGrid').classList.remove('hidden');
             renderPlayers();
         }
 
-        function renderPlayers(searchTerm = '') {
+        function updateSummaryStats() {
+            const mlbCount = players.filter(p => p.status === 'Act' || p.status === 'Res').length;
+            const prospectsCount = players.filter(p => p.status === 'Min').length;
+            const avgAge = players.length > 0 ? 
+                Math.round(players.reduce((sum, p) => sum + (p.age || 0), 0) / players.length) : 0;
+
+            document.getElementById('totalPlayers').textContent = players.length;
+            document.getElementById('mlbPlayers').textContent = mlbCount;
+            document.getElementById('prospects').textContent = prospectsCount;
+            document.getElementById('avgAge').textContent = avgAge;
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const posFilter = document.getElementById('positionFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            let filtered = players.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                    p.team.toLowerCase().includes(searchTerm) ||
+                                    p.position.toLowerCase().includes(searchTerm);
+                const matchesPos = !posFilter || p.position.includes(posFilter);
+                const matchesStatus = !statusFilter || p.status === statusFilter;
+                return matchesSearch && matchesPos && matchesStatus;
+            });
+
+            // Sort
+            if (sortBy === 'age') {
+                filtered.sort((a, b) => (a.age || 99) - (b.age || 99));
+            } else if (sortBy === 'team') {
+                filtered.sort((a, b) => a.team.localeCompare(b.team));
+            } else {
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            renderPlayers(filtered);
+        }
+
+        function renderPlayers(playerList = players) {
             const grid = document.getElementById('playersGrid');
             grid.innerHTML = '';
 
-            let filteredPlayers = players.filter(p => 
-                p.name.toLowerCase().includes(searchTerm) || 
-                p.position.toLowerCase().includes(searchTerm)
-            );
-
-            // Filter by tab
-            if (currentTab === 'hitters') {
-                filteredPlayers = filteredPlayers.filter(p => p.position !== 'P');
-            } else if (currentTab === 'pitchers') {
-                filteredPlayers = filteredPlayers.filter(p => p.position === 'P');
-            }
-
-            filteredPlayers.forEach(player => {
+            playerList.forEach(player => {
                 const card = createPlayerCard(player);
                 grid.appendChild(card);
             });
@@ -965,44 +819,33 @@
         function createPlayerCard(player) {
             const card = document.createElement('div');
             card.className = 'player-card';
-            
-            let injuryBadge = '';
-            if (player.injury) {
-                injuryBadge = `<span class="badge badge-injury">🏥 ${player.injury.status}</span>`;
+            if (selectedForComparison.has(player.id)) {
+                card.classList.add('comparing');
             }
-            
-            let prospectBadge = '';
-            if (player.prospectRank && player.prospectRank.orgRank) {
-                prospectBadge = `<span class="badge badge-prospect">📈 #${player.prospectRank.orgRank} Prospect</span>`;
-            }
-            
-            let trendBadge = '';
-            if (player.recentPerformance) {
-                if (player.recentPerformance.trend === 'hot') {
-                    trendBadge = `<span class="badge badge-hot">🔥 Hot</span>`;
-                } else if (player.recentPerformance.trend === 'cold') {
-                    trendBadge = `<span class="badge badge-cold">🧊 Cold</span>`;
-                }
-            }
-            
-            let transactionBadge = '';
-            if (player.transactions && player.transactions.length > 0) {
-                transactionBadge = `<span class="badge badge-transaction">📋 Recent Move</span>`;
-            }
-            
+
+            const flagsHTML = player.flags.length > 0 ? `
+                <div class="flags-row">
+                    ${player.flags.map(flag => `
+                        <div class="flag ${flag.type === 'green' ? 'green-flag' : 'red-flag'}">
+                            ${flag.icon} ${flag.text}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+
             card.innerHTML = `
-                <div class="player-header" onclick="toggleCard('${player.id}')">
+                <div class="player-header" onclick="toggleCard(${player.id})">
+                    <input type="checkbox" class="compare-checkbox" onclick="event.stopPropagation(); toggleCompare(${player.id})" 
+                           ${selectedForComparison.has(player.id) ? 'checked' : ''}>
                     <div class="player-name">${player.name}</div>
                     <div class="player-badges">
                         ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
                         <span class="badge badge-position">${player.position}</span>
                         ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
                         ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
-                        ${injuryBadge}
-                        ${prospectBadge}
-                        ${trendBadge}
-                        ${transactionBadge}
+                        ${player.ranking ? `<span class="badge badge-ranking">Rank: ${player.ranking}</span>` : ''}
                     </div>
+                    ${flagsHTML}
                 </div>
                 <div class="player-details" id="details-${player.id}">
                     <div id="content-${player.id}"></div>
@@ -1011,76 +854,66 @@
             return card;
         }
 
-        function updatePlayerBadges(id) {
-            // Check both players arrays
-            let player = players.find(p => p.id === id);
-            if (!player) {
-                player = searchedPlayers.find(p => p.id === id);
-            }
-            
-            if (!player) {
-                console.error('Player not found in updatePlayerBadges:', id);
-                return;
-            }
-            
-            const card = document.querySelector(`[onclick="toggleCard('${id}')"]`);
-            if (!card) return;
-            
-            const badgesContainer = card.querySelector('.player-badges');
-            if (!badgesContainer) return;
-            
-            let injuryBadge = '';
-            if (player.injury) {
-                injuryBadge = `<span class="badge badge-injury">🏥 ${player.injury.status}</span>`;
-            }
-            
-            let prospectBadge = '';
-            if (player.prospectRank && player.prospectRank.orgRank) {
-                prospectBadge = `<span class="badge badge-prospect">📈 #${player.prospectRank.orgRank} Prospect</span>`;
-            }
-            
-            let trendBadge = '';
-            if (player.recentPerformance) {
-                if (player.recentPerformance.trend === 'hot') {
-                    trendBadge = `<span class="badge badge-hot">🔥 Hot</span>`;
-                } else if (player.recentPerformance.trend === 'cold') {
-                    trendBadge = `<span class="badge badge-cold">🧊 Cold</span>`;
+        function toggleCompare(playerId) {
+            if (selectedForComparison.has(playerId)) {
+                selectedForComparison.delete(playerId);
+            } else {
+                if (selectedForComparison.size >= 4) {
+                    alert('You can compare up to 4 players at once');
+                    return;
                 }
+                selectedForComparison.add(playerId);
             }
+            updateCompareButton();
+            renderPlayers(players); // Re-render to update styling
+        }
+
+        function updateCompareButton() {
+            const btn = document.getElementById('compareBtn');
+            const count = selectedForComparison.size;
+            btn.textContent = `📊 Compare Selected (${count})`;
+            btn.disabled = count < 2;
+        }
+
+        function openComparison() {
+            if (selectedForComparison.size < 2) return;
             
-            let transactionBadge = '';
-            if (player.transactions && player.transactions.length > 0) {
-                transactionBadge = `<span class="badge badge-transaction">📋 Recent Move</span>`;
-            }
-            
-            badgesContainer.innerHTML = `
-                ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
-                <span class="badge badge-position">${player.position}</span>
-                ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
-                ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
-                ${injuryBadge}
-                ${prospectBadge}
-                ${trendBadge}
-                ${transactionBadge}
-            `;
+            const modal = document.getElementById('comparisonModal');
+            const grid = document.getElementById('comparisonGrid');
+            grid.innerHTML = '';
+
+            selectedForComparison.forEach(playerId => {
+                const player = players.find(p => p.id === playerId);
+                if (player && player.statsLoaded) {
+                    const compCard = createComparisonCard(player);
+                    grid.appendChild(compCard);
+                }
+            });
+
+            modal.classList.add('active');
+        }
+
+        function closeComparison() {
+            document.getElementById('comparisonModal').classList.remove('active');
+        }
+
+        function createComparisonCard(player) {
+            const div = document.createElement('div');
+            div.className = 'player-card';
+            div.innerHTML = document.getElementById(`content-${player.id}`).innerHTML;
+            div.insertAdjacentHTML('afterbegin', `
+                <div style="padding: 20px; background: rgba(59, 130, 246, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 10px;">${player.name}</h3>
+                    <div style="color: #94a3b8;">${player.position} • ${player.team} • ${player.age} yrs</div>
+                </div>
+            `);
+            return div;
         }
 
         async function toggleCard(id) {
             const details = document.getElementById(`details-${id}`);
             const content = document.getElementById(`content-${id}`);
-            
-            // Check both players arrays
-            let player = players.find(p => p.id === id);
-            if (!player) {
-                player = searchedPlayers.find(p => p.id === id);
-            }
-            
-            if (!player) {
-                console.error('Player not found:', id);
-                return;
-            }
-
-            console.log('toggleCard called for player:', player.name, 'statsLoaded:', player.statsLoaded);
+            const player = players.find(p => p.id === id);
 
             if (details.classList.contains('expanded')) {
                 details.classList.remove('expanded');
@@ -1090,400 +923,89 @@
             details.classList.add('expanded');
 
             if (!player.statsLoaded) {
-                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
-                
-                try {
-                    console.log('Fetching stats for:', player.name);
-                    await fetchPlayerStats(player);
-                    console.log('Stats fetched, player.stats:', player.stats);
-                    
-                    // Only fetch additional data if we found the player
-                    if (player.mlbId) {
-                        console.log('Fetching additional data for:', player.name);
-                        await Promise.all([
-                            fetchInjuryStatus(player),
-                            fetchTransactions(player),
-                            fetchProspectRank(player),
-                            fetchRecentPerformance(player),
-                            fetchPlayerSplits(player)
-                        ]);
-                        console.log('Additional data fetched');
-                    }
-                    
-                    console.log('Calling updatePlayerCard for:', player.name);
-                    updatePlayerCard(id);
-                    updatePlayerBadges(id); // Update just this player's badges
-                    console.log('Card update complete');
-                } catch (error) {
-                    console.error('Error in toggleCard:', error);
-                    content.innerHTML = `<div class="error-msg">Error loading player data: ${error.message}</div>`;
-                }
-            } else {
-                // Stats already loaded, just display them
-                console.log('Stats already loaded, displaying for:', player.name);
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading comprehensive player data...</p></div>';
+                await fetchPlayerStats(player);
                 updatePlayerCard(id);
-                updatePlayerBadges(id);
-            }
-        }
-
-        async function fetchInjuryStatus(player) {
-            try {
-                if (!player.mlbId) return;
-                
-                const injuryUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=currentInjury`;
-                const response = await fetch(injuryUrl);
-                
-                if (!response.ok) {
-                    console.log('Injury API returned:', response.status);
-                    return;
-                }
-                
-                const data = await response.json();
-                
-                if (data.people && data.people[0].currentInjury) {
-                    const injury = data.people[0].currentInjury;
-                    player.injury = {
-                        status: injury.injuryStatus || 'Injured',
-                        description: injury.description || 'No details available'
-                    };
-                    console.log('Injury found for', player.name, ':', player.injury);
-                }
-            } catch (error) {
-                console.error('Error fetching injury status:', error);
-            }
-        }
-
-        async function fetchTransactions(player) {
-            try {
-                if (!player.mlbId) return;
-                
-                // Try without season parameter first
-                const transUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}/transactions`;
-                console.log('Fetching transactions from:', transUrl);
-                const response = await fetch(transUrl);
-                
-                if (!response.ok) {
-                    console.log('Transactions API returned:', response.status);
-                    return;
-                }
-                
-                const data = await response.json();
-                
-                if (data.transactions && data.transactions.length > 0) {
-                    // Filter to 2025 season and get last 3
-                    const recentTransactions = data.transactions
-                        .filter(t => {
-                            const year = new Date(t.date).getFullYear();
-                            return year === 2025;
-                        })
-                        .slice(0, 3)
-                        .map(t => ({
-                            date: new Date(t.date).toLocaleDateString(),
-                            description: t.description,
-                            type: t.typeCode
-                        }));
-                    
-                    if (recentTransactions.length > 0) {
-                        player.transactions = recentTransactions;
-                        console.log('Transactions found for', player.name, ':', player.transactions);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
-            }
-        }
-
-        async function fetchProspectRank(player) {
-            try {
-                if (!player.mlbId) return;
-                
-                // Try to get prospect ranking from MLB Pipeline
-                const prospectUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=prospectRanking`;
-                const response = await fetch(prospectUrl);
-                
-                if (!response.ok) {
-                    console.log('Prospect rank API returned:', response.status);
-                    return;
-                }
-                
-                const data = await response.json();
-                
-                if (data.people && data.people[0].prospectRanking) {
-                    const ranking = data.people[0].prospectRanking;
-                    player.prospectRank = {
-                        orgRank: ranking.orgRank,
-                        overallRank: ranking.rank,
-                        eta: ranking.eta
-                    };
-                    console.log('Prospect rank found for', player.name, ':', player.prospectRank);
-                }
-            } catch (error) {
-                console.error('Error fetching prospect rank:', error);
-            }
-        }
-
-        async function fetchPlayerSplits(player) {
-            try {
-                if (!player.mlbId) return;
-                
-                const isPitcher = player.stats?.career?.type === 'pitching';
-                
-                // Fetch 2025 season splits
-                const splitsUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=statSplits,season=2025,sitCodes=[h,a,vl,vr])`;
-                console.log('Fetching splits from:', splitsUrl);
-                const response = await fetch(splitsUrl);
-                
-                if (!response.ok) {
-                    console.log('Splits API returned:', response.status);
-                    return;
-                }
-                
-                const data = await response.json();
-                
-                if (data.people && data.people[0].stats && data.people[0].stats.length > 0) {
-                    const statGroup = data.people[0].stats[0];
-                    if (statGroup.splits && statGroup.splits.length > 0) {
-                        const splits = {
-                            vsLeft: null,
-                            vsRight: null,
-                            home: null,
-                            away: null
-                        };
-                        
-                        for (const split of statGroup.splits) {
-                            const sitCode = split.split?.code;
-                            const stat = split.stat;
-                            
-                            if (sitCode === 'vl') { // vs Left
-                                splits.vsLeft = stat;
-                            } else if (sitCode === 'vr') { // vs Right
-                                splits.vsRight = stat;
-                            } else if (sitCode === 'h') { // Home
-                                splits.home = stat;
-                            } else if (sitCode === 'a') { // Away
-                                splits.away = stat;
-                            }
-                        }
-                        
-                        player.splits = splits;
-                        console.log('Splits found for', player.name, ':', player.splits);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching splits:', error);
-            }
-        }
-
-        async function fetchRecentPerformance(player) {
-            try {
-                if (!player.mlbId) return;
-                
-                // Use 2025 stats for recent performance
-                const isPitcher = player.stats?.career?.type === 'pitching';
-                
-                // Fetch last 10 games from 2025 season
-                const recentUrl = `https://statsapi.mlb.com/api/v1/people/${player.mlbId}?hydrate=stats(group=[${isPitcher ? 'pitching' : 'hitting'}],type=lastXGames,limit=10,season=2025)`;
-                const response = await fetch(recentUrl);
-                
-                if (!response.ok) {
-                    console.log('Recent performance API returned:', response.status);
-                    return;
-                }
-                
-                const data = await response.json();
-                
-                if (data.people && data.people[0].stats && data.people[0].stats.length > 0) {
-                    const statGroup = data.people[0].stats[0];
-                    if (statGroup.splits && statGroup.splits.length > 0) {
-                        const recentStats = statGroup.splits[0].stat;
-                        
-                        // Simple hot/cold logic based on recent performance
-                        let trend = null;
-                        if (isPitcher) {
-                            const era = parseFloat(recentStats.era);
-                            if (era < 3.00) trend = 'hot';
-                            else if (era > 5.00) trend = 'cold';
-                        } else {
-                            const avg = parseFloat(recentStats.avg);
-                            if (avg > 0.280) trend = 'hot';
-                            else if (avg < 0.200) trend = 'cold';
-                        }
-                        
-                        player.recentPerformance = {
-                            stats: recentStats,
-                            trend: trend
-                        };
-                        console.log('Recent performance for', player.name, ':', player.recentPerformance);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching recent performance:', error);
             }
         }
 
         async function fetchPlayerStats(player) {
             try {
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(player.name)}`;
-                console.log('Searching for player:', player.name, 'URL:', searchUrl);
+                console.log('Fetching stats for:', player.name);
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
-                
-                console.log('Search results for', player.name, ':', searchData);
 
                 if (!searchData.people || searchData.people.length === 0) {
-                    console.log('No exact match, trying alternative searches...');
-                    
                     const nameParts = player.name.split(' ');
                     if (nameParts.length > 1) {
                         const lastName = nameParts[nameParts.length - 1];
                         const firstName = nameParts[0];
                         const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}`;
-                        console.log('Trying last name search:', lastName);
                         const altSearchRes = await fetch(altSearchUrl);
                         const altSearchData = await altSearchRes.json();
-                        console.log('Last name search results:', altSearchData);
                         
                         if (altSearchData.people && altSearchData.people.length > 0) {
-                            console.log('Found people with last name:', altSearchData.people.map(p => `${p.fullName} (ID: ${p.id})`));
-                            
                             const bestMatch = altSearchData.people.find(p => {
                                 const fullName = p.fullName.toLowerCase();
                                 const searchName = player.name.toLowerCase();
-                                const pFirstName = p.firstName?.toLowerCase() || '';
-                                const pLastName = p.lastName?.toLowerCase() || '';
-                                const searchFirstName = firstName.toLowerCase();
-                                const searchLastName = lastName.toLowerCase();
-                                
-                                console.log(`Comparing: "${fullName}" with "${searchName}" | First: "${pFirstName}" vs "${searchFirstName}" | Last: "${pLastName}" vs "${searchLastName}"`);
-                                
-                                return (
-                                    fullName === searchName ||
-                                    fullName.includes(searchName) ||
-                                    searchName.includes(fullName) ||
-                                    (pFirstName === searchFirstName && pLastName === searchLastName) ||
-                                    (pFirstName.includes(searchFirstName) && pLastName.includes(searchLastName))
-                                );
+                                return fullName === searchName || fullName.includes(searchName) || searchName.includes(fullName);
                             });
                             if (bestMatch) {
-                                console.log('✓ Found match via last name:', bestMatch.fullName, bestMatch.id);
                                 searchData.people = [bestMatch];
-                            } else {
-                                console.log('✗ No good match found among last name results');
                             }
                         }
                     }
                     
                     if (!searchData.people || searchData.people.length === 0) {
                         player.stats = { 
-                            error: `"${player.name}" not found in MLB database. This player may be:<br>
-                            • A recent draft pick not yet in the system<br>
-                            • Playing in independent/international leagues<br>
-                            • Name spelled differently in MLB records<br><br>
-                            <small>The MLB API can take time to update for new players. Check back later or add stats manually.</small><br><br>
-                            <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' baseball')}" target="_blank" 
-                               style="color: #60a5fa; text-decoration: underline;">🔍 Search Google for ${player.name}</a>` 
+                            error: `"${player.name}" not found in MLB database. May be a recent draft pick or international player not yet in the system.` 
                         };
                         player.statsLoaded = true;
                         return;
                     }
-                } else {
-                    console.log('Found player:', searchData.people[0]);
                 }
 
                 const playerId = searchData.people[0].id;
-                player.mlbId = playerId; // Store for other API calls
-                
-                // Use 2025 - the most recently completed season
-                const lastCompletedSeason = 2025;
+                const currentYear = new Date().getFullYear();
 
-                const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,season],season=${lastCompletedSeason})`;
+                // Fetch comprehensive stats
+                const mlbStatsUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,season,seasonAdvanced],season=${currentYear})`;
                 const mlbRes = await fetch(mlbStatsUrl);
                 const mlbData = await mlbRes.json();
 
                 const playerInfo = mlbData.people[0];
                 player.mlbOrg = playerInfo.currentTeam?.name || 'Free Agent';
 
+                const isPitcher = playerInfo.primaryPosition?.abbreviation === 'P' || 
+                                playerInfo.primaryPosition?.code === '1';
+
+                // Process stats with level breakdown
                 let hasMLBStats = false;
                 let careerStats = {};
                 let seasonStats = {};
+                let advancedStats = {};
+                player.levelBreakdown = [];
 
-                const isPitcher = playerInfo.primaryPosition?.abbreviation === 'P' || 
-                                playerInfo.primaryPosition?.code === '1';
-                
                 if (playerInfo.stats && playerInfo.stats.length > 0) {
                     for (const statGroup of playerInfo.stats) {
                         const isCareerStats = statGroup.type?.displayName === 'career';
                         const isSeasonStats = statGroup.type?.displayName === 'season';
+                        const isAdvanced = statGroup.type?.displayName === 'seasonAdvanced';
                         
-                        if (isPitcher && statGroup.group.displayName === 'pitching') {
-                            if (statGroup.splits && statGroup.splits.length > 0) {
-                                let totalGames = 0;
-                                let aggregatedStats = {};
-                                
-                                for (const split of statGroup.splits) {
-                                    const stat = split.stat;
-                                    totalGames += stat.gamesPlayed || 0;
-                                    aggregatedStats.era = stat.era || '0.00';
-                                    aggregatedStats.w = (aggregatedStats.w || 0) + (stat.wins || 0);
-                                    aggregatedStats.l = (aggregatedStats.l || 0) + (stat.losses || 0);
-                                    aggregatedStats.so = (aggregatedStats.so || 0) + (stat.strikeOuts || 0);
-                                    aggregatedStats.whip = stat.whip || '0.00';
-                                }
-                                
-                                if (totalGames > 0) {
-                                    const statsObj = {
-                                        type: 'pitching',
-                                        level: 'MLB',
-                                        era: aggregatedStats.era,
-                                        w: aggregatedStats.w,
-                                        l: aggregatedStats.l,
-                                        so: aggregatedStats.so,
-                                        whip: aggregatedStats.whip,
-                                        games: totalGames
-                                    };
-                                    
+                        const groupName = isPitcher ? 'pitching' : 'hitting';
+                        
+                        if (statGroup.group.displayName === groupName && statGroup.splits && statGroup.splits.length > 0) {
+                            for (const split of statGroup.splits) {
+                                const stat = split.stat;
+                                if (stat.gamesPlayed > 0) {
                                     if (isCareerStats) {
                                         hasMLBStats = true;
-                                        careerStats = statsObj;
+                                        careerStats = buildStatObject(stat, 'MLB', isPitcher);
                                     } else if (isSeasonStats) {
-                                        seasonStats = statsObj;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if (statGroup.group.displayName === 'hitting' && !isPitcher) {
-                            if (statGroup.splits && statGroup.splits.length > 0) {
-                                let totalGames = 0;
-                                let aggregatedStats = {};
-                                
-                                for (const split of statGroup.splits) {
-                                    const stat = split.stat;
-                                    totalGames += stat.gamesPlayed || 0;
-                                    aggregatedStats.avg = stat.avg || '.000';
-                                    aggregatedStats.hr = (aggregatedStats.hr || 0) + (stat.homeRuns || 0);
-                                    aggregatedStats.rbi = (aggregatedStats.rbi || 0) + (stat.rbi || 0);
-                                    aggregatedStats.sb = (aggregatedStats.sb || 0) + (stat.stolenBases || 0);
-                                    aggregatedStats.ops = stat.ops || '.000';
-                                }
-                                
-                                if (totalGames > 0) {
-                                    const statsObj = {
-                                        type: 'hitting',
-                                        level: 'MLB',
-                                        avg: aggregatedStats.avg,
-                                        hr: aggregatedStats.hr,
-                                        rbi: aggregatedStats.rbi,
-                                        sb: aggregatedStats.sb,
-                                        ops: aggregatedStats.ops,
-                                        games: totalGames
-                                    };
-                                    
-                                    if (isCareerStats) {
-                                        hasMLBStats = true;
-                                        careerStats = statsObj;
-                                    } else if (isSeasonStats) {
-                                        seasonStats = statsObj;
+                                        seasonStats = buildStatObject(stat, 'MLB', isPitcher);
+                                    } else if (isAdvanced) {
+                                        advancedStats = stat;
                                     }
                                 }
                             }
@@ -1491,6 +1013,7 @@
                     }
                 }
 
+                // Fetch minor league stats if no MLB stats
                 if (!hasMLBStats) {
                     const minorLevels = [
                         { id: 11, name: 'AAA' },
@@ -1500,70 +1023,22 @@
                         { id: 16, name: 'Rookie' }
                     ];
 
-                    let aggregatedCareerStats = { games: 0 };
-                    let mostRecentSeasonStats = null;
-
                     for (const level of minorLevels) {
-                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[career,season],sportId=${level.id},season=${lastCompletedSeason})`;
+                        const minorUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?hydrate=stats(group=[hitting,pitching],type=[career,season],sportId=${level.id},season=${currentYear})`;
                         const minorRes = await fetch(minorUrl);
                         const minorData = await minorRes.json();
 
                         if (minorData.people[0].stats && minorData.people[0].stats.length > 0) {
                             for (const statGroup of minorData.people[0].stats) {
-                                const isCareerStats = statGroup.type?.displayName === 'career';
-                                const isSeasonStats = statGroup.type?.displayName === 'season';
-                                
-                                if (statGroup.splits && statGroup.splits.length > 0) {
+                                const groupName = isPitcher ? 'pitching' : 'hitting';
+                                if (statGroup.group.displayName === groupName && statGroup.splits && statGroup.splits.length > 0) {
                                     const stat = statGroup.splits[0].stat;
-                                    
-                                    if (isPitcher && statGroup.group.displayName === 'pitching' && stat.gamesPlayed > 0) {
-                                        if (isCareerStats) {
-                                            aggregatedCareerStats.type = 'pitching';
-                                            aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
-                                            aggregatedCareerStats.w = (aggregatedCareerStats.w || 0) + (stat.wins || 0);
-                                            aggregatedCareerStats.l = (aggregatedCareerStats.l || 0) + (stat.losses || 0);
-                                            aggregatedCareerStats.so = (aggregatedCareerStats.so || 0) + (stat.strikeOuts || 0);
-                                            if (!aggregatedCareerStats.era) {
-                                                aggregatedCareerStats.era = stat.era || '0.00';
-                                                aggregatedCareerStats.whip = stat.whip || '0.00';
-                                            }
-                                        }
-                                        if (isSeasonStats && !mostRecentSeasonStats) {
-                                            mostRecentSeasonStats = {
-                                                type: 'pitching',
-                                                level: level.name,
-                                                era: stat.era || '0.00',
-                                                w: stat.wins || 0,
-                                                l: stat.losses || 0,
-                                                so: stat.strikeOuts || 0,
-                                                whip: stat.whip || '0.00',
-                                                games: stat.gamesPlayed || 0
-                                            };
-                                            player.minorLeagueLevel = level.name;
-                                        }
-                                    } else if (!isPitcher && statGroup.group.displayName === 'hitting' && stat.gamesPlayed > 0) {
-                                        if (isCareerStats) {
-                                            aggregatedCareerStats.type = 'hitting';
-                                            aggregatedCareerStats.games = (aggregatedCareerStats.games || 0) + (stat.gamesPlayed || 0);
-                                            aggregatedCareerStats.hr = (aggregatedCareerStats.hr || 0) + (stat.homeRuns || 0);
-                                            aggregatedCareerStats.rbi = (aggregatedCareerStats.rbi || 0) + (stat.rbi || 0);
-                                            aggregatedCareerStats.sb = (aggregatedCareerStats.sb || 0) + (stat.stolenBases || 0);
-                                            if (!aggregatedCareerStats.avg) {
-                                                aggregatedCareerStats.avg = stat.avg || '.000';
-                                                aggregatedCareerStats.ops = stat.ops || '.000';
-                                            }
-                                        }
-                                        if (isSeasonStats && !mostRecentSeasonStats) {
-                                            mostRecentSeasonStats = {
-                                                type: 'hitting',
-                                                level: level.name,
-                                                avg: stat.avg || '.000',
-                                                hr: stat.homeRuns || 0,
-                                                rbi: stat.rbi || 0,
-                                                sb: stat.stolenBases || 0,
-                                                ops: stat.ops || '.000',
-                                                games: stat.gamesPlayed || 0
-                                            };
+                                    if (stat.gamesPlayed > 0) {
+                                        const levelStats = buildStatObject(stat, level.name, isPitcher);
+                                        player.levelBreakdown.push(levelStats);
+                                        
+                                        if (!seasonStats.games && statGroup.type?.displayName === 'season') {
+                                            seasonStats = levelStats;
                                             player.minorLeagueLevel = level.name;
                                         }
                                     }
@@ -1572,14 +1047,18 @@
                         }
                     }
 
-                    if (aggregatedCareerStats.games > 0) {
-                        aggregatedCareerStats.level = 'MiLB Career';
-                        careerStats = aggregatedCareerStats;
-                        seasonStats = mostRecentSeasonStats || {};
+                    // Aggregate career stats from all minor league levels
+                    if (player.levelBreakdown.length > 0) {
+                        careerStats = aggregateCareerStats(player.levelBreakdown, isPitcher);
+                        careerStats.level = 'MiLB Career';
                     }
                 }
 
-                player.stats = { career: careerStats, season: seasonStats };
+                player.stats = { career: careerStats, season: seasonStats, advanced: advancedStats };
+                
+                // Generate flags and insights
+                generatePlayerFlags(player, isPitcher);
+                
                 player.statsLoaded = true;
 
             } catch (error) {
@@ -1589,26 +1068,146 @@
             }
         }
 
+        function buildStatObject(stat, level, isPitcher) {
+            if (isPitcher) {
+                return {
+                    type: 'pitching',
+                    level: level,
+                    era: stat.era || '0.00',
+                    w: stat.wins || 0,
+                    l: stat.losses || 0,
+                    so: stat.strikeOuts || 0,
+                    bb: stat.baseOnBalls || 0,
+                    whip: stat.whip || '0.00',
+                    games: stat.gamesPlayed || 0,
+                    ip: stat.inningsPitched || '0.0',
+                    kPer9: stat.strikeoutsPer9Inn || '0.0',
+                    bbPer9: stat.walksPer9Inn || '0.0',
+                    kbb: stat.strikeOuts && stat.baseOnBalls ? (stat.strikeOuts / Math.max(stat.baseOnBalls, 1)).toFixed(2) : '0.00'
+                };
+            } else {
+                return {
+                    type: 'hitting',
+                    level: level,
+                    avg: stat.avg || '.000',
+                    hr: stat.homeRuns || 0,
+                    rbi: stat.rbi || 0,
+                    sb: stat.stolenBases || 0,
+                    ops: stat.ops || '.000',
+                    games: stat.gamesPlayed || 0,
+                    ab: stat.atBats || 0,
+                    obp: stat.obp || '.000',
+                    slg: stat.slg || '.000',
+                    kPercent: stat.strikeOuts && stat.atBats ? ((stat.strikeOuts / stat.atBats) * 100).toFixed(1) : '0.0',
+                    bbPercent: stat.baseOnBalls && stat.atBats ? ((stat.baseOnBalls / stat.atBats) * 100).toFixed(1) : '0.0'
+                };
+            }
+        }
+
+        function aggregateCareerStats(levels, isPitcher) {
+            if (isPitcher) {
+                const totals = levels.reduce((acc, level) => ({
+                    games: acc.games + level.games,
+                    w: acc.w + level.w,
+                    l: acc.l + level.l,
+                    so: acc.so + level.so,
+                    bb: acc.bb + level.bb,
+                    ip: parseFloat(acc.ip) + parseFloat(level.ip)
+                }), { games: 0, w: 0, l: 0, so: 0, bb: 0, ip: 0 });
+
+                return {
+                    type: 'pitching',
+                    level: 'MiLB Career',
+                    games: totals.games,
+                    w: totals.w,
+                    l: totals.l,
+                    so: totals.so,
+                    bb: totals.bb,
+                    ip: totals.ip.toFixed(1),
+                    kbb: (totals.so / Math.max(totals.bb, 1)).toFixed(2),
+                    era: levels[0]?.era || '0.00',
+                    whip: levels[0]?.whip || '0.00'
+                };
+            } else {
+                const totals = levels.reduce((acc, level) => ({
+                    games: acc.games + level.games,
+                    ab: acc.ab + level.ab,
+                    hr: acc.hr + level.hr,
+                    rbi: acc.rbi + level.rbi,
+                    sb: acc.sb + level.sb
+                }), { games: 0, ab: 0, hr: 0, rbi: 0, sb: 0 });
+
+                return {
+                    type: 'hitting',
+                    level: 'MiLB Career',
+                    games: totals.games,
+                    ab: totals.ab,
+                    hr: totals.hr,
+                    rbi: totals.rbi,
+                    sb: totals.sb,
+                    avg: levels[0]?.avg || '.000',
+                    ops: levels[0]?.ops || '.000',
+                    obp: levels[0]?.obp || '.000',
+                    slg: levels[0]?.slg || '.000'
+                };
+            }
+        }
+
+        function generatePlayerFlags(player, isPitcher) {
+            player.flags = [];
+            const stats = player.stats.season;
+            
+            if (!stats || !stats.games) return;
+
+            if (isPitcher) {
+                const era = parseFloat(stats.era);
+                const kbb = parseFloat(stats.kbb);
+                
+                if (era < 3.00 && stats.games >= 10) {
+                    player.flags.push({ type: 'green', icon: '🔥', text: 'Elite ERA' });
+                }
+                if (kbb > 4.0 && stats.games >= 10) {
+                    player.flags.push({ type: 'green', icon: '💪', text: 'Excellent K/BB' });
+                }
+                if (era > 5.00 && stats.games >= 10) {
+                    player.flags.push({ type: 'red', icon: '⚠️', text: 'High ERA' });
+                }
+            } else {
+                const ops = parseFloat(stats.ops);
+                const kPercent = parseFloat(stats.kPercent);
+                const bbPercent = parseFloat(stats.bbPercent);
+                
+                if (ops > 0.900 && stats.games >= 20) {
+                    player.flags.push({ type: 'green', icon: '🔥', text: 'Elite OPS' });
+                }
+                if (stats.sb >= 15 && stats.games >= 50) {
+                    player.flags.push({ type: 'green', icon: '💨', text: 'Speed Threat' });
+                }
+                if (kPercent < 20 && stats.games >= 20) {
+                    player.flags.push({ type: 'green', icon: '👁️', text: 'Good Contact' });
+                }
+                if (bbPercent > 10 && stats.games >= 20) {
+                    player.flags.push({ type: 'green', icon: '🎯', text: 'Plate Discipline' });
+                }
+                if (kPercent > 30 && stats.games >= 20) {
+                    player.flags.push({ type: 'red', icon: '⚠️', text: 'High K%' });
+                }
+            }
+
+            // Age-relative flags
+            if (player.age <= 21 && stats.level && ['AA', 'AAA'].includes(stats.level)) {
+                player.flags.push({ type: 'green', icon: '⭐', text: 'Advanced for Age' });
+            }
+            if (player.age >= 26 && stats.level && ['A', 'A+', 'Rookie'].includes(stats.level)) {
+                player.flags.push({ type: 'red', icon: '📉', text: 'Old for Level' });
+            }
+        }
+
         function updatePlayerCard(id) {
             const content = document.getElementById(`content-${id}`);
-            
-            // Check both players arrays
-            let player = players.find(p => p.id === id);
-            if (!player) {
-                player = searchedPlayers.find(p => p.id === id);
-            }
-            
-            if (!player) {
-                console.error('Player not found in updatePlayerCard:', id);
-                return;
-            }
-
-            console.log('updatePlayerCard - player:', player.name);
-            console.log('updatePlayerCard - content element:', content);
-            console.log('updatePlayerCard - player.stats:', player.stats);
+            const player = players.find(p => p.id === id);
 
             if (player.stats && player.stats.error) {
-                console.log('Showing error message');
                 content.innerHTML = `<div class="error-msg">${player.stats.error}</div>`;
                 return;
             }
@@ -1616,337 +1215,165 @@
             const careerStats = player.stats?.career;
             const seasonStats = player.stats?.season;
 
-            console.log('careerStats:', careerStats);
-            console.log('seasonStats:', seasonStats);
-
             if (!careerStats || !careerStats.games) {
-                console.log('No career stats available');
                 content.innerHTML = `<div class="error-msg">No stats available for this player</div>`;
                 return;
             }
 
             const isHitter = careerStats.type === 'hitting';
-            const displayYear = 2025; // Most recently completed season
+            const currentYear = new Date().getFullYear();
 
-            console.log('Building HTML content...');
-
-            let contentHTML = `
-                <div class="section-title">🏆 Organization</div>
-                <div class="org-info">${player.mlbOrg}</div>
-                ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
-                ${player.mlbId ? `<div class="org-level"><a href="https://www.mlb.com/player/${player.mlbId}" target="_blank" style="color: #60a5fa; text-decoration: underline;">View MLB Profile</a></div>` : ''}
-            `;
-
-            // Injury Section
-            if (player.injury) {
-                contentHTML += `
-                    <div class="info-box injury">
-                        <div class="section-title" style="margin-top: 0;">🏥 Injury Status</div>
-                        <div><strong>${player.injury.status}</strong></div>
-                        <div style="font-size: 0.875rem; margin-top: 5px;">${player.injury.description}</div>
-                    </div>
-                `;
-            }
-
-            // Transactions Section
-            if (player.transactions && player.transactions.length > 0) {
-                contentHTML += `
-                    <div class="info-box transaction">
-                        <div class="section-title" style="margin-top: 0;">📋 Recent Transactions</div>
-                `;
-                player.transactions.forEach(trans => {
-                    contentHTML += `
-                        <div style="margin-bottom: 8px;">
-                            <strong>${trans.date}:</strong> ${trans.description}
-                        </div>
-                    `;
-                });
-                contentHTML += `</div>`;
-            }
-
-            // Prospect Ranking Section
-            if (player.prospectRank) {
-                contentHTML += `
-                    <div class="info-box prospect">
-                        <div class="section-title" style="margin-top: 0;">📈 Prospect Ranking</div>
-                        <div><strong>Organization Rank:</strong> #${player.prospectRank.orgRank}</div>
-                        ${player.prospectRank.overallRank ? `<div><strong>Overall Rank:</strong> #${player.prospectRank.overallRank}</div>` : ''}
-                        ${player.prospectRank.eta ? `<div><strong>ETA:</strong> ${player.prospectRank.eta}</div>` : ''}
-                    </div>
-                `;
-            }
-
-            // Recent Performance Highlight
-            if (player.recentPerformance && player.recentPerformance.trend) {
-                const trend = player.recentPerformance.trend;
-                const recentStats = player.recentPerformance.stats;
-                const trendEmoji = trend === 'hot' ? '🔥' : '🧊';
-                const trendText = trend === 'hot' ? 'Hot Streak' : 'Cold Streak';
-                
-                contentHTML += `
-                    <div class="recent-stats-highlight">
-                        <div class="section-title" style="margin-top: 0;">${trendEmoji} ${trendText} - Last 10 Games (2025)</div>
-                `;
-                if (isHitter) {
-                    contentHTML += `
-                        <div>AVG: ${recentStats.avg} | HR: ${recentStats.homeRuns} | RBI: ${recentStats.rbi}</div>
-                    `;
-                } else {
-                    contentHTML += `
-                        <div>ERA: ${recentStats.era} | W-L: ${recentStats.wins}-${recentStats.losses} | SO: ${recentStats.strikeOuts}</div>
-                    `;
-                }
-                contentHTML += `</div>`;
-            }
-
-            // Splits Section
-            if (player.splits && (player.splits.vsLeft || player.splits.vsRight || player.splits.home || player.splits.away)) {
-                contentHTML += `<div class="section-title">📊 2025 Splits</div>`;
-                
-                // Helper function to determine if a stat is good/bad
-                const getStatClass = (value, statType, isPitcher) => {
-                    if (!value || value === '.000' || value === '0.00') return 'split-neutral';
-                    
-                    const num = parseFloat(value);
-                    
-                    if (isPitcher) {
-                        // For pitchers, lower is better for all these stats
-                        if (statType === 'avg') { // AVG against
-                            return num < 0.240 ? 'split-good' : num > 0.280 ? 'split-bad' : 'split-neutral';
-                        } else if (statType === 'ops') { // OPS against
-                            return num < 0.700 ? 'split-good' : num > 0.800 ? 'split-bad' : 'split-neutral';
-                        } else if (statType === 'era') { // ERA
-                            return num < 3.50 ? 'split-good' : num > 4.50 ? 'split-bad' : 'split-neutral';
-                        } else if (statType === 'whip') { // WHIP
-                            return num < 1.20 ? 'split-good' : num > 1.40 ? 'split-bad' : 'split-neutral';
-                        }
-                        return 'split-neutral';
-                    } else {
-                        // For hitters, higher is better
-                        if (statType === 'avg') { // AVG
-                            return num > 0.270 ? 'split-good' : num < 0.220 ? 'split-bad' : 'split-neutral';
-                        } else if (statType === 'ops') { // OPS
-                            return num > 0.800 ? 'split-good' : num < 0.700 ? 'split-bad' : 'split-neutral';
-                        }
-                        return 'split-neutral';
-                    }
-                };
-                
-                // Handedness Splits
-                if (player.splits.vsLeft || player.splits.vsRight) {
-                    contentHTML += `<div class="splits-container">`;
-                    
-                    if (player.splits.vsLeft) {
-                        const vl = player.splits.vsLeft;
-                        contentHTML += `
-                            <div class="split-box">
-                                <div class="split-header">vs LHP</div>
-                                <div class="split-stats">
-                                    ${isHitter ? `
-                                        <div class="split-stat">
-                                            <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vl.avg, 'avg', false)}">${vl.avg || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">HR</div>
-                                            <div class="split-value">${vl.homeRuns || 0}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(vl.ops, 'ops', false)}">${vl.ops || '.000'}</div>
-                                        </div>
-                                    ` : `
-                                        <div class="split-stat">
-                                            <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vl.avg, 'avg', true)}">${vl.avg || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(vl.ops, 'ops', true)}">${vl.ops || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">K</div>
-                                            <div class="split-value">${vl.strikeOuts || 0}</div>
-                                        </div>
-                                    `}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    if (player.splits.vsRight) {
-                        const vr = player.splits.vsRight;
-                        contentHTML += `
-                            <div class="split-box">
-                                <div class="split-header">vs RHP</div>
-                                <div class="split-stats">
-                                    ${isHitter ? `
-                                        <div class="split-stat">
-                                            <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vr.avg, 'avg', false)}">${vr.avg || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">HR</div>
-                                            <div class="split-value">${vr.homeRuns || 0}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="label">OPS</div>
-                                            <div class="split-value ${getStatClass(vr.ops, 'ops', false)}">${vr.ops || '.000'}</div>
-                                        </div>
-                                    ` : `
-                                        <div class="split-stat">
-                                            <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(vr.avg, 'avg', true)}">${vr.avg || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(vr.ops, 'ops', true)}">${vr.ops || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">K</div>
-                                            <div class="split-value">${vr.strikeOuts || 0}</div>
-                                        </div>
-                                    `}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    contentHTML += `</div>`;
-                }
-                
-                // Home/Away Splits
-                if (player.splits.home || player.splits.away) {
-                    contentHTML += `<div class="splits-container">`;
-                    
-                    if (player.splits.home) {
-                        const home = player.splits.home;
-                        contentHTML += `
-                            <div class="split-box">
-                                <div class="split-header">🏠 Home</div>
-                                <div class="split-stats">
-                                    ${isHitter ? `
-                                        <div class="split-stat">
-                                            <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(home.avg, 'avg', false)}">${home.avg || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">HR</div>
-                                            <div class="split-value">${home.homeRuns || 0}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(home.ops, 'ops', false)}">${home.ops || '.000'}</div>
-                                        </div>
-                                    ` : `
-                                        <div class="split-stat">
-                                            <div class="split-label">ERA</div>
-                                            <div class="split-value ${getStatClass(home.era, 'era', true)}">${home.era || '0.00'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">WHIP</div>
-                                            <div class="split-value ${getStatClass(home.whip, 'whip', true)}">${home.whip || '0.00'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">K</div>
-                                            <div class="split-value">${home.strikeOuts || 0}</div>
-                                        </div>
-                                    `}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    if (player.splits.away) {
-                        const away = player.splits.away;
-                        contentHTML += `
-                            <div class="split-box">
-                                <div class="split-header">✈️ Away</div>
-                                <div class="split-stats">
-                                    ${isHitter ? `
-                                        <div class="split-stat">
-                                            <div class="split-label">AVG</div>
-                                            <div class="split-value ${getStatClass(away.avg, 'avg', false)}">${away.avg || '.000'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">HR</div>
-                                            <div class="split-value">${away.homeRuns || 0}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">OPS</div>
-                                            <div class="split-value ${getStatClass(away.ops, 'ops', false)}">${away.ops || '.000'}</div>
-                                        </div>
-                                    ` : `
-                                        <div class="split-stat">
-                                            <div class="split-label">ERA</div>
-                                            <div class="split-value ${getStatClass(away.era, 'era', true)}">${away.era || '0.00'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">WHIP</div>
-                                            <div class="split-value ${getStatClass(away.whip, 'whip', true)}">${away.whip || '0.00'}</div>
-                                        </div>
-                                        <div class="split-stat">
-                                            <div class="split-label">K</div>
-                                            <div class="split-value">${away.strikeOuts || 0}</div>
-                                        </div>
-                                    `}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    contentHTML += `</div>`;
-                }
-            }
-
-            // Season Stats
-            if (seasonStats && seasonStats.games > 0) {
-                contentHTML += `
-                    <div class="section-title">📊 ${displayYear} Stats (${seasonStats.level})</div>
-                    <div class="stats-grid">
-                        ${isHitter ? `
-                            <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${seasonStats.avg}</div></div>
-                            <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${seasonStats.hr}</div></div>
-                            <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${seasonStats.rbi}</div></div>
-                            <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${seasonStats.sb}</div></div>
-                            <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${seasonStats.ops}</div></div>
-                            <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${seasonStats.games}</div></div>
-                        ` : `
-                            <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${seasonStats.era}</div></div>
-                            <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${seasonStats.w}</div></div>
-                            <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${seasonStats.l}</div></div>
-                            <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${seasonStats.so}</div></div>
-                            <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${seasonStats.whip}</div></div>
-                            <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${seasonStats.games}</div></div>
-                        `}
-                    </div>
-                `;
-            }
-
-            // Career Stats
-            contentHTML += `
-                <div class="section-title">📈 Career Stats (${careerStats.level})</div>
-                <div class="stats-grid">
-                    ${isHitter ? `
-                        <div class="stat-box"><div class="stat-label">AVG</div><div class="stat-value">${careerStats.avg}</div></div>
-                        <div class="stat-box"><div class="stat-label">HR</div><div class="stat-value">${careerStats.hr}</div></div>
-                        <div class="stat-box"><div class="stat-label">RBI</div><div class="stat-value">${careerStats.rbi}</div></div>
-                        <div class="stat-box"><div class="stat-label">SB</div><div class="stat-value">${careerStats.sb}</div></div>
-                        <div class="stat-box"><div class="stat-label">OPS</div><div class="stat-value">${careerStats.ops}</div></div>
-                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${careerStats.games}</div></div>
-                    ` : `
-                        <div class="stat-box"><div class="stat-label">ERA</div><div class="stat-value">${careerStats.era}</div></div>
-                        <div class="stat-box"><div class="stat-label">W</div><div class="stat-value">${careerStats.w}</div></div>
-                        <div class="stat-box"><div class="stat-label">L</div><div class="stat-value">${careerStats.l}</div></div>
-                        <div class="stat-box"><div class="stat-label">SO</div><div class="stat-value">${careerStats.so}</div></div>
-                        <div class="stat-box"><div class="stat-label">WHIP</div><div class="stat-value">${careerStats.whip}</div></div>
-                        <div class="stat-box"><div class="stat-label">G</div><div class="stat-value">${careerStats.games}</div></div>
-                    `}
+            let html = `
+                <div class="org-info-box">
+                    <div class="org-name">${player.mlbOrg}</div>
+                    ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
                 </div>
             `;
 
-            content.innerHTML = contentHTML;
-            console.log('Content HTML set, length:', contentHTML.length);
+            // Current Season Stats
+            if (seasonStats && seasonStats.games > 0) {
+                html += `
+                    <div class="section-title">📊 ${currentYear} Stats - ${seasonStats.level}</div>
+                    <div class="stats-grid">
+                        ${isHitter ? renderHitterStats(seasonStats, true) : renderPitcherStats(seasonStats, true)}
+                    </div>
+                `;
+
+                // Advanced metrics
+                if (isHitter) {
+                    html += `
+                        <div class="advanced-metrics">
+                            ${seasonStats.kPercent ? `<div class="metric-card ${parseFloat(seasonStats.kPercent) < 20 ? 'highlight' : parseFloat(seasonStats.kPercent) > 30 ? 'concern' : ''}">
+                                <div class="metric-label">K%</div>
+                                <div class="metric-value">${seasonStats.kPercent}%</div>
+                            </div>` : ''}
+                            ${seasonStats.bbPercent ? `<div class="metric-card ${parseFloat(seasonStats.bbPercent) > 10 ? 'highlight' : ''}">
+                                <div class="metric-label">BB%</div>
+                                <div class="metric-value">${seasonStats.bbPercent}%</div>
+                            </div>` : ''}
+                            ${seasonStats.obp ? `<div class="metric-card">
+                                <div class="metric-label">OBP</div>
+                                <div class="metric-value">${seasonStats.obp}</div>
+                            </div>` : ''}
+                            ${seasonStats.slg ? `<div class="metric-card">
+                                <div class="metric-label">SLG</div>
+                                <div class="metric-value">${seasonStats.slg}</div>
+                            </div>` : ''}
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="advanced-metrics">
+                            ${seasonStats.kbb ? `<div class="metric-card ${parseFloat(seasonStats.kbb) > 3.0 ? 'highlight' : parseFloat(seasonStats.kbb) < 2.0 ? 'concern' : ''}">
+                                <div class="metric-label">K/BB</div>
+                                <div class="metric-value">${seasonStats.kbb}</div>
+                            </div>` : ''}
+                            ${seasonStats.kPer9 ? `<div class="metric-card ${parseFloat(seasonStats.kPer9) > 9.0 ? 'highlight' : ''}">
+                                <div class="metric-label">K/9</div>
+                                <div class="metric-value">${seasonStats.kPer9}</div>
+                            </div>` : ''}
+                            ${seasonStats.bbPer9 ? `<div class="metric-card ${parseFloat(seasonStats.bbPer9) < 3.0 ? 'highlight' : parseFloat(seasonStats.bbPer9) > 4.5 ? 'concern' : ''}">
+                                <div class="metric-label">BB/9</div>
+                                <div class="metric-value">${seasonStats.bbPer9}</div>
+                            </div>` : ''}
+                            ${seasonStats.ip ? `<div class="metric-card">
+                                <div class="metric-label">IP</div>
+                                <div class="metric-value">${seasonStats.ip}</div>
+                            </div>` : ''}
+                        </div>
+                    `;
+                }
+            }
+
+            // Career Stats
+            html += `
+                <div class="section-title">📈 Career Stats - ${careerStats.level}</div>
+                <div class="stats-grid">
+                    ${isHitter ? renderHitterStats(careerStats, false) : renderPitcherStats(careerStats, false)}
+                </div>
+            `;
+
+            // Level-by-level breakdown for minor leaguers
+            if (player.levelBreakdown && player.levelBreakdown.length > 1) {
+                html += `
+                    <div class="section-title">📊 Level-by-Level Performance</div>
+                    <div class="timeline">
+                `;
+                player.levelBreakdown.reverse().forEach(level => {
+                    html += `
+                        <div class="timeline-item">
+                            <div class="timeline-date">${level.level} - ${level.games}G</div>
+                            <div class="timeline-content">
+                                ${isHitter ? 
+                                    `AVG: ${level.avg} | HR: ${level.hr} | RBI: ${level.rbi} | SB: ${level.sb} | OPS: ${level.ops}` :
+                                    `ERA: ${level.era} | W-L: ${level.w}-${level.l} | SO: ${level.so} | WHIP: ${level.whip}`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            content.innerHTML = html;
+        }
+
+        function renderHitterStats(stats, isSeason) {
+            return `
+                <div class="stat-box ${isSeason && parseFloat(stats.avg) > 0.300 ? 'highlight' : ''}">
+                    <div class="stat-label">AVG</div>
+                    <div class="stat-value">${stats.avg}</div>
+                </div>
+                <div class="stat-box ${isSeason && stats.hr >= 10 ? 'highlight' : ''}">
+                    <div class="stat-label">HR</div>
+                    <div class="stat-value">${stats.hr}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">RBI</div>
+                    <div class="stat-value">${stats.rbi}</div>
+                </div>
+                <div class="stat-box ${isSeason && stats.sb >= 10 ? 'highlight' : ''}">
+                    <div class="stat-label">SB</div>
+                    <div class="stat-value">${stats.sb}</div>
+                </div>
+                <div class="stat-box ${isSeason && parseFloat(stats.ops) > 0.850 ? 'highlight' : ''}">
+                    <div class="stat-label">OPS</div>
+                    <div class="stat-value">${stats.ops}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">G</div>
+                    <div class="stat-value">${stats.games}</div>
+                </div>
+            `;
+        }
+
+        function renderPitcherStats(stats, isSeason) {
+            return `
+                <div class="stat-box ${isSeason && parseFloat(stats.era) < 3.50 ? 'highlight' : parseFloat(stats.era) > 5.00 ? 'concern' : ''}">
+                    <div class="stat-label">ERA</div>
+                    <div class="stat-value">${stats.era}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">W</div>
+                    <div class="stat-value">${stats.w}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">L</div>
+                    <div class="stat-value">${stats.l}</div>
+                </div>
+                <div class="stat-box ${isSeason && stats.so >= 50 ? 'highlight' : ''}">
+                    <div class="stat-label">SO</div>
+                    <div class="stat-value">${stats.so}</div>
+                </div>
+                <div class="stat-box ${isSeason && parseFloat(stats.whip) < 1.20 ? 'highlight' : parseFloat(stats.whip) > 1.50 ? 'concern' : ''}">
+                    <div class="stat-label">WHIP</div>
+                    <div class="stat-value">${stats.whip}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">G</div>
+                    <div class="stat-value">${stats.games}</div>
+                </div>
+            `;
         }
     </script>
 </body>
