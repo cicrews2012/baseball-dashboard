@@ -241,6 +241,29 @@
             min-width: 150px;
         }
 
+        .filter-btn {
+            background: rgba(59, 130, 246, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .filter-btn.active {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: #22c55e;
+            color: #86efac;
+        }
+
         .search-input::placeholder {
             color: rgba(255, 255, 255, 0.5);
         }
@@ -810,7 +833,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.4.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.5.0</p>
                 </div>
             </div>
             <div class="tabs">
@@ -853,7 +876,7 @@
             </div>
 
             <div class="search-filter-section hidden" id="searchSection">
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
                     <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search players by name, team, position...">
                     <select class="filter-select" id="positionFilter">
                         <option value="">All Positions</option>
@@ -879,6 +902,33 @@
                         <option value="team">Team</option>
                     </select>
                 </div>
+                
+                <!-- Quick Filters Row -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                    <button class="filter-btn" onclick="applyQuickFilter('hot-bats')" title="OPS > .850 with 20+ games">
+                        🔥 Hot Bats
+                    </button>
+                    <button class="filter-btn" onclick="applyQuickFilter('speed')" title="10+ stolen bases">
+                        💨 Speed Threats
+                    </button>
+                    <button class="filter-btn" onclick="applyQuickFilter('contact')" title="K% < 20%">
+                        🎯 Elite Contact
+                    </button>
+                    <button class="filter-btn" onclick="applyQuickFilter('strikeouts')" title="K/BB > 3.0">
+                        ⚡ K Artists
+                    </button>
+                    <button class="filter-btn" onclick="applyQuickFilter('young')" title="Age 21 or under in AA/AAA">
+                        👶 Young Talent
+                    </button>
+                    <button class="filter-btn" onclick="applyQuickFilter('power')" title="10+ HR">
+                        💪 Power Hitters
+                    </button>
+                    <button class="filter-btn" onclick="applyQuickFilter('clear')" title="Clear all filters">
+                        ✕ Clear Filters
+                    </button>
+                </div>
+                
+                <div id="activeFilterDisplay" style="color: #60a5fa; font-size: 0.875rem; margin-top: 5px;"></div>
             </div>
 
             <div class="empty-state" id="emptyState">
@@ -1499,7 +1549,8 @@
                                     p.position.toLowerCase().includes(searchTerm);
                 const matchesPos = !posFilter || p.position.includes(posFilter);
                 const matchesStatus = !statusFilter || p.status === statusFilter;
-                return matchesSearch && matchesPos && matchesStatus;
+                const matchesQuickFilter = meetsQuickFilterCriteria(p);
+                return matchesSearch && matchesPos && matchesStatus && matchesQuickFilter;
             });
 
             // Sort
@@ -1512,6 +1563,13 @@
             }
 
             renderPlayers(filtered);
+            
+            // Update summary if active filter
+            if (activeQuickFilter) {
+                const display = document.getElementById('activeFilterDisplay');
+                const currentText = display.textContent.split('(')[0]; // Remove loading message if present
+                display.textContent = `${currentText.trim()} - Showing ${filtered.length} of ${players.length} players`;
+            }
         }
 
         function renderPlayers(playerList = players) {
@@ -1552,6 +1610,11 @@
                         ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
                         ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
                         ${player.ranking ? `<span class="badge badge-ranking">Rank: ${player.ranking}</span>` : ''}
+                        ${player.changes && player.changes.length > 0 ? player.changes.map(change => 
+                            `<span class="badge" style="background: ${change.type === 'positive' ? '#22c55e' : change.type === 'negative' ? '#ef4444' : '#f59e0b'};">
+                                ${change.icon} ${change.text}
+                            </span>`
+                        ).join('') : ''}
                     </div>
                     ${flagsHTML}
                 </div>
@@ -1852,6 +1915,9 @@
                 // Generate flags and insights
                 generatePlayerFlags(player, isPitcher);
                 
+                // Track performance changes
+                await trackPlayerChanges(player);
+                
                 player.statsLoaded = true;
 
             } catch (error) {
@@ -2128,6 +2194,155 @@
                     <div class="stat-value">${stats.games}</div>
                 </div>
             `;
+        }
+
+        // ========== TOP PROSPECTS FUNCTIONALITY ==========
+        
+        let activeQuickFilter = null;
+
+        async function applyQuickFilter(filterType) {
+            if (filterType === 'clear') {
+                activeQuickFilter = null;
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('activeFilterDisplay').textContent = '';
+                applyFilters();
+                return;
+            }
+
+            activeQuickFilter = filterType;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show what filter is active
+            const filterNames = {
+                'hot-bats': '🔥 Hot Bats: OPS > .850, 20+ games',
+                'speed': '💨 Speed Threats: 10+ SB',
+                'contact': '🎯 Elite Contact: K% < 20%',
+                'strikeouts': '⚡ K Artists: K/BB > 3.0',
+                'young': '👶 Young Talent: Age ≤21 in AA/AAA',
+                'power': '💪 Power Hitters: 10+ HR'
+            };
+            document.getElementById('activeFilterDisplay').textContent = `Active: ${filterNames[filterType]}`;
+
+            // Load stats for all players if not already loaded
+            const unloadedPlayers = players.filter(p => !p.statsLoaded && (p.status === 'Act' || p.status === 'Min'));
+            
+            if (unloadedPlayers.length > 0 && unloadedPlayers.length <= 20) {
+                const loadingMsg = `Loading stats for ${unloadedPlayers.length} players...`;
+                document.getElementById('activeFilterDisplay').textContent += ` (${loadingMsg})`;
+                
+                for (const player of unloadedPlayers) {
+                    await fetchPlayerStats(player);
+                }
+            }
+
+            applyFilters();
+        }
+
+        function meetsQuickFilterCriteria(player) {
+            if (!activeQuickFilter || !player.statsLoaded || !player.stats?.season) {
+                return !activeQuickFilter; // Show all if no filter or no stats
+            }
+
+            const stats = player.stats.season;
+
+            switch(activeQuickFilter) {
+                case 'hot-bats':
+                    return stats.type === 'hitting' && 
+                           parseFloat(stats.ops) > 0.850 && 
+                           stats.games >= 20;
+                
+                case 'speed':
+                    return stats.type === 'hitting' && stats.sb >= 10;
+                
+                case 'contact':
+                    return stats.type === 'hitting' && 
+                           parseFloat(stats.kPercent) < 20 &&
+                           stats.games >= 20;
+                
+                case 'strikeouts':
+                    return stats.type === 'pitching' && 
+                           parseFloat(stats.kbb) > 3.0 &&
+                           stats.games >= 5;
+                
+                case 'young':
+                    return player.age <= 21 && 
+                           stats.level && 
+                           ['AA', 'AAA', 'MLB'].includes(stats.level);
+                
+                case 'power':
+                    return stats.type === 'hitting' && stats.hr >= 10;
+                
+                default:
+                    return true;
+            }
+        }
+
+        // ========== PERFORMANCE TRACKING ==========
+        
+        async function trackPlayerChanges(player) {
+            if (!player.statsLoaded || !player.stats?.season) return;
+
+            try {
+                // Get stored historical stats
+                const storageKey = `player-history-${player.name.replace(/\s+/g, '-')}`;
+                const stored = await window.storage.get(storageKey);
+                
+                player.changes = [];
+
+                if (stored && stored.value) {
+                    const history = JSON.parse(stored.value);
+                    const current = player.stats.season;
+                    
+                    // Check for level changes
+                    if (history.level && history.level !== current.level) {
+                        const levelOrder = { 'Rookie': 1, 'A': 2, 'A+': 3, 'AA': 4, 'AAA': 5, 'MLB': 6 };
+                        const isPromotion = (levelOrder[current.level] || 0) > (levelOrder[history.level] || 0);
+                        
+                        player.changes.push({
+                            type: isPromotion ? 'positive' : 'negative',
+                            icon: isPromotion ? '⬆️' : '⬇️',
+                            text: `${history.level} → ${current.level}`
+                        });
+                    }
+
+                    // Check for significant stat changes (30+ days)
+                    if (current.type === 'hitting') {
+                        const opsDiff = parseFloat(current.ops) - parseFloat(history.ops || 0);
+                        if (Math.abs(opsDiff) >= 0.050 && current.games >= 20) {
+                            player.changes.push({
+                                type: opsDiff > 0 ? 'positive' : 'negative',
+                                icon: opsDiff > 0 ? '📈' : '📉',
+                                text: `OPS ${opsDiff > 0 ? '+' : ''}${opsDiff.toFixed(3)}`
+                            });
+                        }
+                    } else if (current.type === 'pitching') {
+                        const eraDiff = parseFloat(current.era) - parseFloat(history.era || 0);
+                        if (Math.abs(eraDiff) >= 0.50 && current.games >= 5) {
+                            player.changes.push({
+                                type: eraDiff < 0 ? 'positive' : 'negative',
+                                icon: eraDiff < 0 ? '📈' : '📉',
+                                text: `ERA ${eraDiff > 0 ? '+' : ''}${eraDiff.toFixed(2)}`
+                            });
+                        }
+                    }
+                }
+
+                // Store current stats for next comparison
+                await window.storage.set(storageKey, JSON.stringify({
+                    level: player.stats.season.level,
+                    ops: player.stats.season.ops || '0',
+                    era: player.stats.season.era || '0',
+                    games: player.stats.season.games,
+                    lastUpdated: new Date().toISOString()
+                }));
+
+            } catch (error) {
+                console.log('Performance tracking unavailable:', error);
+                // Fail silently - tracking is optional
+            }
         }
 
         // ========== TOP PROSPECTS FUNCTIONALITY ==========
