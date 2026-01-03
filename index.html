@@ -833,7 +833,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.5.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.5.1</p>
                 </div>
             </div>
             <div class="tabs">
@@ -1782,78 +1782,97 @@
                         const groupName = isPitcher ? 'pitching' : 'hitting';
                         
                         if (statGroup.group.displayName === groupName && statGroup.splits && statGroup.splits.length > 0) {
-                            // Aggregate across all splits (handles multi-team players)
-                            let aggregated = {
-                                gamesPlayed: 0,
-                                atBats: 0,
-                                hits: 0,
-                                homeRuns: 0,
-                                rbi: 0,
-                                stolenBases: 0,
-                                strikeOuts: 0,
-                                baseOnBalls: 0,
-                                totalBases: 0,
-                                hitByPitch: 0,
-                                sacFlies: 0,
-                                wins: 0,
-                                losses: 0,
-                                inningsPitched: 0,
-                                earnedRuns: 0,
-                                hits_allowed: 0,
-                                walks: 0
-                            };
-                            
-                            let hasData = false;
-                            let firstSplit = null;
-                            
-                            for (const split of statGroup.splits) {
-                                const stat = split.stat;
+                            // For career/season stats, just use the first split if only one team, otherwise aggregate
+                            if (statGroup.splits.length === 1) {
+                                const stat = statGroup.splits[0].stat;
                                 if (stat.gamesPlayed > 0) {
-                                    hasData = true;
-                                    if (!firstSplit) firstSplit = split;
-                                    
-                                    aggregated.gamesPlayed += stat.gamesPlayed || 0;
-                                    
-                                    if (isPitcher) {
-                                        aggregated.wins += stat.wins || 0;
-                                        aggregated.losses += stat.losses || 0;
-                                        aggregated.strikeOuts += stat.strikeOuts || 0;
-                                        aggregated.baseOnBalls += stat.baseOnBalls || 0;
-                                        aggregated.inningsPitched += parseFloat(stat.inningsPitched || '0');
-                                        aggregated.earnedRuns += stat.earnedRuns || 0;
-                                        aggregated.hits_allowed += stat.hits || 0;
-                                    } else {
-                                        aggregated.atBats += stat.atBats || 0;
-                                        aggregated.hits += stat.hits || 0;
-                                        aggregated.homeRuns += stat.homeRuns || 0;
-                                        aggregated.rbi += stat.rbi || 0;
-                                        aggregated.stolenBases += stat.stolenBases || 0;
-                                        aggregated.strikeOuts += stat.strikeOuts || 0;
-                                        aggregated.baseOnBalls += stat.baseOnBalls || 0;
-                                        aggregated.totalBases += stat.totalBases || 0;
-                                        aggregated.hitByPitch += stat.hitByPitch || 0;
-                                        aggregated.sacFlies += stat.sacFlies || 0;
+                                    if (isCareerStats) {
+                                        hasMLBStats = true;
+                                        careerStats = buildStatObject(stat, 'MLB', isPitcher, statGroup.splits[0]);
+                                    } else if (isSeasonStats) {
+                                        seasonStats = buildStatObject(stat, 'MLB', isPitcher, statGroup.splits[0]);
+                                    } else if (isAdvanced) {
+                                        advancedStats = stat;
                                     }
                                 }
-                            }
-                            
-                            if (hasData) {
-                                // Format IP properly
-                                if (isPitcher) {
-                                    aggregated.inningsPitched = aggregated.inningsPitched.toFixed(1);
-                                    aggregated.hits = aggregated.hits_allowed; // For WHIP calculation
+                            } else {
+                                // Multiple teams - need to aggregate
+                                let aggregated = {
+                                    gamesPlayed: 0,
+                                    atBats: 0,
+                                    hits: 0,
+                                    homeRuns: 0,
+                                    rbi: 0,
+                                    stolenBases: 0,
+                                    strikeOuts: 0,
+                                    baseOnBalls: 0,
+                                    totalBases: 0,
+                                    hitByPitch: 0,
+                                    sacFlies: 0,
+                                    wins: 0,
+                                    losses: 0,
+                                    inningsPitched: 0,
+                                    earnedRuns: 0,
+                                    strikeoutsPer9Inn: 0,
+                                    walksPer9Inn: 0
+                                };
+                                
+                                let hasData = false;
+                                let firstSplit = null;
+                                
+                                for (const split of statGroup.splits) {
+                                    const stat = split.stat;
+                                    if (stat.gamesPlayed > 0) {
+                                        hasData = true;
+                                        if (!firstSplit) firstSplit = split;
+                                        
+                                        aggregated.gamesPlayed += stat.gamesPlayed || 0;
+                                        
+                                        if (isPitcher) {
+                                            aggregated.wins += stat.wins || 0;
+                                            aggregated.losses += stat.losses || 0;
+                                            aggregated.strikeOuts += stat.strikeOuts || 0;
+                                            aggregated.baseOnBalls += stat.baseOnBalls || 0;
+                                            aggregated.inningsPitched += parseFloat(stat.inningsPitched || '0');
+                                            aggregated.earnedRuns += stat.earnedRuns || 0;
+                                            aggregated.hits += stat.hits || 0;
+                                        } else {
+                                            aggregated.atBats += stat.atBats || 0;
+                                            aggregated.hits += stat.hits || 0;
+                                            aggregated.homeRuns += stat.homeRuns || 0;
+                                            aggregated.rbi += stat.rbi || 0;
+                                            aggregated.stolenBases += stat.stolenBases || 0;
+                                            aggregated.strikeOuts += stat.strikeOuts || 0;
+                                            aggregated.baseOnBalls += stat.baseOnBalls || 0;
+                                            aggregated.totalBases += stat.totalBases || 0;
+                                            aggregated.hitByPitch += stat.hitByPitch || 0;
+                                            aggregated.sacFlies += stat.sacFlies || 0;
+                                        }
+                                    }
                                 }
                                 
-                                // Merge aggregated stats with first split (for any fields we don't aggregate)
-                                const combinedStat = { ...firstSplit.stat, ...aggregated };
-                                
-                                if (isCareerStats) {
-                                    hasMLBStats = true;
-                                    careerStats = buildStatObject(combinedStat, 'MLB', isPitcher, firstSplit);
-                                } else if (isSeasonStats) {
-                                    seasonStats = buildStatObject(combinedStat, 'MLB', isPitcher, firstSplit);
-                                } else if (isAdvanced) {
-                                    advancedStats = combinedStat;
+                                if (hasData) {
+                                    // Format IP properly and calculate per-9 stats
+                                    if (isPitcher) {
+                                        aggregated.inningsPitched = aggregated.inningsPitched.toFixed(1);
+                                        const ip = parseFloat(aggregated.inningsPitched);
+                                        if (ip > 0) {
+                                            aggregated.strikeoutsPer9Inn = ((aggregated.strikeOuts / ip) * 9).toFixed(2);
+                                            aggregated.walksPer9Inn = ((aggregated.baseOnBalls / ip) * 9).toFixed(2);
+                                        }
+                                    }
+                                    
+                                    // Merge aggregated stats with first split (for any fields we don't aggregate)
+                                    const combinedStat = { ...firstSplit.stat, ...aggregated };
+                                    
+                                    if (isCareerStats) {
+                                        hasMLBStats = true;
+                                        careerStats = buildStatObject(combinedStat, 'MLB', isPitcher, firstSplit);
+                                    } else if (isSeasonStats) {
+                                        seasonStats = buildStatObject(combinedStat, 'MLB', isPitcher, firstSplit);
+                                    } else if (isAdvanced) {
+                                        advancedStats = combinedStat;
+                                    }
                                 }
                             }
                         }
