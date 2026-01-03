@@ -878,7 +878,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.8.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.0.0</p>
                 </div>
             </div>
             <div class="tabs">
@@ -927,16 +927,20 @@
             
             <div class="stat-summary hidden" id="salarySummary" style="margin-top: 15px; border: 2px solid rgba(6, 182, 212, 0.5);">
                 <div class="summary-box">
-                    <div class="summary-label">💰 Cap Used</div>
+                    <div class="summary-label">💰 2025 Cap Used</div>
                     <div class="summary-value" id="salaryCapUsed" style="color: #06b6d4;">$0</div>
                 </div>
                 <div class="summary-box">
-                    <div class="summary-label">💵 Cap Space</div>
+                    <div class="summary-label">💵 2025 Cap Space</div>
                     <div class="summary-value" id="salaryCapSpace" style="color: #22c55e;">$0</div>
                 </div>
                 <div class="summary-box">
                     <div class="summary-label">📊 Cap %</div>
                     <div class="summary-value" id="salaryCapPct" style="color: #f59e0b;">0%</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-label">🔮 2026 Projected</div>
+                    <div class="summary-value" id="salaryCap2026" style="color: #a855f7;">$0</div>
                 </div>
             </div>
 
@@ -1267,6 +1271,16 @@
                 <button class="close-comparison" onclick="closeComparison()">✕ Close</button>
             </div>
             <div class="comparison-grid" id="comparisonGrid"></div>
+        </div>
+    </div>
+
+    <div class="comparison-modal" id="dropPenaltyModal">
+        <div class="comparison-content" style="max-width: 600px;">
+            <div class="comparison-header">
+                <h2>💰 Drop Penalty Calculator</h2>
+                <button class="close-comparison" onclick="closeDropPenalty()">✕ Close</button>
+            </div>
+            <div id="dropPenaltyContent" style="padding: 20px;"></div>
         </div>
     </div>
 
@@ -1971,24 +1985,48 @@
             // Calculate salary cap if salary data is loaded
             if (Object.keys(salaryData).length > 0) {
                 const salaryCap = 241000000; // $241M
-                let totalSalary = 0;
+                let totalSalary2025 = 0;
+                let totalSalary2026 = 0;
                 let contractedPlayers = 0;
+                let arbPlayers = 0;
                 
                 players.forEach(p => {
                     if (salaryData[p.name]) {
                         const salary = parseInt(salaryData[p.name].salary) || 0;
-                        totalSalary += salary;
+                        const status = salaryData[p.name].serviceStatus;
+                        const next2026 = salaryData[p.name].next2026;
+                        
+                        totalSalary2025 += salary;
                         contractedPlayers++;
+                        
+                        // Project 2026 salary
+                        if (next2026 && next2026 !== 'FA' && next2026 !== '') {
+                            // Check if 2026 has a dollar amount
+                            const amount2026 = next2026.replace(/,/g, '');
+                            if (!isNaN(parseFloat(amount2026))) {
+                                totalSalary2026 += parseFloat(amount2026);
+                            } else if (next2026.includes('ARB') || next2026 === 'TC') {
+                                // Estimate arb increase (conservative: +$1M for arb players)
+                                if (status.includes('Arb')) {
+                                    totalSalary2026 += salary + 1000000;
+                                    arbPlayers++;
+                                } else {
+                                    totalSalary2026 += 760000; // League minimum
+                                }
+                            }
+                        }
                     }
                 });
                 
-                const capSpace = salaryCap - totalSalary;
-                const capUsedPct = ((totalSalary / salaryCap) * 100).toFixed(1);
+                const capSpace2025 = salaryCap - totalSalary2025;
+                const capUsedPct2025 = ((totalSalary2025 / salaryCap) * 100).toFixed(1);
+                const capSpace2026 = salaryCap - totalSalary2026;
                 
                 // Show salary info
-                document.getElementById('salaryCapUsed').textContent = `$${formatSalary(totalSalary.toString())}`;
-                document.getElementById('salaryCapSpace').textContent = `$${formatSalary(capSpace.toString())}`;
-                document.getElementById('salaryCapPct').textContent = `${capUsedPct}%`;
+                document.getElementById('salaryCapUsed').textContent = `$${formatSalary(totalSalary2025.toString())}`;
+                document.getElementById('salaryCapSpace').textContent = `$${formatSalary(capSpace2025.toString())}`;
+                document.getElementById('salaryCapPct').textContent = `${capUsedPct2025}%`;
+                document.getElementById('salaryCap2026').textContent = `$${formatSalary(totalSalary2026.toString())}`;
                 document.getElementById('salarySummary').classList.remove('hidden');
             } else {
                 document.getElementById('salarySummary').classList.add('hidden');
@@ -2841,6 +2879,10 @@
             
             const salary = parseInt(contract.salary);
             const years = parseInt(contract.yearsRemaining) || 0;
+            const status = contract.serviceStatus;
+            
+            // Determine if player can be dropped without penalty
+            const canDropFree = status === 'Team Control' || salary <= 760000;
             
             return `
                 <div class="service-tracker" style="border-color: rgba(6, 182, 212, 0.3);">
@@ -2857,8 +2899,20 @@
                     </div>
                     <div class="tracker-row">
                         <span class="tracker-label">Service Status:</span>
-                        <span class="tracker-value">${contract.serviceStatus}</span>
+                        <span class="tracker-value">${status}</span>
                     </div>
+                    
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                        <button class="prospect-action-btn" style="width: 100%;" onclick="showDropPenalty('${player.name}')">
+                            🧮 Calculate Drop Penalty
+                        </button>
+                    </div>
+                    
+                    ${canDropFree ? `
+                        <div style="margin-top: 8px; padding: 8px; background: rgba(34, 197, 94, 0.2); border-radius: 6px; font-size: 0.875rem; color: #86efac;">
+                            ✅ Can drop without penalty (${status === 'Team Control' ? 'Team Control' : 'League Minimum'})
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -3248,6 +3302,100 @@
             
             resultsDiv.innerHTML = html;
         }
+
+        // ========== DROP PENALTY CALCULATOR ==========
+        
+        function showDropPenalty(playerName) {
+            const contract = salaryData[playerName];
+            if (!contract) {
+                alert('No salary data found for this player');
+                return;
+            }
+            
+            const salary = parseInt(contract.salary);
+            const years = parseInt(contract.yearsRemaining) || 0;
+            const status = contract.serviceStatus;
+            
+            // Check if can drop without penalty
+            const canDropFree = status === 'Team Control' || salary <= 760000;
+            
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 5px;">${playerName}</h3>
+                    <p style="color: #94a3b8;">2025 Salary: $${formatSalary(contract.salary)} | ${years} year${years !== 1 ? 's' : ''} remaining</p>
+                </div>
+            `;
+            
+            if (canDropFree) {
+                html += `
+                    <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 12px; padding: 20px; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+                        <h3 style="color: #22c55e; margin-bottom: 10px;">No Penalty!</h3>
+                        <p style="color: #86efac; line-height: 1.6;">
+                            ${status === 'Team Control' ? 'Players on team control' : 'Players making league minimum'} can be dropped without penalty.
+                        </p>
+                    </div>
+                `;
+            } else {
+                // Calculate penalties
+                const penalties = [];
+                let totalPenalty = 0;
+                const percentages = [100, 80, 60, 40, 20];
+                
+                for (let i = 0; i < Math.min(years, 5); i++) {
+                    const yearPenalty = Math.floor(salary * (percentages[i] / 100));
+                    penalties.push({
+                        year: 2025 + i,
+                        percent: percentages[i],
+                        amount: yearPenalty
+                    });
+                    totalPenalty += yearPenalty;
+                }
+                
+                html += `
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="color: #ef4444; margin-bottom: 15px;">⚠️ Drop Penalty Breakdown</h3>
+                        <div style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 15px;">
+                `;
+                
+                penalties.forEach(p => {
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            <span style="color: #cbd5e1;">${p.year}</span>
+                            <span style="color: #94a3b8; font-size: 0.875rem;">${p.percent}%</span>
+                            <span style="color: #fca5a5; font-weight: 600;">$${formatSalary(p.amount.toString())}</span>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(239, 68, 68, 0.5); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600; font-size: 1.125rem;">Total Cap Hit:</span>
+                            <span style="color: #ef4444; font-weight: bold; font-size: 1.5rem;">$${formatSalary(totalPenalty.toString())}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 15px; font-size: 0.875rem; color: #fcd34d; line-height: 1.6;">
+                        <strong>⚠️ Important:</strong> This penalty will count against your salary cap for ${years} year${years !== 1 ? 's' : ''}. Make sure you have enough cap space to absorb this hit.
+                    </div>
+                `;
+            }
+            
+            document.getElementById('dropPenaltyContent').innerHTML = html;
+            document.getElementById('dropPenaltyModal').classList.add('active');
+        }
+        
+        function closeDropPenalty() {
+            document.getElementById('dropPenaltyModal').classList.remove('active');
+        }
+        
+        // Close modals when clicking outside
+        document.getElementById('dropPenaltyModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDropPenalty();
+            }
+        });
     </script>
 </body>
 </html>
