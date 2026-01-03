@@ -374,6 +374,51 @@
         .badge-age { background: #a855f7; }
         .badge-ranking { background: #ec4899; }
         .badge-eta { background: #f59e0b; }
+        .badge-salary { background: #06b6d4; }
+        .badge-service { background: #8b5cf6; }
+        .badge-milb-eligible { background: #10b981; animation: pulse 2s infinite; }
+        .badge-warning { background: #f59e0b; animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .service-tracker {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.875rem;
+        }
+
+        .tracker-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .tracker-label {
+            color: #94a3b8;
+        }
+
+        .tracker-value {
+            font-weight: 600;
+            color: #60a5fa;
+        }
+
+        .tracker-warning {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .tracker-critical {
+            color: #ef4444;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
 
         .flags-row {
             display: flex;
@@ -833,7 +878,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.5.2</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.0</p>
                 </div>
             </div>
             <div class="tabs">
@@ -844,7 +889,11 @@
             <div class="controls-row">
                 <input type="file" id="fileInput" accept=".csv" style="display: none;">
                 <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                    📁 Upload Fantrax CSV
+                    📁 Upload Roster CSV
+                </button>
+                <input type="file" id="salaryInput" accept=".csv" style="display: none;">
+                <button class="upload-btn" onclick="document.getElementById('salaryInput').click()" style="background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.5);">
+                    💰 Upload Salary Data
                 </button>
                 <button class="compare-btn" id="compareBtn" onclick="openComparison()" disabled>
                     📊 Compare Selected (0)
@@ -872,6 +921,21 @@
                 <div class="summary-box">
                     <div class="summary-label">Avg Age</div>
                     <div class="summary-value" id="avgAge">0</div>
+                </div>
+            </div>
+            
+            <div class="stat-summary hidden" id="salarySummary" style="margin-top: 15px; border: 2px solid rgba(6, 182, 212, 0.5);">
+                <div class="summary-box">
+                    <div class="summary-label">💰 Cap Used</div>
+                    <div class="summary-value" id="salaryCapUsed" style="color: #06b6d4;">$0</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-label">💵 Cap Space</div>
+                    <div class="summary-value" id="salaryCapSpace" style="color: #22c55e;">$0</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-label">📊 Cap %</div>
+                    <div class="summary-value" id="salaryCapPct" style="color: #f59e0b;">0%</div>
                 </div>
             </div>
 
@@ -1053,6 +1117,177 @@
         let autocompleteTimeout;
         let selectedAutocompleteIndex = -1;
         let autocompleteResults = [];
+        let salaryData = {}; // Stores player salary/contract info
+
+        // Salary CSV upload handler
+        document.getElementById('salaryInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    parseSalaryCSV(event.target.result);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function parseSalaryCSV(text) {
+            const lines = text.split('\n');
+            salaryData = {};
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Parse CSV properly handling quoted values
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let char of line) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                // Skip header row
+                if (i === 0 || values[0] === 'Player' || !values[0]) continue;
+                
+                const playerName = values[0];
+                const salary2025 = values[5]?.replace(/"/g, '').replace(/,/g, '') || '0';
+                const status2026 = values[6]?.replace(/"/g, '') || '';
+                const status2027 = values[7]?.replace(/"/g, '') || '';
+                
+                // Determine service time status
+                let serviceStatus = 'Unknown';
+                let yearsRemaining = 0;
+                
+                // Check 2026 status
+                if (status2026 === 'TC') {
+                    serviceStatus = 'Team Control';
+                    yearsRemaining = 1;
+                } else if (status2026 === 'ARB1') {
+                    serviceStatus = 'Arb 1';
+                    yearsRemaining = 1;
+                } else if (status2026 === 'ARB2') {
+                    serviceStatus = 'Arb 2';
+                    yearsRemaining = 1;
+                } else if (status2026 === 'ARB3') {
+                    serviceStatus = 'Arb 3';
+                    yearsRemaining = 1;
+                } else if (status2026 === 'FA') {
+                    serviceStatus = 'Free Agent (2026)';
+                    yearsRemaining = 0;
+                } else if (status2026 && !isNaN(parseFloat(status2026.replace(/,/g, '')))) {
+                    // Has a dollar amount in 2026
+                    serviceStatus = 'Under Contract';
+                    yearsRemaining = 1;
+                }
+                
+                // Count additional contract years
+                const futureYears = [status2027, values[8], values[9], values[10]];
+                for (const year of futureYears) {
+                    if (!year || year === 'FA' || year === '') break;
+                    yearsRemaining++;
+                }
+                
+                // Determine current year status based on next year
+                if (status2026 === 'TC') {
+                    serviceStatus = 'Team Control';
+                } else if (status2026 === 'ARB1') {
+                    serviceStatus = 'Team Control';
+                } else if (status2026 === 'ARB2') {
+                    serviceStatus = 'Arb 1';
+                } else if (status2026 === 'ARB3') {
+                    serviceStatus = 'Arb 2';
+                } else if (status2026 === 'FA') {
+                    serviceStatus = 'Arb 3';
+                }
+                
+                salaryData[playerName] = {
+                    salary: salary2025,
+                    yearsRemaining: yearsRemaining,
+                    serviceStatus: serviceStatus,
+                    next2026: status2026
+                };
+            }
+            
+            console.log(`Loaded salary data for ${Object.keys(salaryData).length} players`);
+            
+            // Re-render players to show salary info
+            if (players.length > 0) {
+                applyFilters();
+            }
+        }
+
+        function calculateServiceTimeInfo(player) {
+            if (!player.stats || !player.stats.season) return null;
+            
+            const seasonStats = player.stats.season;
+            const isHitter = seasonStats.type === 'hitting';
+            const isMiLB = seasonStats.level !== 'MLB';
+            
+            let currentAB = 0;
+            let currentIP = 0;
+            
+            // Get current season stats
+            if (isHitter) {
+                currentAB = seasonStats.ab || 0;
+            } else {
+                currentIP = parseFloat(seasonStats.ip) || 0;
+            }
+            
+            // Calculate MiLB eligibility
+            const isMiLBEligible = currentAB < 130 && currentIP < 50;
+            const abRemaining = Math.max(0, 130 - currentAB);
+            const ipRemaining = Math.max(0, 50 - currentIP);
+            
+            // Determine warnings
+            let warnings = [];
+            if (isHitter && currentAB >= 120 && currentAB < 130) {
+                warnings.push({ 
+                    type: 'critical', 
+                    text: `🚨 ${abRemaining} AB until service time!`,
+                    icon: '🚨'
+                });
+            } else if (isHitter && currentAB >= 100 && currentAB < 120) {
+                warnings.push({ 
+                    type: 'warning', 
+                    text: `⚠️ ${abRemaining} AB remaining`,
+                    icon: '⚠️'
+                });
+            }
+            
+            if (!isHitter && currentIP >= 45 && currentIP < 50) {
+                warnings.push({ 
+                    type: 'critical', 
+                    text: `🚨 ${ipRemaining.toFixed(1)} IP until service time!`,
+                    icon: '🚨'
+                });
+            } else if (!isHitter && currentIP >= 35 && currentIP < 45) {
+                warnings.push({ 
+                    type: 'warning', 
+                    text: `⚠️ ${ipRemaining.toFixed(1)} IP remaining`,
+                    icon: '⚠️'
+                });
+            }
+            
+            return {
+                isMiLBEligible,
+                currentAB,
+                currentIP,
+                abRemaining,
+                ipRemaining,
+                warnings,
+                isHitter
+            };
+        }
 
         // Close autocomplete when clicking outside
         document.addEventListener('click', function(e) {
@@ -1336,6 +1571,9 @@
                         🔍 Search "${player.name}" Online
                     </a>
                 </div>
+                
+                ${player.serviceInfo ? renderServiceTimeTracker(player) : ''}
+                ${salaryData[player.name] ? renderContractInfo(player) : ''}
             `;
 
             // Current Season Stats
@@ -1535,6 +1773,32 @@
             document.getElementById('mlbPlayers').textContent = mlbCount;
             document.getElementById('prospects').textContent = prospectsCount;
             document.getElementById('avgAge').textContent = avgAge;
+            
+            // Calculate salary cap if salary data is loaded
+            if (Object.keys(salaryData).length > 0) {
+                const salaryCap = 241000000; // $241M
+                let totalSalary = 0;
+                let contractedPlayers = 0;
+                
+                players.forEach(p => {
+                    if (salaryData[p.name]) {
+                        const salary = parseInt(salaryData[p.name].salary) || 0;
+                        totalSalary += salary;
+                        contractedPlayers++;
+                    }
+                });
+                
+                const capSpace = salaryCap - totalSalary;
+                const capUsedPct = ((totalSalary / salaryCap) * 100).toFixed(1);
+                
+                // Show salary info
+                document.getElementById('salaryCapUsed').textContent = `$${formatSalary(totalSalary.toString())}`;
+                document.getElementById('salaryCapSpace').textContent = `$${formatSalary(capSpace.toString())}`;
+                document.getElementById('salaryCapPct').textContent = `${capUsedPct}%`;
+                document.getElementById('salarySummary').classList.remove('hidden');
+            } else {
+                document.getElementById('salarySummary').classList.add('hidden');
+            }
         }
 
         function applyFilters() {
@@ -1610,6 +1874,12 @@
                         ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
                         ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
                         ${player.ranking ? `<span class="badge badge-ranking">Rank: ${player.ranking}</span>` : ''}
+                        ${salaryData[player.name] ? `<span class="badge badge-salary">$${formatSalary(salaryData[player.name].salary)}</span>` : ''}
+                        ${salaryData[player.name]?.serviceStatus ? `<span class="badge badge-service">${salaryData[player.name].serviceStatus}</span>` : ''}
+                        ${player.serviceInfo?.isMiLBEligible ? `<span class="badge badge-milb-eligible">✓ MiLB Eligible</span>` : ''}
+                        ${player.serviceInfo?.warnings.map(w => 
+                            `<span class="badge badge-warning">${w.text}</span>`
+                        ).join('') || ''}
                         ${player.changes && player.changes.length > 0 ? player.changes.map(change => 
                             `<span class="badge" style="background: ${change.type === 'positive' ? '#22c55e' : change.type === 'negative' ? '#ef4444' : '#f59e0b'};">
                                 ${change.icon} ${change.text}
@@ -1930,6 +2200,9 @@
                 }
 
                 player.stats = { career: careerStats, season: seasonStats, advanced: advancedStats };
+                
+                // Calculate service time info
+                player.serviceInfo = calculateServiceTimeInfo(player);
                 
                 // Generate flags and insights
                 generatePlayerFlags(player, isPitcher);
@@ -2286,6 +2559,101 @@
             }
         }
 
+        // ========== PERFORMANCE TRACKING ==========
+        
+        function formatSalary(salary) {
+            const num = parseInt(salary);
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(0) + 'K';
+            }
+            return num.toString();
+        }
+
+        function renderServiceTimeTracker(player) {
+            const info = player.serviceInfo;
+            if (!info) return '';
+            
+            return `
+                <div class="service-tracker">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #60a5fa;">
+                        📊 Service Time Tracker
+                    </div>
+                    ${info.isHitter ? `
+                        <div class="tracker-row">
+                            <span class="tracker-label">At-Bats (Current Season):</span>
+                            <span class="${info.currentAB >= 120 ? 'tracker-critical' : info.currentAB >= 100 ? 'tracker-warning' : 'tracker-value'}">
+                                ${info.currentAB} / 130
+                            </span>
+                        </div>
+                        ${info.currentAB < 130 ? `
+                            <div class="tracker-row">
+                                <span class="tracker-label">AB Until Service Time:</span>
+                                <span class="${info.abRemaining <= 10 ? 'tracker-critical' : info.abRemaining <= 30 ? 'tracker-warning' : 'tracker-value'}">
+                                    ${info.abRemaining}
+                                </span>
+                            </div>
+                        ` : ''}
+                    ` : `
+                        <div class="tracker-row">
+                            <span class="tracker-label">Innings Pitched (Current Season):</span>
+                            <span class="${info.currentIP >= 45 ? 'tracker-critical' : info.currentIP >= 35 ? 'tracker-warning' : 'tracker-value'}">
+                                ${info.currentIP.toFixed(1)} / 50.0
+                            </span>
+                        </div>
+                        ${info.currentIP < 50 ? `
+                            <div class="tracker-row">
+                                <span class="tracker-label">IP Until Service Time:</span>
+                                <span class="${info.ipRemaining <= 5 ? 'tracker-critical' : info.ipRemaining <= 15 ? 'tracker-warning' : 'tracker-value'}">
+                                    ${info.ipRemaining.toFixed(1)}
+                                </span>
+                            </div>
+                        ` : ''}
+                    `}
+                    <div class="tracker-row">
+                        <span class="tracker-label">MiLB Eligibility:</span>
+                        <span class="${info.isMiLBEligible ? 'tracker-value' : 'tracker-critical'}">
+                            ${info.isMiLBEligible ? '✓ Eligible' : '✗ Ineligible'}
+                        </span>
+                    </div>
+                    ${!info.isMiLBEligible ? `
+                        <div style="margin-top: 8px; padding: 8px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; font-size: 0.875rem; color: #fca5a5;">
+                            ⚠️ Must occupy Active/Reserve slot (salary cap impact)
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function renderContractInfo(player) {
+            const contract = salaryData[player.name];
+            if (!contract) return '';
+            
+            const salary = parseInt(contract.salary);
+            const years = parseInt(contract.yearsRemaining) || 0;
+            
+            return `
+                <div class="service-tracker" style="border-color: rgba(6, 182, 212, 0.3);">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #06b6d4;">
+                        💰 Contract Information
+                    </div>
+                    <div class="tracker-row">
+                        <span class="tracker-label">2025 Salary:</span>
+                        <span class="tracker-value">$${formatSalary(contract.salary)}</span>
+                    </div>
+                    <div class="tracker-row">
+                        <span class="tracker-label">Years Remaining:</span>
+                        <span class="tracker-value">${years} year${years !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="tracker-row">
+                        <span class="tracker-label">Service Status:</span>
+                        <span class="tracker-value">${contract.serviceStatus}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
         // ========== PERFORMANCE TRACKING ==========
         
         async function trackPlayerChanges(player) {
