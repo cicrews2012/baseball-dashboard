@@ -878,7 +878,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.1</p>
                 </div>
             </div>
             <div class="tabs">
@@ -1230,7 +1230,16 @@
             if (!player.stats || !player.stats.season) return null;
             
             const seasonStats = player.stats.season;
-            const isHitter = seasonStats.type === 'hitting';
+            
+            // Determine if hitter or pitcher based on POSITION first, then stats
+            const isPitcherPosition = player.position && (
+                player.position.includes('SP') || 
+                player.position.includes('RP') || 
+                player.position === 'P'
+            );
+            
+            // Use stats type as backup
+            const isHitter = !isPitcherPosition && (seasonStats.type === 'hitting' || player.position);
             const isMiLB = seasonStats.level !== 'MLB';
             
             let currentAB = 0;
