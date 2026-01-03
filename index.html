@@ -833,7 +833,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.5.1</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.5.2</p>
                 </div>
             </div>
             <div class="tabs">
@@ -1950,18 +1950,19 @@
             const year = split?.season || null;
             
             if (isPitcher) {
-                // Recalculate ERA if we have the data
+                // Use API-provided rate stats directly when available, only recalculate if missing
                 let era = stat.era || '0.00';
-                if (stat.earnedRuns && stat.inningsPitched) {
+                let whip = stat.whip || '0.00';
+                
+                // Only recalculate if we don't have the rate stats from API
+                if (!stat.era && stat.earnedRuns && stat.inningsPitched) {
                     const ip = parseFloat(stat.inningsPitched);
                     if (ip > 0) {
                         era = ((stat.earnedRuns / ip) * 9).toFixed(2);
                     }
                 }
                 
-                // Recalculate WHIP if we have the data
-                let whip = stat.whip || '0.00';
-                if (stat.hits && stat.baseOnBalls && stat.inningsPitched) {
+                if (!stat.whip && stat.hits && stat.baseOnBalls && stat.inningsPitched) {
                     const ip = parseFloat(stat.inningsPitched);
                     if (ip > 0) {
                         whip = ((stat.hits + stat.baseOnBalls) / ip).toFixed(2);
@@ -1985,32 +1986,18 @@
                     kbb: stat.strikeOuts && stat.baseOnBalls ? (stat.strikeOuts / Math.max(stat.baseOnBalls, 1)).toFixed(2) : '0.00'
                 };
             } else {
-                // Recalculate AVG if we have the data
+                // Use API-provided rate stats directly when available
                 let avg = stat.avg || '.000';
-                if (stat.hits && stat.atBats && stat.atBats > 0) {
+                let obp = stat.obp || '.000';
+                let slg = stat.slg || '.000';
+                let ops = stat.ops || '.000';
+                
+                // Only recalculate if we don't have the rate stats from API
+                if (!stat.avg && stat.hits && stat.atBats && stat.atBats > 0) {
                     avg = (stat.hits / stat.atBats).toFixed(3);
                 }
                 
-                // Recalculate OBP if we have the data
-                let obp = stat.obp || '.000';
-                if (stat.hits && stat.baseOnBalls && stat.atBats) {
-                    const hitByPitch = stat.hitByPitch || 0;
-                    const sacFlies = stat.sacFlies || 0;
-                    const denominator = stat.atBats + stat.baseOnBalls + hitByPitch + sacFlies;
-                    if (denominator > 0) {
-                        obp = ((stat.hits + stat.baseOnBalls + hitByPitch) / denominator).toFixed(3);
-                    }
-                }
-                
-                // Recalculate SLG if we have the data
-                let slg = stat.slg || '.000';
-                if (stat.totalBases && stat.atBats && stat.atBats > 0) {
-                    slg = (stat.totalBases / stat.atBats).toFixed(3);
-                }
-                
-                // Calculate OPS
-                let ops = stat.ops || '.000';
-                if (obp !== '.000' && slg !== '.000') {
+                if (!stat.ops && obp !== '.000' && slg !== '.000') {
                     ops = (parseFloat(obp) + parseFloat(slg)).toFixed(3);
                 }
                 
