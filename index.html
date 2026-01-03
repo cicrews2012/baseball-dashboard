@@ -878,7 +878,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.1</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.2</p>
                 </div>
             </div>
             <div class="tabs">
@@ -1227,9 +1227,13 @@
         }
 
         function calculateServiceTimeInfo(player) {
-            if (!player.stats || !player.stats.season) return null;
+            if (!player.stats) return null;
             
+            // Use career stats for eligibility determination
+            const careerStats = player.stats.career;
             const seasonStats = player.stats.season;
+            
+            if (!careerStats) return null;
             
             // Determine if hitter or pitcher based on POSITION first, then stats
             const isPitcherPosition = player.position && (
@@ -1239,33 +1243,36 @@
             );
             
             // Use stats type as backup
-            const isHitter = !isPitcherPosition && (seasonStats.type === 'hitting' || player.position);
-            const isMiLB = seasonStats.level !== 'MLB';
+            const isHitter = !isPitcherPosition && (careerStats.type === 'hitting' || player.position);
             
-            let currentAB = 0;
-            let currentIP = 0;
+            let careerAB = 0;
+            let careerIP = 0;
+            let currentSeasonAB = 0;
+            let currentSeasonIP = 0;
             
-            // Get current season stats
+            // Get CAREER stats for eligibility
             if (isHitter) {
-                currentAB = seasonStats.ab || 0;
+                careerAB = careerStats.ab || 0;
+                currentSeasonAB = seasonStats?.ab || 0;
             } else {
-                currentIP = parseFloat(seasonStats.ip) || 0;
+                careerIP = parseFloat(careerStats.ip) || 0;
+                currentSeasonIP = parseFloat(seasonStats?.ip) || 0;
             }
             
-            // Calculate MiLB eligibility
-            const isMiLBEligible = currentAB < 130 && currentIP < 50;
-            const abRemaining = Math.max(0, 130 - currentAB);
-            const ipRemaining = Math.max(0, 50 - currentIP);
+            // Calculate MiLB eligibility based on CAREER totals
+            const isMiLBEligible = careerAB < 130 && careerIP < 50;
+            const abRemaining = Math.max(0, 130 - careerAB);
+            const ipRemaining = Math.max(0, 50 - careerIP);
             
-            // Determine warnings
+            // Determine warnings based on career totals
             let warnings = [];
-            if (isHitter && currentAB >= 120 && currentAB < 130) {
+            if (isHitter && careerAB >= 120 && careerAB < 130) {
                 warnings.push({ 
                     type: 'critical', 
                     text: `🚨 ${abRemaining} AB until service time!`,
                     icon: '🚨'
                 });
-            } else if (isHitter && currentAB >= 100 && currentAB < 120) {
+            } else if (isHitter && careerAB >= 100 && careerAB < 120) {
                 warnings.push({ 
                     type: 'warning', 
                     text: `⚠️ ${abRemaining} AB remaining`,
@@ -1273,13 +1280,13 @@
                 });
             }
             
-            if (!isHitter && currentIP >= 45 && currentIP < 50) {
+            if (!isHitter && careerIP >= 45 && careerIP < 50) {
                 warnings.push({ 
                     type: 'critical', 
                     text: `🚨 ${ipRemaining.toFixed(1)} IP until service time!`,
                     icon: '🚨'
                 });
-            } else if (!isHitter && currentIP >= 35 && currentIP < 45) {
+            } else if (!isHitter && careerIP >= 35 && careerIP < 45) {
                 warnings.push({ 
                     type: 'warning', 
                     text: `⚠️ ${ipRemaining.toFixed(1)} IP remaining`,
@@ -1289,8 +1296,10 @@
             
             return {
                 isMiLBEligible,
-                currentAB,
-                currentIP,
+                careerAB,
+                careerIP,
+                currentSeasonAB,
+                currentSeasonIP,
                 abRemaining,
                 ipRemaining,
                 warnings,
@@ -2591,12 +2600,12 @@
                     </div>
                     ${info.isHitter ? `
                         <div class="tracker-row">
-                            <span class="tracker-label">At-Bats (Current Season):</span>
-                            <span class="${info.currentAB >= 120 ? 'tracker-critical' : info.currentAB >= 100 ? 'tracker-warning' : 'tracker-value'}">
-                                ${info.currentAB} / 130
+                            <span class="tracker-label">Career At-Bats:</span>
+                            <span class="${info.careerAB >= 120 ? 'tracker-critical' : info.careerAB >= 100 ? 'tracker-warning' : 'tracker-value'}">
+                                ${info.careerAB} / 130
                             </span>
                         </div>
-                        ${info.currentAB < 130 ? `
+                        ${info.careerAB < 130 ? `
                             <div class="tracker-row">
                                 <span class="tracker-label">AB Until Service Time:</span>
                                 <span class="${info.abRemaining <= 10 ? 'tracker-critical' : info.abRemaining <= 30 ? 'tracker-warning' : 'tracker-value'}">
@@ -2604,19 +2613,31 @@
                                 </span>
                             </div>
                         ` : ''}
+                        ${info.currentSeasonAB > 0 ? `
+                            <div class="tracker-row" style="opacity: 0.7;">
+                                <span class="tracker-label">Current Season AB:</span>
+                                <span class="tracker-value">${info.currentSeasonAB}</span>
+                            </div>
+                        ` : ''}
                     ` : `
                         <div class="tracker-row">
-                            <span class="tracker-label">Innings Pitched (Current Season):</span>
-                            <span class="${info.currentIP >= 45 ? 'tracker-critical' : info.currentIP >= 35 ? 'tracker-warning' : 'tracker-value'}">
-                                ${info.currentIP.toFixed(1)} / 50.0
+                            <span class="tracker-label">Career Innings Pitched:</span>
+                            <span class="${info.careerIP >= 45 ? 'tracker-critical' : info.careerIP >= 35 ? 'tracker-warning' : 'tracker-value'}">
+                                ${info.careerIP.toFixed(1)} / 50.0
                             </span>
                         </div>
-                        ${info.currentIP < 50 ? `
+                        ${info.careerIP < 50 ? `
                             <div class="tracker-row">
                                 <span class="tracker-label">IP Until Service Time:</span>
                                 <span class="${info.ipRemaining <= 5 ? 'tracker-critical' : info.ipRemaining <= 15 ? 'tracker-warning' : 'tracker-value'}">
                                     ${info.ipRemaining.toFixed(1)}
                                 </span>
+                            </div>
+                        ` : ''}
+                        ${info.currentSeasonIP > 0 ? `
+                            <div class="tracker-row" style="opacity: 0.7;">
+                                <span class="tracker-label">Current Season IP:</span>
+                                <span class="tracker-value">${info.currentSeasonIP.toFixed(1)}</span>
                             </div>
                         ` : ''}
                     `}
