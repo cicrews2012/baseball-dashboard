@@ -878,7 +878,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.2</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.4</p>
                 </div>
             </div>
             <div class="tabs">
@@ -1229,7 +1229,7 @@
         function calculateServiceTimeInfo(player) {
             if (!player.stats) return null;
             
-            // Use career stats for eligibility determination
+            // Use career stats - but only MLB stats count for eligibility
             const careerStats = player.stats.career;
             const seasonStats = player.stats.season;
             
@@ -1245,34 +1245,47 @@
             // Use stats type as backup
             const isHitter = !isPitcherPosition && (careerStats.type === 'hitting' || player.position);
             
-            let careerAB = 0;
-            let careerIP = 0;
+            let mlbCareerAB = 0;
+            let mlbCareerIP = 0;
             let currentSeasonAB = 0;
             let currentSeasonIP = 0;
             
-            // Get CAREER stats for eligibility
-            if (isHitter) {
-                careerAB = careerStats.ab || 0;
-                currentSeasonAB = seasonStats?.ab || 0;
-            } else {
-                careerIP = parseFloat(careerStats.ip) || 0;
-                currentSeasonIP = parseFloat(seasonStats?.ip) || 0;
+            // Only count MLB stats for eligibility
+            // If career level is "MLB", use those stats
+            // If career level is "MiLB Career", they have 0 MLB stats
+            const isMLBCareer = careerStats.level === 'MLB';
+            
+            if (isMLBCareer) {
+                if (isHitter) {
+                    mlbCareerAB = careerStats.ab || 0;
+                } else {
+                    mlbCareerIP = parseFloat(careerStats.ip) || 0;
+                }
             }
             
-            // Calculate MiLB eligibility based on CAREER totals
-            const isMiLBEligible = careerAB < 130 && careerIP < 50;
-            const abRemaining = Math.max(0, 130 - careerAB);
-            const ipRemaining = Math.max(0, 50 - careerIP);
+            // Current season stats (for display)
+            if (seasonStats) {
+                if (isHitter) {
+                    currentSeasonAB = seasonStats.ab || 0;
+                } else {
+                    currentSeasonIP = parseFloat(seasonStats.ip) || 0;
+                }
+            }
             
-            // Determine warnings based on career totals
+            // Calculate MiLB eligibility based on MLB career totals only
+            const isMiLBEligible = mlbCareerAB < 130 && mlbCareerIP < 50;
+            const abRemaining = Math.max(0, 130 - mlbCareerAB);
+            const ipRemaining = Math.max(0, 50 - mlbCareerIP);
+            
+            // Determine warnings based on MLB career totals
             let warnings = [];
-            if (isHitter && careerAB >= 120 && careerAB < 130) {
+            if (isHitter && mlbCareerAB >= 120 && mlbCareerAB < 130) {
                 warnings.push({ 
                     type: 'critical', 
                     text: `🚨 ${abRemaining} AB until service time!`,
                     icon: '🚨'
                 });
-            } else if (isHitter && careerAB >= 100 && careerAB < 120) {
+            } else if (isHitter && mlbCareerAB >= 100 && mlbCareerAB < 120) {
                 warnings.push({ 
                     type: 'warning', 
                     text: `⚠️ ${abRemaining} AB remaining`,
@@ -1280,13 +1293,13 @@
                 });
             }
             
-            if (!isHitter && careerIP >= 45 && careerIP < 50) {
+            if (!isHitter && mlbCareerIP >= 45 && mlbCareerIP < 50) {
                 warnings.push({ 
                     type: 'critical', 
                     text: `🚨 ${ipRemaining.toFixed(1)} IP until service time!`,
                     icon: '🚨'
                 });
-            } else if (!isHitter && careerIP >= 35 && careerIP < 45) {
+            } else if (!isHitter && mlbCareerIP >= 35 && mlbCareerIP < 45) {
                 warnings.push({ 
                     type: 'warning', 
                     text: `⚠️ ${ipRemaining.toFixed(1)} IP remaining`,
@@ -1296,8 +1309,8 @@
             
             return {
                 isMiLBEligible,
-                careerAB,
-                careerIP,
+                careerAB: mlbCareerAB,
+                careerIP: mlbCareerIP,
                 currentSeasonAB,
                 currentSeasonIP,
                 abRemaining,
@@ -1999,6 +2012,9 @@
                 content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading comprehensive player data...</p></div>';
                 await fetchPlayerStats(player);
                 updatePlayerCard(id);
+            } else {
+                // Stats already loaded, just re-render the content
+                updatePlayerCard(id);
             }
         }
 
@@ -2600,7 +2616,7 @@
                     </div>
                     ${info.isHitter ? `
                         <div class="tracker-row">
-                            <span class="tracker-label">Career At-Bats:</span>
+                            <span class="tracker-label">MLB Career At-Bats:</span>
                             <span class="${info.careerAB >= 120 ? 'tracker-critical' : info.careerAB >= 100 ? 'tracker-warning' : 'tracker-value'}">
                                 ${info.careerAB} / 130
                             </span>
@@ -2621,7 +2637,7 @@
                         ` : ''}
                     ` : `
                         <div class="tracker-row">
-                            <span class="tracker-label">Career Innings Pitched:</span>
+                            <span class="tracker-label">MLB Career Innings Pitched:</span>
                             <span class="${info.careerIP >= 45 ? 'tracker-critical' : info.careerIP >= 35 ? 'tracker-warning' : 'tracker-value'}">
                                 ${info.careerIP.toFixed(1)} / 50.0
                             </span>
