@@ -878,13 +878,14 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.7.4</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v1.8.0</p>
                 </div>
             </div>
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
                 <button class="tab-btn" onclick="switchTab('research')">🔬 Player Research</button>
                 <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
+                <button class="tab-btn" onclick="switchTab('guide')">📖 Features & Guide</button>
             </div>
             <div class="controls-row">
                 <input type="file" id="fileInput" accept=".csv" style="display: none;">
@@ -1095,6 +1096,164 @@
                             <h3>Breakout Candidates</h3>
                             <p style="color: #94a3b8; margin-top: 10px;">Click to analyze your roster and find potential breakout prospects</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="guideTab">
+            <div class="research-section">
+                <h2 style="margin-bottom: 20px;">📖 Dashboard Features & Guide</h2>
+                
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #60a5fa; margin-bottom: 10px;">📌 Current Status</h3>
+                    <p style="color: #94a3b8; line-height: 1.6;">
+                        <strong>MLB API Status:</strong> Offseason Mode (Limited Data)<br>
+                        <strong>Version:</strong> v1.7.4<br>
+                        <strong>Last Updated:</strong> January 2026
+                    </p>
+                    <p style="color: #f59e0b; margin-top: 10px; font-size: 0.875rem;">
+                        ⚠️ Some features are limited during MLB offseason. Full functionality returns when season begins (~February).
+                    </p>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #22c55e; margin-bottom: 15px;">✅ Core Features (Available Now)</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">📋 Roster Management</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>CSV Import:</strong> Upload Fantrax roster exports</li>
+                            <li><strong>Player Search:</strong> Real-time text filtering by name/team/position</li>
+                            <li><strong>Advanced Filters:</strong> Position, status (MLB/Minors/Reserve), sorting options</li>
+                            <li><strong>Summary Stats:</strong> Total players, MLB/prospects count, average age</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">💰 MBL Salary Cap Integration</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Salary CSV Upload:</strong> Import your team's contract data</li>
+                            <li><strong>Cap Tracking:</strong> Live calculation of cap used, space remaining, percentage</li>
+                            <li><strong>Player Contracts:</strong> 2025 salary, years remaining, service status displayed on each card</li>
+                            <li><strong>Service Status Labels:</strong> Team Control, Arb 1-3, Free Agent indicators</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">📊 Service Time Tracker (MBL Rules)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>MLB Career AB/IP Tracking:</strong> Shows progress toward 130 AB / 50 IP threshold</li>
+                            <li><strong>MiLB Eligibility Status:</strong> Automatic determination based on MLB stats only</li>
+                            <li><strong>Smart Warnings:</strong> Critical alerts when within 10 AB/5 IP of threshold</li>
+                            <li><strong>Warning Badges:</strong> Yellow (30 AB away) and red pulsing (10 AB away) alerts</li>
+                            <li><strong>Roster Impact Notices:</strong> Flags when players must occupy Active/Reserve slots</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">🎯 Quick Filters</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>🔥 Hot Bats:</strong> OPS > .850 with 20+ games</li>
+                            <li><strong>💨 Speed Threats:</strong> 10+ stolen bases</li>
+                            <li><strong>🎯 Elite Contact:</strong> K% < 20%</li>
+                            <li><strong>⚡ K Artists:</strong> K/BB > 3.0 (pitchers)</li>
+                            <li><strong>👶 Young Talent:</strong> Age ≤21 in AA/AAA</li>
+                            <li><strong>💪 Power Hitters:</strong> 10+ home runs</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">📈 Performance Tracking</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Change Detection:</strong> Automatic tracking of promotions/demotions</li>
+                            <li><strong>Stat Trends:</strong> Flags significant OPS/ERA changes between visits</li>
+                            <li><strong>Level Changes:</strong> Green badges for promotions, red for demotions</li>
+                            <li><strong>Persistent Storage:</strong> History saved across sessions</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">🔬 Player Research</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Standalone Lookup:</strong> Search any player without loading full roster</li>
+                            <li><strong>Autocomplete:</strong> Typeahead suggestions as you type (2+ characters)</li>
+                            <li><strong>External Links:</strong> One-click Google search for any player</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">📊 Player Comparison</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Multi-Select:</strong> Compare up to 4 players side-by-side</li>
+                            <li><strong>Modal View:</strong> Full stats, flags, and level breakdowns in comparison</li>
+                            <li><strong>Clear Selection:</strong> One-click to reset and start new comparison</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #f59e0b; margin-bottom: 15px;">⏳ Season-Dependent Features (Limited in Offseason)</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #f59e0b; margin-bottom: 10px;">📊 Player Stats (MLB API)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Career Stats:</strong> MLB and MiLB career totals</li>
+                            <li><strong>Season Stats:</strong> Current year performance by level</li>
+                            <li><strong>Level-by-Level Breakdown:</strong> Rookie → A → A+ → AA → AAA → MLB progression</li>
+                            <li><strong>Advanced Metrics:</strong> K%, BB%, K/BB, OBP, SLG calculations</li>
+                            <li><strong>Smart Flags:</strong> Auto-generated performance alerts (elite/concerning stats)</li>
+                            <li><strong>Age-Relative Analysis:</strong> Context for performance vs. age/level</li>
+                        </ul>
+                        <p style="color: #f59e0b; margin-top: 10px; font-size: 0.875rem;">
+                            ⚠️ <strong>Offseason Note:</strong> API returns limited/cached data. Full stats available ~February when season starts.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #f59e0b; margin-bottom: 10px;">🏆 Top Prospects</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Top 100:</strong> MLB Pipeline prospect rankings</li>
+                            <li><strong>By Team:</strong> Team-specific prospect lists</li>
+                            <li><strong>Breakout Watch:</strong> Stat-based breakout candidate identification</li>
+                            <li><strong>Ownership Tracking:</strong> Shows which prospects you already own</li>
+                        </ul>
+                        <p style="color: #f59e0b; margin-top: 10px; font-size: 0.875rem;">
+                            ⚠️ <strong>Offseason Note:</strong> MLB API prospect endpoints may be inactive. Check back in spring.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 25px;">
+                    <h3 style="color: #a855f7; margin-bottom: 15px;">💡 Tips & Best Practices</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #a855f7; margin-bottom: 10px;">📁 File Uploads</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li>Export Fantrax roster as CSV (include all columns)</li>
+                            <li>Export your team's salary tab from MBL Contracts spreadsheet</li>
+                            <li>Upload roster first, then salary data for full integration</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #a855f7; margin-bottom: 10px;">🎯 Workflow Recommendations</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Weekly Review:</strong> Upload fresh roster CSV to check for promotions/changes</li>
+                            <li><strong>Trade Analysis:</strong> Use comparison tool to evaluate multi-player deals</li>
+                            <li><strong>Waiver Wire:</strong> Use Research tab + Quick Filters to find targets</li>
+                            <li><strong>Service Time Monitoring:</strong> Check prospects weekly as they approach 130 AB/50 IP</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #a855f7; margin-bottom: 10px;">🔄 When Season Starts</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li>MLB API will provide real-time stats (updated daily)</li>
+                            <li>Top Prospects tab will load current rankings</li>
+                            <li>Breakout Watch will analyze live performance</li>
+                            <li>Service time trackers will update with in-season AB/IP</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -1462,6 +1621,7 @@
             document.getElementById('rosterTab').classList.remove('active');
             document.getElementById('researchTab').classList.remove('active');
             document.getElementById('prospectsTab').classList.remove('active');
+            document.getElementById('guideTab').classList.remove('active');
             
             // Remove active from all buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1477,6 +1637,9 @@
                 document.getElementById('prospectsTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 populateTeamDropdowns();
+            } else if (tabName === 'guide') {
+                document.getElementById('guideTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
             }
         }
 
