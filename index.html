@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Elite Prospect Scouting Dashboard</title>
     <style>
         * {
@@ -731,6 +733,341 @@
             display: none;
         }
 
+        /* ========== MOBILE & TABLET RESPONSIVE ========== */
+        
+        @media screen and (max-width: 1024px) {
+            /* Tablet adjustments */
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            }
+            
+            .comparison-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stat-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media screen and (max-width: 768px) {
+            /* Mobile phones */
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 15px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header p {
+                font-size: 0.875rem;
+            }
+            
+            .tabs {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                width: 100%;
+            }
+            
+            .tab-btn {
+                padding: 10px 8px;
+                font-size: 0.75rem;
+                white-space: nowrap;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .upload-btn, .compare-btn {
+                width: 100%;
+            }
+            
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .player-card {
+                border-radius: 12px;
+            }
+            
+            .player-header {
+                padding: 15px;
+            }
+            
+            .player-name {
+                font-size: 1.5rem;
+            }
+            
+            .player-badges {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .badge {
+                font-size: 0.75rem;
+                padding: 4px 8px;
+            }
+            
+            .player-details {
+                padding: 0 15px 15px 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .stat-box {
+                padding: 10px;
+            }
+            
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            
+            .stat-value {
+                font-size: 1rem;
+            }
+            
+            .stat-summary {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 15px;
+                gap: 10px;
+            }
+            
+            .summary-box {
+                padding: 12px;
+            }
+            
+            .summary-label {
+                font-size: 0.75rem;
+            }
+            
+            .summary-value {
+                font-size: 1.25rem;
+            }
+            
+            .search-filter-section {
+                padding: 15px;
+            }
+            
+            .search-input, .filter-select {
+                font-size: 0.875rem;
+                padding: 10px;
+            }
+            
+            .quick-filters {
+                justify-content: flex-start;
+            }
+            
+            .quick-filter-btn {
+                padding: 8px 12px;
+                font-size: 0.75rem;
+            }
+            
+            /* Comparison modal mobile */
+            .comparison-modal {
+                padding: 10px;
+            }
+            
+            .comparison-content {
+                width: 100%;
+                max-width: 100%;
+                max-height: 90vh;
+                padding: 15px;
+                border-radius: 12px;
+            }
+            
+            .comparison-header h2 {
+                font-size: 1.25rem;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            /* Override inline grid styles for mobile */
+            .research-section > div[style*="grid-template-columns: repeat(2, 1fr)"],
+            .tab-content > div > div[style*="grid-template-columns: repeat(2, 1fr)"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Trade analyzer mobile */
+            #tradeTab .research-section > div {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Roster composition mobile */
+            #compositionTab .research-section > div {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Research section mobile */
+            .research-section {
+                padding: 15px;
+            }
+            
+            .research-section h2 {
+                font-size: 1.5rem;
+            }
+            
+            /* Prospects tabs mobile */
+            .prospects-sub-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .prospects-sub-tab-btn {
+                flex: 1;
+                min-width: 100px;
+                font-size: 0.75rem;
+                padding: 8px 12px;
+            }
+            
+            /* Service tracker mobile */
+            .service-tracker {
+                font-size: 0.875rem;
+            }
+            
+            .tracker-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            /* Advanced metrics mobile */
+            .advanced-metrics {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .metric-card {
+                padding: 8px;
+            }
+            
+            .metric-label {
+                font-size: 0.7rem;
+            }
+            
+            .metric-value {
+                font-size: 1rem;
+            }
+            
+            /* Level breakdown mobile */
+            .level-breakdown-item {
+                padding: 10px;
+            }
+            
+            .level-year {
+                font-size: 0.75rem;
+            }
+            
+            .level-details {
+                font-size: 0.75rem;
+            }
+            
+            /* Autocomplete mobile */
+            .autocomplete-dropdown {
+                max-height: 250px;
+            }
+            
+            .autocomplete-item {
+                padding: 10px;
+                font-size: 0.875rem;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            /* Small phones */
+            .header h1 {
+                font-size: 1.25rem;
+            }
+            
+            .tabs {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+            }
+            
+            .tab-btn {
+                padding: 8px 5px;
+                font-size: 0.7rem;
+            }
+            
+            .player-name {
+                font-size: 1.25rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stat-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-filters {
+                gap: 5px;
+            }
+            
+            .quick-filter-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* iPad Pro and landscape tablets */
+        @media screen and (min-width: 1024px) and (max-width: 1366px) {
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            }
+            
+            .comparison-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .tab-btn,
+            .upload-btn,
+            .compare-btn,
+            .quick-filter-btn,
+            .prospect-action-btn {
+                min-height: 44px; /* iOS touch target size */
+            }
+            
+            .player-header {
+                cursor: pointer;
+                -webkit-tap-highlight-color: rgba(96, 165, 250, 0.2);
+            }
+            
+            .autocomplete-item {
+                min-height: 44px;
+            }
+        }
+
         .trend-indicator {
             display: inline-flex;
             align-items: center;
@@ -878,12 +1215,13 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.2.1</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.4.0</p>
                 </div>
             </div>
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
                 <button class="tab-btn" onclick="switchTab('research')">🔬 Player Research</button>
+                <button class="tab-btn" onclick="switchTab('watchlist')">👁️ Watchlist</button>
                 <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
                 <button class="tab-btn" onclick="switchTab('trade')">🔄 Trade Analyzer</button>
                 <button class="tab-btn" onclick="switchTab('composition')">📊 Roster Breakdown</button>
@@ -1026,6 +1364,34 @@
                     <button class="research-btn" onclick="researchPlayer()">🔍 Search Player</button>
                 </div>
                 <div id="researchResults"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="watchlistTab">
+            <div class="research-section">
+                <h2 style="margin-bottom: 10px;">👁️ Watchlist</h2>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Track players you're interested in for trades, waiver pickups, or scouting. Add players from the Research tab.</p>
+                
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="color: #60a5fa; margin-bottom: 5px;">Quick Add</h3>
+                            <p style="color: #94a3b8; font-size: 0.875rem;">Type a player name to add to your watchlist</p>
+                        </div>
+                        <button class="upload-btn" onclick="clearWatchlist()" style="background: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.5);">
+                            🗑️ Clear All
+                        </button>
+                    </div>
+                    <input type="text" id="watchlistAddInput" class="filter-select" style="width: 100%; margin-top: 15px;" placeholder="Enter player name and press Enter...">
+                </div>
+                
+                <div id="watchlistGrid" class="players-grid"></div>
+                
+                <div id="watchlistEmpty" class="empty-state">
+                    <div style="font-size: 4rem;">👁️</div>
+                    <h3>No Players on Watchlist</h3>
+                    <p style="color: #bfdbfe;">Add players from the Research tab or type names above</p>
+                </div>
             </div>
         </div>
 
@@ -1275,10 +1641,22 @@
                     </div>
 
                     <div style="margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px;">👁️ Watchlist</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Track Players:</strong> Add players you're interested in for trades, waiver pickups, or scouting</li>
+                            <li><strong>Persistent Storage:</strong> Watchlist saves across browser sessions</li>
+                            <li><strong>Quick Add:</strong> Type player names directly or add from Research tab</li>
+                            <li><strong>Full Stats:</strong> Click any watchlist player to load their complete stats</li>
+                            <li><strong>Easy Management:</strong> Remove individual players or clear entire list</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
                         <h4 style="color: #60a5fa; margin-bottom: 10px;">🔬 Player Research</h4>
                         <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
                             <li><strong>Standalone Lookup:</strong> Search any player without loading full roster</li>
                             <li><strong>Autocomplete:</strong> Typeahead suggestions as you type (2+ characters)</li>
+                            <li><strong>Add to Watchlist:</strong> Save interesting players for future reference</li>
                             <li><strong>External Links:</strong> One-click Google search for any player</li>
                         </ul>
                     </div>
@@ -1298,6 +1676,21 @@
 
                 <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
                     <h3 style="color: #f59e0b; margin-bottom: 15px;">⏳ Season-Dependent Features (Limited in Offseason)</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #f59e0b; margin-bottom: 10px;">🤖 AI-Powered Reports (Coming When Season Starts)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Recent Performance Analysis:</strong> AI analyzes last 5-7 games with trend insights</li>
+                            <li><strong>Hot/Cold Streaks:</strong> Identifies if player is heating up or cooling down</li>
+                            <li><strong>Injury Updates:</strong> Real-time injury news and timeline impacts</li>
+                            <li><strong>Trade Rumors:</strong> Latest trade speculation and likelihood</li>
+                            <li><strong>Call-up Potential:</strong> Prospects close to MLB promotion</li>
+                            <li><strong>Personalized Recommendations:</strong> Buy/sell/hold advice based on your league context</li>
+                        </ul>
+                        <p style="color: #f59e0b; margin-top: 10px; font-size: 0.875rem;">
+                            ⚠️ <strong>Offseason Note:</strong> AI Reports will activate when regular season begins (~March 2026). Button available now for testing.
+                        </p>
+                    </div>
                     
                     <div style="margin-bottom: 20px;">
                         <h4 style="color: #f59e0b; margin-bottom: 10px;">📊 Player Stats (MLB API)</h4>
@@ -1393,6 +1786,215 @@
         let selectedAutocompleteIndex = -1;
         let autocompleteResults = [];
         let salaryData = {}; // Stores player salary/contract info
+        let watchlistPlayers = []; // Stores watchlist player data
+
+        // ========== WATCHLIST MANAGEMENT ==========
+        
+        async function loadWatchlist() {
+            try {
+                if (window.storage) {
+                    const result = await window.storage.get('watchlist-players');
+                    if (result && result.value) {
+                        watchlistPlayers = JSON.parse(result.value);
+                        console.log(`Loaded ${watchlistPlayers.length} players from watchlist`);
+                    }
+                }
+            } catch (error) {
+                console.log('No existing watchlist found');
+                watchlistPlayers = [];
+            }
+        }
+        
+        async function saveWatchlist() {
+            try {
+                if (window.storage) {
+                    await window.storage.set('watchlist-players', JSON.stringify(watchlistPlayers));
+                    console.log('Watchlist saved');
+                }
+            } catch (error) {
+                console.error('Error saving watchlist:', error);
+            }
+        }
+        
+        async function addToWatchlist(playerName) {
+            // Check if already on watchlist
+            if (watchlistPlayers.some(p => p.name === playerName)) {
+                alert(`${playerName} is already on your watchlist`);
+                return;
+            }
+            
+            // Create player object with stats loading capability
+            const watchlistPlayer = {
+                id: Date.now(),
+                name: playerName,
+                position: '',
+                team: '',
+                status: '',
+                age: 0,
+                statsLoaded: false,
+                stats: null,
+                addedDate: new Date().toISOString()
+            };
+            
+            watchlistPlayers.push(watchlistPlayer);
+            await saveWatchlist();
+            
+            // Load stats immediately
+            await fetchPlayerStats(watchlistPlayer);
+            await saveWatchlist();
+            
+            renderWatchlist();
+        }
+        
+        async function removeFromWatchlist(playerId) {
+            watchlistPlayers = watchlistPlayers.filter(p => p.id !== playerId);
+            await saveWatchlist();
+            renderWatchlist();
+        }
+        
+        async function clearWatchlist() {
+            if (confirm('Are you sure you want to clear your entire watchlist?')) {
+                watchlistPlayers = [];
+                await saveWatchlist();
+                renderWatchlist();
+            }
+        }
+        
+        function renderWatchlist() {
+            const grid = document.getElementById('watchlistGrid');
+            const empty = document.getElementById('watchlistEmpty');
+            
+            if (watchlistPlayers.length === 0) {
+                grid.classList.add('hidden');
+                empty.classList.remove('hidden');
+                return;
+            }
+            
+            grid.classList.remove('hidden');
+            empty.classList.add('hidden');
+            grid.innerHTML = '';
+            
+            watchlistPlayers.forEach(player => {
+                const card = createWatchlistCard(player);
+                grid.appendChild(card);
+            });
+        }
+        
+        function createWatchlistCard(player) {
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.innerHTML = `
+                <div class="player-header" onclick="toggleWatchlistCard(${player.id})">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-badges">
+                        ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
+                        ${player.position ? `<span class="badge badge-position">${player.position}</span>` : ''}
+                        ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
+                    </div>
+                </div>
+                <div class="player-details" id="watchlist-details-${player.id}">
+                    <div id="watchlist-content-${player.id}"></div>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="prospect-action-btn" onclick="event.stopPropagation(); removeFromWatchlist(${player.id})" style="flex: 1; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">
+                            🗑️ Remove from Watchlist
+                        </button>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+        
+        async function toggleWatchlistCard(id) {
+            const details = document.getElementById(`watchlist-details-${id}`);
+            const content = document.getElementById(`watchlist-content-${id}`);
+            const player = watchlistPlayers.find(p => p.id === id);
+
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                return;
+            }
+
+            details.classList.add('expanded');
+
+            if (!player.statsLoaded) {
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
+                await fetchPlayerStats(player);
+                await saveWatchlist();
+            }
+            
+            updateWatchlistCard(id);
+        }
+        
+        function updateWatchlistCard(id) {
+            const content = document.getElementById(`watchlist-content-${id}`);
+            const player = watchlistPlayers.find(p => p.id === id);
+            
+            if (player.stats && player.stats.error) {
+                content.innerHTML = `<div class="error-msg">${player.stats.error}</div>`;
+                return;
+            }
+            
+            const careerStats = player.stats?.career;
+            if (!careerStats || !careerStats.games) {
+                content.innerHTML = `<div class="error-msg">No stats available for this player</div>`;
+                return;
+            }
+
+            const isHitter = careerStats.type === 'hitting';
+            const currentYear = new Date().getFullYear();
+            const seasonStats = player.stats?.season;
+
+            let html = `
+                <div class="org-info-box">
+                    <div class="org-name">${player.mlbOrg}</div>
+                    ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' MLB baseball')}" 
+                       target="_blank" class="search-link" style="margin-top: 10px; display: inline-block;">
+                        🔍 Search "${player.name}" Online
+                    </a>
+                </div>
+            `;
+
+            // Current Season Stats
+            if (seasonStats && seasonStats.games > 0) {
+                html += `
+                    <div class="section-title">📊 ${currentYear} Stats - ${seasonStats.level}</div>
+                    <div class="stats-grid">
+                        ${isHitter ? renderHitterStats(seasonStats, true) : renderPitcherStats(seasonStats, true)}
+                    </div>
+                `;
+            }
+
+            // Career Stats
+            html += `
+                <div class="section-title">📈 Career Stats - ${careerStats.level}</div>
+                <div class="stats-grid">
+                    ${isHitter ? renderHitterStats(careerStats, false) : renderPitcherStats(careerStats, false)}
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+        
+        // Add to watchlist button for research tab
+        document.addEventListener('keypress', function(e) {
+            if (e.target.id === 'watchlistAddInput' && e.key === 'Enter') {
+                const name = e.target.value.trim();
+                if (name) {
+                    addToWatchlist(name);
+                    e.target.value = '';
+                }
+            }
+        });
+        
+        // Load watchlist on page load
+        loadWatchlist();
+        
+        // ========== AI REPORT GENERATION (Placeholder) ==========
+        
+        function generateAIReport(playerName) {
+            alert('AI Report feature will be available when MLB season starts!\n\nThis will analyze:\n• Last 5-7 games performance\n• Recent trends (hot/cold)\n• Injury updates\n• Trade rumors\n• Call-up potential\n\nStay tuned!');
+        }
 
         // Salary CSV upload handler
         document.getElementById('salaryInput').addEventListener('change', function(e) {
@@ -1737,6 +2339,7 @@
             // Hide all tabs
             document.getElementById('rosterTab').classList.remove('active');
             document.getElementById('researchTab').classList.remove('active');
+            document.getElementById('watchlistTab').classList.remove('active');
             document.getElementById('prospectsTab').classList.remove('active');
             document.getElementById('tradeTab').classList.remove('active');
             document.getElementById('compositionTab').classList.remove('active');
@@ -1752,20 +2355,24 @@
             } else if (tabName === 'research') {
                 document.getElementById('researchTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            } else if (tabName === 'watchlist') {
+                document.getElementById('watchlistTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                renderWatchlist();
             } else if (tabName === 'prospects') {
                 document.getElementById('prospectsTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 populateTeamDropdowns();
             } else if (tabName === 'trade') {
                 document.getElementById('tradeTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.querySelectorAll('.tab-btn')[4].classList.add('active');
             } else if (tabName === 'composition') {
                 document.getElementById('compositionTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[4].classList.add('active');
+                document.querySelectorAll('.tab-btn')[5].classList.add('active');
                 generateRosterComposition();
             } else if (tabName === 'guide') {
                 document.getElementById('guideTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[5].classList.add('active');
+                document.querySelectorAll('.tab-btn')[6].classList.add('active');
             }
         }
 
@@ -1987,6 +2594,18 @@
                 });
                 html += `</div>`;
             }
+            
+            // Action buttons at the bottom
+            html += `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 10px;">
+                    <button class="prospect-action-btn" onclick="addToWatchlist('${player.name}')" style="flex: 1;">
+                        👁️ Add to Watchlist
+                    </button>
+                    <button class="prospect-action-btn" onclick="generateAIReport('${player.name}')" style="flex: 1; background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5);">
+                        🤖 Generate AI Report
+                    </button>
+                </div>
+            `;
 
             content.innerHTML = html;
         }
