@@ -1215,7 +1215,12 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.5.4</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.6.0</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="demoModeBtn" class="refresh-btn" onclick="toggleDemoMode()" title="Enable demo mode to test with mock data">
+                        🧪 Demo Mode: OFF
+                    </button>
                 </div>
             </div>
             <div class="tabs">
@@ -1793,6 +1798,189 @@
         let autocompleteResults = [];
         let salaryData = {}; // Stores player salary/contract info
         let watchlistPlayers = []; // Stores watchlist player data
+        let demoMode = false; // Toggle for testing with mock data
+
+        // ========== DEMO MODE & MOCK DATA ==========
+        
+        const mockPlayers = {
+            "Paul Skenes": {
+                id: 675911,
+                fullName: "Paul Skenes",
+                primaryPosition: { abbreviation: "SP" },
+                currentTeam: { name: "Pittsburgh Pirates" },
+                currentAge: 22,
+                stats: {
+                    career: {
+                        type: 'pitching',
+                        level: 'MLB',
+                        era: '2.30',
+                        w: 8,
+                        l: 2,
+                        so: 145,
+                        whip: '0.95',
+                        games: 20
+                    },
+                    season: {
+                        type: 'pitching',
+                        level: 'MLB',
+                        era: '2.30',
+                        w: 8,
+                        l: 2,
+                        so: 145,
+                        whip: '0.95',
+                        games: 20
+                    }
+                }
+            },
+            "Gunnar Henderson": {
+                id: 683002,
+                fullName: "Gunnar Henderson",
+                primaryPosition: { abbreviation: "SS" },
+                currentTeam: { name: "Baltimore Orioles" },
+                currentAge: 23,
+                stats: {
+                    career: {
+                        type: 'hitting',
+                        level: 'MLB',
+                        avg: '.271',
+                        hr: 65,
+                        rbi: 158,
+                        sb: 24,
+                        ops: '.876',
+                        games: 245
+                    },
+                    season: {
+                        type: 'hitting',
+                        level: 'MLB',
+                        avg: '.281',
+                        hr: 37,
+                        rbi: 92,
+                        sb: 15,
+                        ops: '.905',
+                        games: 159
+                    }
+                }
+            },
+            "Jackson Chourio": {
+                id: 694160,
+                fullName: "Jackson Chourio",
+                primaryPosition: { abbreviation: "OF" },
+                currentTeam: { name: "Milwaukee Brewers" },
+                currentAge: 20,
+                stats: {
+                    career: {
+                        type: 'hitting',
+                        level: 'AAA',
+                        avg: '.315',
+                        hr: 12,
+                        rbi: 45,
+                        sb: 18,
+                        ops: '.895',
+                        games: 78
+                    },
+                    season: {
+                        type: 'hitting',
+                        level: 'AAA',
+                        avg: '.315',
+                        hr: 12,
+                        rbi: 45,
+                        sb: 18,
+                        ops: '.895',
+                        games: 78
+                    }
+                }
+            },
+            "Bobby Witt Jr": {
+                id: 677951,
+                fullName: "Bobby Witt Jr.",
+                primaryPosition: { abbreviation: "SS" },
+                currentTeam: { name: "Kansas City Royals" },
+                currentAge: 24,
+                stats: {
+                    career: {
+                        type: 'hitting',
+                        level: 'MLB',
+                        avg: '.278',
+                        hr: 78,
+                        rbi: 214,
+                        sb: 109,
+                        ops: '.811',
+                        games: 408
+                    },
+                    season: {
+                        type: 'hitting',
+                        level: 'MLB',
+                        avg: '.332',
+                        hr: 32,
+                        rbi: 109,
+                        sb: 49,
+                        ops: '.977',
+                        games: 161
+                    }
+                }
+            },
+            "Elly De La Cruz": {
+                id: 680927,
+                fullName: "Elly De La Cruz",
+                primaryPosition: { abbreviation: "SS" },
+                currentTeam: { name: "Cincinnati Reds" },
+                currentAge: 22,
+                stats: {
+                    career: {
+                        type: 'hitting',
+                        level: 'MLB',
+                        avg: '.256',
+                        hr: 38,
+                        rbi: 81,
+                        sb: 92,
+                        ops: '.788',
+                        games: 195
+                    },
+                    season: {
+                        type: 'hitting',
+                        level: 'MLB',
+                        avg: '.259',
+                        hr: 25,
+                        rbi: 76,
+                        sb: 67,
+                        ops: '.799',
+                        games: 160
+                    }
+                }
+            }
+        };
+        
+        function toggleDemoMode() {
+            demoMode = !demoMode;
+            const btn = document.getElementById('demoModeBtn');
+            if (demoMode) {
+                btn.textContent = '🧪 Demo Mode: ON';
+                btn.style.background = 'rgba(34, 197, 94, 0.3)';
+                btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                alert('🧪 Demo Mode Enabled!\n\nYou can now test MLB API functions with mock data.\n\nTry searching for:\n• Paul Skenes\n• Gunnar Henderson\n• Jackson Chourio\n• Bobby Witt Jr\n• Elly De La Cruz');
+            } else {
+                btn.textContent = '🧪 Demo Mode: OFF';
+                btn.style.background = 'rgba(255, 255, 255, 0.2)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            }
+        }
+        
+        async function fetchPlayerStatsWithDemo(player) {
+            if (demoMode && mockPlayers[player.name]) {
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const mockData = mockPlayers[player.name];
+                player.mlbOrg = mockData.currentTeam.name;
+                player.stats = mockData.stats;
+                player.statsLoaded = true;
+                console.log('🧪 Demo Mode: Loaded mock data for', player.name);
+                return;
+            }
+            
+            // Otherwise use real API
+            return await fetchPlayerStats(player);
+        }
 
         // ========== WATCHLIST MANAGEMENT ==========
         
@@ -1846,7 +2034,7 @@
             await saveWatchlist();
             
             // Load stats immediately
-            await fetchPlayerStats(watchlistPlayer);
+            await fetchPlayerStatsWithDemo(watchlistPlayer);
             await saveWatchlist();
             
             renderWatchlist();
@@ -1924,7 +2112,7 @@
 
             if (!player.statsLoaded) {
                 content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
-                await fetchPlayerStats(player);
+                await fetchPlayerStatsWithDemo(player);
                 await saveWatchlist();
             }
             
@@ -2240,6 +2428,44 @@
         async function fetchAutocompleteSuggestions(query) {
             const dropdown = document.getElementById('autocompleteDropdown');
             
+            if (demoMode) {
+                // Use mock data in demo mode
+                const results = Object.values(mockPlayers).filter(p => 
+                    p.fullName.toLowerCase().includes(query.toLowerCase())
+                );
+                
+                if (results.length === 0) {
+                    dropdown.innerHTML = '<div class="autocomplete-loading">No players found (try: Paul Skenes, Gunnar Henderson, etc.)</div>';
+                    autocompleteResults = [];
+                    return;
+                }
+                
+                autocompleteResults = results.slice(0, 10);
+                dropdown.innerHTML = '';
+                autocompleteResults.forEach((person, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.dataset.index = index;
+                    
+                    const position = person.primaryPosition?.abbreviation || 'N/A';
+                    const team = person.currentTeam?.name || 'Free Agent';
+                    const age = person.currentAge || '?';
+                    
+                    item.innerHTML = `
+                        <div style="font-weight: 600; color: #fff;">${person.fullName}</div>
+                        <div style="font-size: 0.875rem; color: #94a3b8;">
+                            ${position} • ${team} • Age ${age} <span style="color: #22c55e;">🧪 DEMO</span>
+                        </div>
+                    `;
+                    
+                    item.onclick = () => selectAutocomplete(index);
+                    dropdown.appendChild(item);
+                });
+                
+                dropdown.style.display = 'block';
+                return;
+            }
+            
             try {
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(query)}`;
                 const response = await fetch(searchUrl);
@@ -2430,7 +2656,7 @@
                 flags: []
             };
 
-            await fetchPlayerStats(researchPlayer);
+            await fetchPlayerStatsWithDemo(researchPlayer);
             
             if (researchPlayer.stats && researchPlayer.stats.error) {
                 resultsDiv.innerHTML = `
@@ -4344,6 +4570,16 @@
         });
         
         async function fetchTradeReceiveAutocomplete(query) {
+            if (demoMode) {
+                // Use mock data in demo mode
+                const results = Object.values(mockPlayers).filter(p => 
+                    p.fullName.toLowerCase().includes(query.toLowerCase())
+                );
+                tradeReceiveAutocompleteResults = results;
+                displayTradeReceiveAutocomplete(results);
+                return;
+            }
+            
             try {
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(query)}`;
                 const response = await fetch(searchUrl);
