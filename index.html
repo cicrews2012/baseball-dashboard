@@ -1215,7 +1215,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.4.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.5.2</p>
                 </div>
             </div>
             <div class="tabs">
@@ -1491,7 +1491,10 @@
                     <!-- You Receive Column -->
                     <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 20px;">
                         <h3 style="color: #22c55e; margin-bottom: 15px;">📥 You Receive</h3>
-                        <input type="text" id="tradeReceiveInput" class="filter-select" style="width: 100%; margin-bottom: 10px;" placeholder="Enter player name to receive...">
+                        <div style="position: relative;">
+                            <input type="text" id="tradeReceiveInput" class="filter-select" style="width: 100%; margin-bottom: 10px;" placeholder="🔍 Search for player to receive..." autocomplete="off">
+                            <div id="tradeReceiveAutocomplete" class="autocomplete-dropdown" style="display: none;"></div>
+                        </div>
                         <div id="tradeReceiveList" style="min-height: 100px;"></div>
                     </div>
                 </div>
@@ -1599,11 +1602,14 @@
                         <h4 style="color: #60a5fa; margin-bottom: 10px;">🔄 Trade Analyzer</h4>
                         <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
                             <li><strong>Multi-Player Trades:</strong> Build trades by selecting players you send and receive</li>
-                            <li><strong>Salary Impact Analysis:</strong> See exactly how trade affects your cap space</li>
+                            <li><strong>Autocomplete Search:</strong> "You Receive" section now has MLB player search with typeahead</li>
+                            <li><strong>MBL Salary Impact:</strong> See exactly how trade affects your cap space (for MBL)</li>
                             <li><strong>Trade Legality Check:</strong> Automatic validation against $241M salary cap</li>
                             <li><strong>Visual Breakdown:</strong> Side-by-side comparison of salary in vs. salary out</li>
                             <li><strong>Cap Space Projection:</strong> Shows your cap space after trade completes</li>
                             <li><strong>Blocked Trade Warning:</strong> Red alert if trade puts you over cap (illegal per MBL rules)</li>
+                            <li><strong>Trade Value Analysis (Coming Soon):</strong> AI-powered fair/win/lose ratings when season starts</li>
+                            <li><strong>Multi-League Support:</strong> Value analysis will work for any league format, not just MBL</li>
                         </ul>
                     </div>
 
@@ -4300,6 +4306,10 @@
         
         // ========== TRADE ANALYZER ==========
         
+        let tradeReceiveAutocompleteTimeout;
+        let tradeReceiveAutocompleteIndex = -1;
+        let tradeReceiveAutocompleteResults = [];
+        
         function populateTradeSendDropdown() {
             const select = document.getElementById('tradeSendSelect');
             if (!select) return;
@@ -4316,7 +4326,102 @@
             });
         }
         
-        function addTradePlayer(side, playerName) {
+        // Autocomplete for trade receive input
+        document.addEventListener('input', function(e) {
+            if (e.target.id === 'tradeReceiveInput') {
+                const query = e.target.value.trim();
+                
+                if (query.length < 2) {
+                    document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
+                    return;
+                }
+                
+                clearTimeout(tradeReceiveAutocompleteTimeout);
+                tradeReceiveAutocompleteTimeout = setTimeout(() => {
+                    fetchTradeReceiveAutocomplete(query);
+                }, 300);
+            }
+        });
+        
+        async function fetchTradeReceiveAutocomplete(query) {
+            try {
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(query)}`;
+                const response = await fetch(searchUrl);
+                const data = await response.json();
+                
+                if (data.people && data.people.length > 0) {
+                    tradeReceiveAutocompleteResults = data.people.slice(0, 10);
+                    displayTradeReceiveAutocomplete(tradeReceiveAutocompleteResults);
+                } else {
+                    document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+            }
+        }
+        
+        function displayTradeReceiveAutocomplete(results) {
+            const dropdown = document.getElementById('tradeReceiveAutocomplete');
+            
+            if (results.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+            
+            dropdown.innerHTML = results.map((person, index) => `
+                <div class="autocomplete-item ${index === tradeReceiveAutocompleteIndex ? 'active' : ''}" 
+                     onclick="selectTradeReceivePlayer('${person.fullName.replace(/'/g, "\\'")}', ${person.id})"
+                     data-index="${index}">
+                    <div style="font-weight: 600;">${person.fullName}</div>
+                    <div style="font-size: 0.875rem; color: #94a3b8;">
+                        ${person.primaryPosition?.abbreviation || 'N/A'} • ${person.currentTeam?.name || 'FA'} • Age ${person.currentAge || '?'}
+                    </div>
+                </div>
+            `).join('');
+            
+            dropdown.style.display = 'block';
+        }
+        
+        function selectTradeReceivePlayer(playerName, playerId) {
+            document.getElementById('tradeReceiveInput').value = '';
+            document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
+            addTradePlayer('receive', playerName, playerId);
+        }
+        
+        // Keyboard navigation for trade receive autocomplete
+        document.addEventListener('keydown', function(e) {
+            if (e.target.id === 'tradeReceiveInput') {
+                const dropdown = document.getElementById('tradeReceiveAutocomplete');
+                if (dropdown.style.display === 'none') return;
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    tradeReceiveAutocompleteIndex = Math.min(tradeReceiveAutocompleteIndex + 1, tradeReceiveAutocompleteResults.length - 1);
+                    displayTradeReceiveAutocomplete(tradeReceiveAutocompleteResults);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    tradeReceiveAutocompleteIndex = Math.max(tradeReceiveAutocompleteIndex - 1, -1);
+                    displayTradeReceiveAutocomplete(tradeReceiveAutocompleteResults);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (tradeReceiveAutocompleteIndex >= 0) {
+                        const selected = tradeReceiveAutocompleteResults[tradeReceiveAutocompleteIndex];
+                        selectTradeReceivePlayer(selected.fullName, selected.id);
+                    }
+                } else if (e.key === 'Escape') {
+                    dropdown.style.display = 'none';
+                }
+            }
+        });
+        
+        // Click outside to close
+        document.addEventListener('click', function(e) {
+            if (e.target.id !== 'tradeReceiveInput') {
+                document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
+            }
+        });
+        
+        function addTradePlayer(side, playerName, playerId) {
             if (!playerName) return;
             
             if (side === 'send') {
@@ -4327,11 +4432,10 @@
                 }
                 document.getElementById('tradeSendSelect').value = '';
             } else {
-                if (!tradeReceivePlayers.includes(playerName)) {
-                    tradeReceivePlayers.push(playerName);
+                if (!tradeReceivePlayers.some(p => p.name === playerName)) {
+                    tradeReceivePlayers.push({ name: playerName, id: playerId });
                     renderTradePlayers();
                 }
-                document.getElementById('tradeReceiveInput').value = '';
             }
         }
         
@@ -4340,7 +4444,7 @@
                 tradeSendPlayers = tradeSendPlayers.filter(p => p !== playerName);
                 populateTradeSendDropdown();
             } else {
-                tradeReceivePlayers = tradeReceivePlayers.filter(p => p !== playerName);
+                tradeReceivePlayers = tradeReceivePlayers.filter(p => p.name !== playerName);
             }
             renderTradePlayers();
         }
@@ -4371,19 +4475,188 @@
             if (tradeReceivePlayers.length === 0) {
                 receiveList.innerHTML = '<p style="color: #94a3b8; font-style: italic;">No players selected</p>';
             } else {
-                receiveList.innerHTML = tradeReceivePlayers.map(name => `
+                receiveList.innerHTML = tradeReceivePlayers.map(p => `
                     <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-weight: 600;">${name}</div>
-                            <div style="font-size: 0.875rem; color: #94a3b8;">Manual entry</div>
+                            <div style="font-weight: 600;">${p.name}</div>
+                            <div style="font-size: 0.875rem; color: #94a3b8;">From other team</div>
                         </div>
-                        <button onclick="removeTradePlayer('receive', '${name}')" style="background: rgba(239, 68, 68, 0.3); border: none; color: #fca5a5; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✕</button>
+                        <button onclick="removeTradePlayer('receive', '${p.name}')" style="background: rgba(239, 68, 68, 0.3); border: none; color: #fca5a5; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✕</button>
                     </div>
                 `).join('');
             }
         }
         
-        function analyzeTrade() {
+        // ========== TRADE VALUE SYSTEM ==========
+        
+        async function calculateTradeValue(playerName, playerId) {
+            // This will return a trade value score based on multiple factors
+            // For now, return placeholder - will implement when season starts
+            
+            try {
+                // Future: Query MLB API for player stats
+                // Future: Query fantasy ranking APIs
+                // Future: Use AI to analyze recent performance
+                
+                return {
+                    playerName: playerName,
+                    overallValue: 0, // 0-100 scale
+                    ageValue: 0,
+                    productionValue: 0,
+                    upside: 'Unknown',
+                    ranking: null,
+                    note: 'Trade values will be calculated when season starts'
+                };
+            } catch (error) {
+                return null;
+            }
+        }
+            const select = document.getElementById('tradeSendSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Select player to send...</option>';
+            
+            players.forEach(player => {
+                if (!tradeSendPlayers.includes(player.name)) {
+                    const option = document.createElement('option');
+                    option.value = player.name;
+                    option.textContent = `${player.name} (${player.position})`;
+                    select.appendChild(option);
+                }
+            });
+        }
+        
+        // ========== TRADE VALUE SYSTEM ==========
+        
+        async function analyzeTrade() {
+            if (tradeSendPlayers.length === 0 && tradeReceivePlayers.length === 0) {
+                alert('Please add players to both sides of the trade');
+                return;
+            }
+            
+            // Calculate salary impact
+            let sendSalary = 0;
+            let receiveSalary = 0;
+            let sendYears = 0;
+            let receiveYears = 0;
+            
+            tradeSendPlayers.forEach(name => {
+                if (salaryData[name]) {
+                    sendSalary += parseInt(salaryData[name].salary) || 0;
+                    sendYears = Math.max(sendYears, parseInt(salaryData[name].yearsRemaining) || 0);
+                }
+            });
+            
+            // For received players, we don't have salary data, so just note that
+            
+            const salaryDiff = receiveSalary - sendSalary;
+            const currentCapSpace = 241000000 - players.reduce((sum, p) => {
+                return sum + (salaryData[p.name] ? parseInt(salaryData[p.name].salary) : 0);
+            }, 0);
+            
+            const capSpaceAfter = currentCapSpace + sendSalary - receiveSalary;
+            const isLegal = capSpaceAfter >= 0;
+            
+            let html = `
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 25px; margin-top: 20px;">
+                    <h3 style="margin-bottom: 20px; text-align: center; font-size: 1.5rem;">📊 Trade Analysis</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                        <div style="background: rgba(239, 68, 68, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">You Send</div>
+                            <div style="color: #ef4444; font-size: 1.5rem; font-weight: bold;">$${formatSalary(sendSalary.toString())}</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${tradeSendPlayers.length} player${tradeSendPlayers.length !== 1 ? 's' : ''}</div>
+                        </div>
+                        
+                        <div style="background: rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">Net Impact</div>
+                            <div style="color: ${salaryDiff > 0 ? '#ef4444' : '#22c55e'}; font-size: 1.5rem; font-weight: bold;">
+                                ${salaryDiff > 0 ? '+' : ''}$${formatSalary(Math.abs(salaryDiff).toString())}
+                            </div>
+                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${salaryDiff > 0 ? 'More expense' : 'Savings'}</div>
+                        </div>
+                        
+                        <div style="background: rgba(34, 197, 94, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">You Receive</div>
+                            <div style="color: #22c55e; font-size: 1.5rem; font-weight: bold;">$${formatSalary(receiveSalary.toString())}</div>
+                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${tradeReceivePlayers.length} player${tradeReceivePlayers.length !== 1 ? 's' : ''}</div>
+                        </div>
+                    </div>
+                    
+                    ${Object.keys(salaryData).length > 0 ? `
+                        <div style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                            <h4 style="color: #06b6d4; margin-bottom: 15px;">💰 MBL Cap Space Impact</h4>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Current Cap Space:</span>
+                                <span style="font-weight: 600;">$${formatSalary(currentCapSpace.toString())}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Salary Out:</span>
+                                <span style="color: #22c55e;">-$${formatSalary(sendSalary.toString())}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                <span>Salary In:</span>
+                                <span style="color: #ef4444;">+$${formatSalary(receiveSalary.toString())}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 1.125rem;">
+                                <span style="font-weight: 600;">Cap Space After Trade:</span>
+                                <span style="font-weight: bold; color: ${isLegal ? '#22c55e' : '#ef4444'};">
+                                    $${formatSalary(capSpaceAfter.toString())}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        ${!isLegal ? `
+                            <div style="background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                                <div style="font-size: 3rem; margin-bottom: 10px;">🚫</div>
+                                <h3 style="color: #ef4444; margin-bottom: 10px;">Trade Blocked - Over Salary Cap</h3>
+                                <p style="color: #fca5a5;">This trade would put you over the $241M salary cap. Per MBL rules, this trade cannot be processed.</p>
+                            </div>
+                        ` : `
+                            <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                                <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+                                <h3 style="color: #22c55e; margin-bottom: 10px;">MBL Trade is Legal</h3>
+                                <p style="color: #86efac;">This trade complies with MBL salary cap rules.</p>
+                            </div>
+                        `}
+                    ` : ''}
+                    
+                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                        <h4 style="color: #a855f7; margin-bottom: 15px;">⚖️ Trade Value Analysis</h4>
+                        <div style="text-align: center; padding: 30px;">
+                            <div style="font-size: 3rem; margin-bottom: 10px;">🔮</div>
+                            <h3 style="color: #a855f7; margin-bottom: 10px;">Coming Soon: AI-Powered Trade Values</h3>
+                            <p style="color: #cbd5e1; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                                When the season starts, this section will show:
+                                <br><br>
+                                • <strong>Overall Trade Value:</strong> Fair, Win, Lose rating
+                                <br>• <strong>Player Rankings:</strong> Dynasty rankings for each player
+                                <br>• <strong>Age/Upside Analysis:</strong> Long-term value projection
+                                <br>• <strong>Recent Performance:</strong> Hot/cold streak impact
+                                <br>• <strong>Category Impact:</strong> How trade affects your team needs
+                                <br>• <strong>Multi-League Support:</strong> Works for any league format
+                            </p>
+                        </div>
+                        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 8px; margin-top: 15px;">
+                            <h4 style="color: #a855f7; font-size: 0.875rem; margin-bottom: 10px;">📊 Planned Value Sources:</h4>
+                            <ul style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.8; margin-left: 20px;">
+                                <li>MLB Stats API (recent performance, career stats)</li>
+                                <li>Fantasy rankings aggregators (consensus values)</li>
+                                <li>Age curves and projection systems</li>
+                                <li>AI analysis of player trends and upside</li>
+                                <li>Your league context (categories, roster needs)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; font-size: 0.875rem; color: #fcd34d;">
+                        <strong>⚠️ Note:</strong> Salary data for received players must be verified manually. MBL cap analysis uses your roster's salary data only. Trade values will be available when regular season begins.
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('tradeAnalysisResults').innerHTML = html;
+        }
             if (tradeSendPlayers.length === 0 && tradeReceivePlayers.length === 0) {
                 alert('Please add players to both sides of the trade');
                 return;
@@ -4494,16 +4767,6 @@
         // Populate trade dropdown when salary data loads
         document.addEventListener('DOMContentLoaded', function() {
             // Will be called after roster loads
-        });
-        
-        // Add enter key support for receive input
-        document.addEventListener('keypress', function(e) {
-            if (e.target.id === 'tradeReceiveInput' && e.key === 'Enter') {
-                const name = e.target.value.trim();
-                if (name) {
-                    addTradePlayer('receive', name);
-                }
-            }
         });
         
         // ========== DROP PENALTY CALCULATOR ==========
