@@ -1215,7 +1215,15 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.1.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.2.0</p>
+                    
+                    <!-- Data Status Indicators -->
+                    <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
+                        <span id="rosterStatus" style="color: #94a3b8;">📋 Roster: <span style="color: #ef4444;">Not Loaded</span></span>
+                        <span id="salaryStatus" style="color: #94a3b8;">💰 Salary: <span style="color: #ef4444;">Not Loaded</span></span>
+                        <span id="notesStatus" style="color: #94a3b8;">📝 Notes: <span style="color: #ef4444;">0 players</span></span>
+                        <span id="watchlistStatus" style="color: #94a3b8;">👁️ Watchlist: <span style="color: #ef4444;">0 players</span></span>
+                    </div>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button id="demoModeBtn" class="refresh-btn" onclick="toggleDemoMode()" title="Enable demo mode to test with mock data">
@@ -2352,6 +2360,7 @@
                 applyFilters();
                 populateTradeSendDropdown(); // Update trade analyzer
             }
+            updateDataStatus(); // Update status indicators
         }
 
         function calculateServiceTimeInfo(player) {
@@ -3014,20 +3023,6 @@
             }
         }
         
-        async function loadPlayerNotesFromStorage() {
-            try {
-                if (window.storage) {
-                    const result = await window.storage.get('player-notes');
-                    if (result && result.value) {
-                        playerNotes = JSON.parse(result.value);
-                        console.log(`Loaded notes for ${Object.keys(playerNotes).length} players`);
-                    }
-                }
-            } catch (error) {
-                console.log('No existing player notes found');
-            }
-        }
-        
         // Export/Import functions
         function exportPlayerNotes() {
             const exportData = {
@@ -3136,6 +3131,8 @@
                         await savePlayerNotesToStorage();
                         await saveWatchlist();
                         
+                        updateDataStatus(); // Update status indicators
+                        
                         alert(`✅ Import Complete!\n\n📝 ${Object.keys(playerNotes).length} players with notes\n👁️ ${watchlistPlayers.length} watchlist players`);
                         
                         // Refresh current view
@@ -3154,6 +3151,78 @@
         
         // Load notes on startup
         loadPlayerNotesFromStorage();
+        
+        // ========== DATA STATUS INDICATORS ==========
+        
+        function updateDataStatus() {
+            // Roster status
+            const rosterStatus = document.getElementById('rosterStatus');
+            if (players.length > 0) {
+                rosterStatus.innerHTML = `📋 Roster: <span style="color: #22c55e;">${players.length} players</span>`;
+            } else {
+                rosterStatus.innerHTML = `📋 Roster: <span style="color: #ef4444;">Not Loaded</span>`;
+            }
+            
+            // Salary status
+            const salaryStatus = document.getElementById('salaryStatus');
+            const salaryCount = Object.keys(salaryData).length;
+            if (salaryCount > 0) {
+                salaryStatus.innerHTML = `💰 Salary: <span style="color: #22c55e;">${salaryCount} contracts</span>`;
+            } else {
+                salaryStatus.innerHTML = `💰 Salary: <span style="color: #ef4444;">Not Loaded</span>`;
+            }
+            
+            // Notes status
+            const notesStatus = document.getElementById('notesStatus');
+            const notesCount = Object.keys(playerNotes).length;
+            if (notesCount > 0) {
+                notesStatus.innerHTML = `📝 Notes: <span style="color: #22c55e;">${notesCount} players</span>`;
+            } else {
+                notesStatus.innerHTML = `📝 Notes: <span style="color: #94a3b8;">0 players</span>`;
+            }
+            
+            // Watchlist status
+            const watchlistStatus = document.getElementById('watchlistStatus');
+            if (watchlistPlayers.length > 0) {
+                watchlistStatus.innerHTML = `👁️ Watchlist: <span style="color: #22c55e;">${watchlistPlayers.length} players</span>`;
+            } else {
+                watchlistStatus.innerHTML = `👁️ Watchlist: <span style="color: #94a3b8;">0 players</span>`;
+            }
+        }
+        
+        // Call updateDataStatus whenever data changes
+        async function loadPlayerNotesFromStorage() {
+            try {
+                if (window.storage) {
+                    const result = await window.storage.get('player-notes');
+                    if (result && result.value) {
+                        playerNotes = JSON.parse(result.value);
+                        console.log(`Loaded notes for ${Object.keys(playerNotes).length} players`);
+                    }
+                }
+            } catch (error) {
+                console.log('No existing player notes found');
+            }
+            updateDataStatus();
+        }
+        
+        async function loadWatchlist() {
+            try {
+                if (window.storage) {
+                    const result = await window.storage.get('watchlist-players');
+                    if (result && result.value) {
+                        watchlistPlayers = JSON.parse(result.value);
+                        console.log(`Loaded ${watchlistPlayers.length} players from watchlist`);
+                    }
+                }
+            } catch (error) {
+                console.log('No existing watchlist found');
+                watchlistPlayers = [];
+            }
+            updateDataStatus();
+        }
+        
+        // ========== END STATUS INDICATORS ==========
         
         // Filter roster by tag
         function filterByTag(tagId) {
@@ -3258,6 +3327,7 @@
             document.getElementById('playersGrid').classList.remove('hidden');
             renderPlayers();
             populateTradeSendDropdown(); // Populate trade analyzer dropdown
+            updateDataStatus(); // Update status indicators
         }
 
         function updateSummaryStats() {
