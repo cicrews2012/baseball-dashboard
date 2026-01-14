@@ -1215,11 +1215,17 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.0.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.1.0</p>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button id="demoModeBtn" class="refresh-btn" onclick="toggleDemoMode()" title="Enable demo mode to test with mock data">
                         🧪 Demo Mode: OFF
+                    </button>
+                    <button class="refresh-btn" onclick="exportPlayerNotes()" title="Export notes and watchlist to JSON file">
+                        📥 Export Data
+                    </button>
+                    <button class="refresh-btn" onclick="importPlayerNotes()" title="Import notes and watchlist from JSON file">
+                        📤 Import Data
                     </button>
                 </div>
             </div>
@@ -1338,6 +1344,12 @@
                     </button>
                     <button class="filter-btn" onclick="applyQuickFilter('power')" title="10+ HR">
                         💪 Power Hitters
+                    </button>
+                    <button class="filter-btn" onclick="filterByTag('trade-target')" title="Show Trade Targets" style="background: rgba(34, 197, 94, 0.2);">
+                        🎯 Trade Targets
+                    </button>
+                    <button class="filter-btn" onclick="filterByTag('breakout')" title="Show Breakout Candidates" style="background: rgba(168, 85, 247, 0.2);">
+                        🚀 Breakouts
                     </button>
                     <button class="filter-btn" onclick="applyQuickFilter('clear')" title="Clear all filters">
                         ✕ Clear Filters
@@ -1828,6 +1840,21 @@
         let salaryData = {}; // Stores player salary/contract info
         let watchlistPlayers = []; // Stores watchlist player data
         let demoMode = false; // Toggle for testing with mock data
+        let playerNotes = {}; // Stores notes and tags for each player
+        
+        // Available tags - user can customize these
+        const availableTags = [
+            { id: 'trade-target', label: 'Trade Target', color: '#22c55e' },
+            { id: 'sell-high', label: 'Sell High', color: '#ef4444' },
+            { id: 'buy-low', label: 'Buy Low', color: '#3b82f6' },
+            { id: 'breakout', label: 'Breakout Candidate', color: '#a855f7' },
+            { id: 'injury-risk', label: 'Injury Risk', color: '#f59e0b' },
+            { id: 'keeper', label: 'Keeper', color: '#06b6d4' },
+            { id: 'cut-candidate', label: 'Cut Candidate', color: '#dc2626' },
+            { id: 'prospect-stash', label: 'Prospect Stash', color: '#8b5cf6' },
+            { id: 'extension-target', label: 'Extension Target', color: '#10b981' },
+            { id: 'watch', label: 'Watch List', color: '#64748b' }
+        ];
 
         // ========== DEMO MODE & MOCK DATA ==========
         
@@ -2865,9 +2892,17 @@
                 html += `</div>`;
             }
             
+            // Notes and Tags section
+            html += `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4 style="color: #a855f7; margin-bottom: 10px;">📝 Notes & Tags</h4>
+                    ${renderPlayerNotesSection(player.name)}
+                </div>
+            `;
+            
             // Action buttons at the bottom
             html += `
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 10px;">
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
                     <button class="prospect-action-btn" onclick="addToWatchlist('${player.name}')" style="flex: 1;">
                         👁️ Add to Watchlist
                     </button>
@@ -2879,6 +2914,258 @@
 
             content.innerHTML = html;
         }
+        
+        // ========== PLAYER NOTES & TAGS SYSTEM ==========
+        
+        function renderPlayerNotesSection(playerName) {
+            const notes = playerNotes[playerName] || { text: '', tags: [] };
+            const safeId = playerName.replace(/[^a-zA-Z0-9]/g, '_');
+            
+            return `
+                <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: block; color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">Tags:</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
+                            ${availableTags.map(tag => {
+                                const isSelected = notes.tags.includes(tag.id);
+                                return `
+                                    <button 
+                                        onclick="togglePlayerTag('${playerName}', '${tag.id}')"
+                                        style="
+                                            padding: 4px 10px;
+                                            border-radius: 12px;
+                                            font-size: 0.75rem;
+                                            border: 1px solid ${tag.color};
+                                            background: ${isSelected ? tag.color : 'transparent'};
+                                            color: ${isSelected ? '#000' : tag.color};
+                                            cursor: pointer;
+                                            transition: all 0.2s;
+                                            font-weight: ${isSelected ? '600' : '400'};
+                                        "
+                                    >${tag.label}</button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">Notes:</label>
+                        <textarea 
+                            id="notes-${safeId}"
+                            onblur="savePlayerNote('${playerName}', this.value)"
+                            placeholder="Add scouting notes, trade ideas, reminders..."
+                            style="
+                                width: 100%;
+                                min-height: 80px;
+                                padding: 10px;
+                                background: rgba(0, 0, 0, 0.4);
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                border-radius: 6px;
+                                color: #fff;
+                                font-size: 0.875rem;
+                                font-family: inherit;
+                                resize: vertical;
+                            "
+                        >${notes.text || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function togglePlayerTag(playerName, tagId) {
+            if (!playerNotes[playerName]) {
+                playerNotes[playerName] = { text: '', tags: [] };
+            }
+            
+            const tags = playerNotes[playerName].tags;
+            const index = tags.indexOf(tagId);
+            
+            if (index > -1) {
+                tags.splice(index, 1);
+            } else {
+                tags.push(tagId);
+            }
+            
+            savePlayerNotesToStorage();
+            
+            // Re-render the card to show updated tags
+            const player = players.find(p => p.name === playerName);
+            if (player && player.statsLoaded) {
+                updatePlayerCardContent(`content-${player.id}`, player);
+            }
+        }
+        
+        function savePlayerNote(playerName, noteText) {
+            if (!playerNotes[playerName]) {
+                playerNotes[playerName] = { text: '', tags: [] };
+            }
+            
+            playerNotes[playerName].text = noteText;
+            savePlayerNotesToStorage();
+        }
+        
+        async function savePlayerNotesToStorage() {
+            try {
+                if (window.storage) {
+                    await window.storage.set('player-notes', JSON.stringify(playerNotes));
+                    console.log('Player notes saved to storage');
+                }
+            } catch (error) {
+                console.error('Error saving notes:', error);
+            }
+        }
+        
+        async function loadPlayerNotesFromStorage() {
+            try {
+                if (window.storage) {
+                    const result = await window.storage.get('player-notes');
+                    if (result && result.value) {
+                        playerNotes = JSON.parse(result.value);
+                        console.log(`Loaded notes for ${Object.keys(playerNotes).length} players`);
+                    }
+                }
+            } catch (error) {
+                console.log('No existing player notes found');
+            }
+        }
+        
+        // Export/Import functions
+        function exportPlayerNotes() {
+            const exportData = {
+                version: '3.0.0',
+                exportDate: new Date().toISOString(),
+                league: currentLeague || 'mbl',
+                notes: playerNotes,
+                watchlist: watchlistPlayers.map(p => ({ 
+                    name: p.name, 
+                    addedDate: p.addedDate,
+                    position: p.position,
+                    team: p.team
+                }))
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            const dateStr = new Date().toISOString().split('T')[0];
+            a.download = `baseball-dashboard-notes-${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert(`✅ Exported!\n\n📝 ${Object.keys(playerNotes).length} players with notes/tags\n👁️ ${watchlistPlayers.length} watchlist players\n\n💡 Save to iCloud Drive for cross-device sync!`);
+        }
+        
+        function importPlayerNotes() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const importData = JSON.parse(event.target.result);
+                        
+                        // Validate structure
+                        if (!importData.version || !importData.notes) {
+                            alert('❌ Invalid file format');
+                            return;
+                        }
+                        
+                        // Merge or replace?
+                        const merge = confirm('Merge with existing notes?\n\nOK = Merge (keep existing + add new)\nCancel = Replace (overwrite everything)');
+                        
+                        if (merge) {
+                            // Merge notes
+                            Object.keys(importData.notes).forEach(playerName => {
+                                if (!playerNotes[playerName]) {
+                                    playerNotes[playerName] = importData.notes[playerName];
+                                } else {
+                                    // Merge tags (no duplicates)
+                                    const existingTags = playerNotes[playerName].tags || [];
+                                    const newTags = importData.notes[playerName].tags || [];
+                                    playerNotes[playerName].tags = [...new Set([...existingTags, ...newTags])];
+                                    
+                                    // Append notes if both exist
+                                    if (importData.notes[playerName].text && playerNotes[playerName].text) {
+                                        playerNotes[playerName].text += '\n\n--- Imported ---\n\n' + importData.notes[playerName].text;
+                                    } else if (importData.notes[playerName].text) {
+                                        playerNotes[playerName].text = importData.notes[playerName].text;
+                                    }
+                                }
+                            });
+                            
+                            // Merge watchlist
+                            if (importData.watchlist) {
+                                importData.watchlist.forEach(wp => {
+                                    if (!watchlistPlayers.some(p => p.name === wp.name)) {
+                                        watchlistPlayers.push({
+                                            id: Date.now() + Math.random(),
+                                            name: wp.name,
+                                            position: wp.position || '',
+                                            team: wp.team || '',
+                                            addedDate: wp.addedDate || new Date().toISOString(),
+                                            statsLoaded: false
+                                        });
+                                    }
+                                });
+                            }
+                        } else {
+                            // Replace everything
+                            playerNotes = importData.notes;
+                            if (importData.watchlist) {
+                                watchlistPlayers = importData.watchlist.map(wp => ({
+                                    id: Date.now() + Math.random(),
+                                    name: wp.name,
+                                    position: wp.position || '',
+                                    team: wp.team || '',
+                                    addedDate: wp.addedDate || new Date().toISOString(),
+                                    statsLoaded: false
+                                }));
+                            }
+                        }
+                        
+                        // Save to storage
+                        await savePlayerNotesToStorage();
+                        await saveWatchlist();
+                        
+                        alert(`✅ Import Complete!\n\n📝 ${Object.keys(playerNotes).length} players with notes\n👁️ ${watchlistPlayers.length} watchlist players`);
+                        
+                        // Refresh current view
+                        applyFilters();
+                        
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        alert('❌ Error importing file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // Load notes on startup
+        loadPlayerNotesFromStorage();
+        
+        // Filter roster by tag
+        function filterByTag(tagId) {
+            currentQuickFilter = 'tag-' + tagId;
+            applyFilters();
+            
+            const tagInfo = availableTags.find(t => t.id === tagId);
+            const tagLabel = tagInfo ? tagInfo.label : tagId;
+            document.getElementById('activeFilterDisplay').textContent = `Active Filter: ${tagLabel}`;
+        }
+        
+        // ========== END NOTES SYSTEM ==========
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -3758,8 +4045,20 @@
         }
 
         function meetsQuickFilterCriteria(player) {
-            if (!activeQuickFilter || !player.statsLoaded || !player.stats?.season) {
-                return !activeQuickFilter; // Show all if no filter or no stats
+            if (!activeQuickFilter) {
+                return true; // Show all if no filter
+            }
+            
+            // Check if it's a tag filter
+            if (activeQuickFilter.startsWith('tag-')) {
+                const tagId = activeQuickFilter.replace('tag-', '');
+                const playerNote = playerNotes[player.name];
+                return playerNote && playerNote.tags && playerNote.tags.includes(tagId);
+            }
+            
+            // Otherwise check stats-based filters
+            if (!player.statsLoaded || !player.stats?.season) {
+                return false;
             }
 
             const stats = player.stats.season;
