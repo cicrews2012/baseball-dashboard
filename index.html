@@ -1215,7 +1215,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.6.1</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.0.0</p>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button id="demoModeBtn" class="refresh-btn" onclick="toggleDemoMode()" title="Enable demo mode to test with mock data">
@@ -1230,6 +1230,8 @@
                 <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
                 <button class="tab-btn" onclick="switchTab('trade')">🔄 Trade Analyzer</button>
                 <button class="tab-btn" onclick="switchTab('composition')">📊 Roster Breakdown</button>
+                <button class="tab-btn" onclick="switchTab('capplanning')">💰 Cap Planning</button>
+                <button class="tab-btn" onclick="switchTab('rules')">📖 League Rules</button>
                 <button class="tab-btn" onclick="switchTab('guide')">📖 Features & Guide</button>
             </div>
             <div class="controls-row">
@@ -1559,6 +1561,33 @@
                     <h3 style="color: #ef4444; margin-bottom: 15px;">📅 Contract Expiration Timeline</h3>
                     <div id="contractTimeline"></div>
                 </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="capPlanningTab">
+            <div class="research-section">
+                <h2 style="margin-bottom: 10px;">💰 Multi-Year Cap Planning</h2>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Plan your salary cap strategy across multiple seasons with extension scenarios and free agent budgeting</p>
+                
+                <div id="capPlanningContent"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="rulesTab">
+            <div class="research-section">
+                <h2 style="margin-bottom: 10px;">📖 League Rules Reference</h2>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Quick reference for your dynasty league rules and settings</p>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="upload-btn" onclick="selectLeague('mbl')" id="mblBtn" style="flex: 1;">
+                        ⚾ MBL (Multiverse Baseball League)
+                    </button>
+                    <button class="upload-btn" onclick="selectLeague('armchair')" id="armchairBtn" style="flex: 1; background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5);">
+                        🪑 Armchair GM's
+                    </button>
+                </div>
+                
+                <div id="leagueRulesContent"></div>
             </div>
         </div>
 
@@ -2575,6 +2604,8 @@
             document.getElementById('prospectsTab').classList.remove('active');
             document.getElementById('tradeTab').classList.remove('active');
             document.getElementById('compositionTab').classList.remove('active');
+            document.getElementById('capPlanningTab').classList.remove('active');
+            document.getElementById('rulesTab').classList.remove('active');
             document.getElementById('guideTab').classList.remove('active');
             
             // Remove active from all buttons
@@ -2602,9 +2633,16 @@
                 document.getElementById('compositionTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[5].classList.add('active');
                 generateRosterComposition();
+            } else if (tabName === 'capplanning') {
+                document.getElementById('capPlanningTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[6].classList.add('active');
+                generateCapPlanning();
+            } else if (tabName === 'rules') {
+                document.getElementById('rulesTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[7].classList.add('active');
             } else if (tabName === 'guide') {
                 document.getElementById('guideTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[6].classList.add('active');
+                document.querySelectorAll('.tab-btn')[8].classList.add('active');
             }
         }
 
@@ -4271,6 +4309,252 @@
         
         let tradeSendPlayers = [];
         let tradeReceivePlayers = [];
+        
+        // ========== ROSTER COMPOSITION DASHBOARD ==========
+        
+        let currentLeague = 'mbl'; // Track which league rules to show
+        
+        // ========== MULTI-YEAR CAP PLANNING ==========
+        
+        function generateCapPlanning() {
+            const content = document.getElementById('capPlanningContent');
+            
+            if (Object.keys(salaryData).length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 4rem;">💰</div>
+                        <h3>No Salary Data Loaded</h3>
+                        <p style="color: #bfdbfe;">Upload your salary CSV to see multi-year projections</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calculate projections for 2025-2028
+            const years = [2025, 2026, 2027, 2028];
+            const yearlyProjections = {};
+            
+            years.forEach(year => {
+                yearlyProjections[year] = {
+                    totalCommitted: 0,
+                    players: []
+                };
+            });
+            
+            // Project each player's salary
+            players.forEach(p => {
+                if (!salaryData[p.name]) return;
+                
+                const contract = salaryData[p.name];
+                const baseYear = 2025;
+                const yearsRemaining = parseInt(contract.yearsRemaining) || 0;
+                const baseSalary = parseInt(contract.salary) || 0;
+                const status = contract.serviceStatus;
+                
+                years.forEach((year, idx) => {
+                    const yearOffset = year - baseYear;
+                    
+                    if (yearOffset === 0) {
+                        // 2025 - current salary
+                        yearlyProjections[year].totalCommitted += baseSalary;
+                        yearlyProjections[year].players.push({
+                            name: p.name,
+                            salary: baseSalary,
+                            status: status
+                        });
+                    } else if (yearOffset <= yearsRemaining) {
+                        // Under contract
+                        yearlyProjections[year].totalCommitted += baseSalary;
+                        yearlyProjections[year].players.push({
+                            name: p.name,
+                            salary: baseSalary,
+                            status: 'Under Contract'
+                        });
+                    } else if (status === 'Team Control') {
+                        // Project TC to arb
+                        const projectedSalary = 760000 + (yearOffset * 500000); // Rough arb escalation
+                        yearlyProjections[year].totalCommitted += projectedSalary;
+                        yearlyProjections[year].players.push({
+                            name: p.name,
+                            salary: projectedSalary,
+                            status: `Arb ${yearOffset}`
+                        });
+                    } else if (status.includes('Arb')) {
+                        // Project arb raises
+                        const arbYear = parseInt(status.match(/\d+/)?.[0]) || 1;
+                        const newArbYear = arbYear + yearOffset;
+                        if (newArbYear <= 3) {
+                            const projectedSalary = baseSalary * (1 + (0.3 * yearOffset)); // 30% annual raise
+                            yearlyProjections[year].totalCommitted += projectedSalary;
+                            yearlyProjections[year].players.push({
+                                name: p.name,
+                                salary: projectedSalary,
+                                status: `Arb ${newArbYear} (Est.)`
+                            });
+                        }
+                    }
+                    // Otherwise player becomes FA (not projected)
+                });
+            });
+            
+            const capLimit = 241000000;
+            
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+                    ${years.map(year => {
+                        const proj = yearlyProjections[year];
+                        const capUsed = proj.totalCommitted;
+                        const capSpace = capLimit - capUsed;
+                        const capPct = ((capUsed / capLimit) * 100).toFixed(1);
+                        const playerCount = proj.players.length;
+                        
+                        return `
+                            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px;">
+                                <h3 style="color: #60a5fa; margin-bottom: 15px; font-size: 1.5rem;">${year}</h3>
+                                <div style="margin-bottom: 10px;">
+                                    <div style="color: #94a3b8; font-size: 0.875rem;">Cap Used</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold; color: #60a5fa;">$${formatSalary(capUsed.toString())}</div>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <div style="color: #94a3b8; font-size: 0.875rem;">Cap Space</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold; color: ${capSpace > 0 ? '#22c55e' : '#ef4444'};">$${formatSalary(capSpace.toString())}</div>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <div style="color: #94a3b8; font-size: 0.875rem;">Cap %</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold;">${capPct}%</div>
+                                </div>
+                                <div style="padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <div style="color: #94a3b8; font-size: 0.875rem;">${playerCount} Players</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #f59e0b; margin-bottom: 15px;">⚠️ Projection Notes</h3>
+                    <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px; font-size: 0.875rem;">
+                        <li><strong>Team Control:</strong> Projected at $760K + $500K per year (rough arb escalation)</li>
+                        <li><strong>Arb Players:</strong> Projected at 30% annual raises (conservative estimate)</li>
+                        <li><strong>Free Agents:</strong> Not included in future year projections</li>
+                        <li><strong>Multi-Year Contracts:</strong> Shown at current salary (assumes flat)</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 20px;">
+                    <h3 style="color: #a855f7; margin-bottom: 15px;">📋 Year-by-Year Breakdown</h3>
+                    ${years.map(year => {
+                        const proj = yearlyProjections[year];
+                        const sortedPlayers = proj.players.sort((a, b) => b.salary - a.salary);
+                        
+                        return `
+                            <details style="margin-bottom: 15px;">
+                                <summary style="cursor: pointer; font-weight: 600; color: #a855f7; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
+                                    ${year} - ${sortedPlayers.length} Players - $${formatSalary(proj.totalCommitted.toString())}
+                                </summary>
+                                <div style="margin-top: 10px; max-height: 300px; overflow-y: auto;">
+                                    ${sortedPlayers.slice(0, 20).map(p => `
+                                        <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                            <span>${p.name}</span>
+                                            <span style="color: #94a3b8;">$${formatSalary(p.salary.toString())} • ${p.status}</span>
+                                        </div>
+                                    `).join('')}
+                                    ${sortedPlayers.length > 20 ? `<div style="padding: 10px; text-align: center; color: #94a3b8; font-style: italic;">+ ${sortedPlayers.length - 20} more players</div>` : ''}
+                                </div>
+                            </details>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            content.innerHTML = html;
+        }
+        
+        // ========== LEAGUE RULES REFERENCE ==========
+        
+        function selectLeague(league) {
+            currentLeague = league;
+            
+            // Update button states
+            const mblBtn = document.getElementById('mblBtn');
+            const armchairBtn = document.getElementById('armchairBtn');
+            
+            if (league === 'mbl') {
+                mblBtn.style.background = 'rgba(59, 130, 246, 0.3)';
+                mblBtn.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                armchairBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                armchairBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            } else {
+                armchairBtn.style.background = 'rgba(168, 85, 247, 0.3)';
+                armchairBtn.style.borderColor = 'rgba(168, 85, 247, 0.5)';
+                mblBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                mblBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }
+            
+            loadLeagueRules(league);
+        }
+        
+        function loadLeagueRules(league) {
+            const content = document.getElementById('leagueRulesContent');
+            
+            if (league === 'mbl') {
+                content.innerHTML = `
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                        <h3 style="color: #60a5fa; margin-bottom: 15px;">⚾ MBL (Multiverse Baseball League)</h3>
+                        <p style="color: #cbd5e1; margin-bottom: 20px;">30-team dynasty league with salary cap and service time rules</p>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">💰 Salary Cap</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Cap Limit:</strong> $241M (luxury tax threshold)</li>
+                            <li><strong>League Minimum:</strong> $760K</li>
+                            <li><strong>Trades:</strong> Must stay under cap after trade completes</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🎯 Service Time & Eligibility</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>MiLB Eligibility:</strong> Lost at 130 MLB AB (hitters) or 50 MLB IP (pitchers)</li>
+                            <li><strong>Minor League Slots:</strong> Can hold unlimited MiLB-eligible players</li>
+                            <li><strong>Active/Reserve:</strong> Players who lose MiLB eligibility count against cap</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">📉 Drop Penalties</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Year 1:</strong> 100% of remaining salary</li>
+                            <li><strong>Year 2:</strong> 80% of remaining salary</li>
+                            <li><strong>Year 3:</strong> 60% of remaining salary</li>
+                            <li><strong>Year 4:</strong> 40% of remaining salary</li>
+                            <li><strong>Year 5+:</strong> 20% of remaining salary</li>
+                            <li><strong>Exception:</strong> No penalty for Team Control or league minimum players</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🔄 Arbitration</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Progression:</strong> Team Control → Arb 1 → Arb 2 → Arb 3 → Free Agent</li>
+                            <li><strong>Salary Increases:</strong> Players typically see 30-50% raises in arb</li>
+                            <li><strong>Extensions:</strong> Can sign players to multi-year deals before FA</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                        <h3 style="color: #a855f7; margin-bottom: 15px;">🪑 Armchair GM's</h3>
+                        <p style="color: #cbd5e1; margin-bottom: 20px;"><em>League rules coming soon - add your league settings here!</em></p>
+                        
+                        <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 15px;">
+                            <p style="color: #fcd34d; font-size: 0.875rem;">
+                                💡 <strong>Tip:</strong> Contact me to add your Armchair GM's league rules, scoring categories, roster settings, and dynasty rules to this section.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Initialize rules to MBL on load
+        document.addEventListener('DOMContentLoaded', function() {
+            selectLeague('mbl');
+        });
         
         // ========== ROSTER COMPOSITION DASHBOARD ==========
         
