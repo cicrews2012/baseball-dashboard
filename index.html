@@ -1215,7 +1215,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.5.2</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.5.4</p>
                 </div>
             </div>
             <div class="tabs">
@@ -4511,20 +4511,6 @@
                 return null;
             }
         }
-            const select = document.getElementById('tradeSendSelect');
-            if (!select) return;
-            
-            select.innerHTML = '<option value="">Select player to send...</option>';
-            
-            players.forEach(player => {
-                if (!tradeSendPlayers.includes(player.name)) {
-                    const option = document.createElement('option');
-                    option.value = player.name;
-                    option.textContent = `${player.name} (${player.position})`;
-                    select.appendChild(option);
-                }
-            });
-        }
         
         // ========== TRADE VALUE SYSTEM ==========
         
@@ -4651,104 +4637,6 @@
                     
                     <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; font-size: 0.875rem; color: #fcd34d;">
                         <strong>⚠️ Note:</strong> Salary data for received players must be verified manually. MBL cap analysis uses your roster's salary data only. Trade values will be available when regular season begins.
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('tradeAnalysisResults').innerHTML = html;
-        }
-            if (tradeSendPlayers.length === 0 && tradeReceivePlayers.length === 0) {
-                alert('Please add players to both sides of the trade');
-                return;
-            }
-            
-            // Calculate salary impact
-            let sendSalary = 0;
-            let receiveSalary = 0;
-            let sendYears = 0;
-            let receiveYears = 0;
-            
-            tradeSendPlayers.forEach(name => {
-                if (salaryData[name]) {
-                    sendSalary += parseInt(salaryData[name].salary) || 0;
-                    sendYears = Math.max(sendYears, parseInt(salaryData[name].yearsRemaining) || 0);
-                }
-            });
-            
-            // For received players, we don't have salary data, so just note that
-            
-            const salaryDiff = receiveSalary - sendSalary;
-            const currentCapSpace = 241000000 - players.reduce((sum, p) => {
-                return sum + (salaryData[p.name] ? parseInt(salaryData[p.name].salary) : 0);
-            }, 0);
-            
-            const capSpaceAfter = currentCapSpace + sendSalary - receiveSalary;
-            const isLegal = capSpaceAfter >= 0;
-            
-            let html = `
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 25px; margin-top: 20px;">
-                    <h3 style="margin-bottom: 20px; text-align: center; font-size: 1.5rem;">📊 Trade Analysis</h3>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-                        <div style="background: rgba(239, 68, 68, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">You Send</div>
-                            <div style="color: #ef4444; font-size: 1.5rem; font-weight: bold;">$${formatSalary(sendSalary.toString())}</div>
-                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${tradeSendPlayers.length} player${tradeSendPlayers.length !== 1 ? 's' : ''}</div>
-                        </div>
-                        
-                        <div style="background: rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">Net Impact</div>
-                            <div style="color: ${salaryDiff > 0 ? '#ef4444' : '#22c55e'}; font-size: 1.5rem; font-weight: bold;">
-                                ${salaryDiff > 0 ? '+' : ''}$${formatSalary(Math.abs(salaryDiff).toString())}
-                            </div>
-                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${salaryDiff > 0 ? 'More expense' : 'Savings'}</div>
-                        </div>
-                        
-                        <div style="background: rgba(34, 197, 94, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">You Receive</div>
-                            <div style="color: #22c55e; font-size: 1.5rem; font-weight: bold;">$${formatSalary(receiveSalary.toString())}</div>
-                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${tradeReceivePlayers.length} player${tradeReceivePlayers.length !== 1 ? 's' : ''}</div>
-                        </div>
-                    </div>
-                    
-                    <div style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
-                        <h4 style="color: #06b6d4; margin-bottom: 15px;">💰 Cap Space Impact</h4>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span>Current Cap Space:</span>
-                            <span style="font-weight: 600;">$${formatSalary(currentCapSpace.toString())}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span>Salary Out:</span>
-                            <span style="color: #22c55e;">-$${formatSalary(sendSalary.toString())}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                            <span>Salary In:</span>
-                            <span style="color: #ef4444;">+$${formatSalary(receiveSalary.toString())}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 1.125rem;">
-                            <span style="font-weight: 600;">Cap Space After Trade:</span>
-                            <span style="font-weight: bold; color: ${isLegal ? '#22c55e' : '#ef4444'};">
-                                $${formatSalary(capSpaceAfter.toString())}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    ${!isLegal ? `
-                        <div style="background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; border-radius: 10px; padding: 20px; text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 10px;">🚫</div>
-                            <h3 style="color: #ef4444; margin-bottom: 10px;">Trade Blocked - Over Salary Cap</h3>
-                            <p style="color: #fca5a5;">This trade would put you over the $241M salary cap. Per MBL rules, this trade cannot be processed.</p>
-                        </div>
-                    ` : `
-                        <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; border-radius: 10px; padding: 20px; text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-                            <h3 style="color: #22c55e; margin-bottom: 10px;">Trade is Legal</h3>
-                            <p style="color: #86efac;">This trade complies with MBL salary cap rules and can be processed.</p>
-                        </div>
-                    `}
-                    
-                    <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; font-size: 0.875rem; color: #fcd34d;">
-                        <strong>⚠️ Note:</strong> Salary data for received players must be verified manually. This analysis uses your roster's salary data only.
                     </div>
                 </div>
             `;
