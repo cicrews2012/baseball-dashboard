@@ -1215,7 +1215,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.6.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v2.6.1</p>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button id="demoModeBtn" class="refresh-btn" onclick="toggleDemoMode()" title="Enable demo mode to test with mock data">
@@ -2458,7 +2458,7 @@
                         </div>
                     `;
                     
-                    item.onclick = () => selectAutocomplete(index);
+                    item.onclick = () => selectAutocompleteItem(person.fullName);
                     dropdown.appendChild(item);
                 });
                 
