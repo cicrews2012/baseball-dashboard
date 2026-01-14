@@ -1215,7 +1215,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.2.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.4.0</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -4872,18 +4872,66 @@
                         <h3 style="color: #60a5fa; margin-bottom: 15px;">⚾ MBL (Multiverse Baseball League)</h3>
                         <p style="color: #cbd5e1; margin-bottom: 20px;">30-team dynasty league with salary cap and service time rules</p>
                         
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">📊 Scoring Format</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>League Type:</strong> Head-to-Head Most Categories</li>
+                            <li><strong>Season:</strong> March 25 - September 27, 2026</li>
+                            <li><strong>Matchup Format:</strong> Win most categories each week</li>
+                            <li><strong>Weekly Minimums:</strong> 100 AB (at-bats) and 25 IP (innings pitched) required</li>
+                            <li><strong>Penalty for Missing Minimums:</strong> Loss in all rate stats (AVG categories for hitting, ERA categories for pitching)</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🏏 Hitting Categories (6)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>R</strong> - Runs Scored</li>
+                            <li><strong>HR</strong> - Home Runs</li>
+                            <li><strong>RBI</strong> - Runs Batted In</li>
+                            <li><strong>SB</strong> - Stolen Bases</li>
+                            <li><strong>OBP</strong> - On-Base Percentage (rate stat, requires 100 AB minimum)</li>
+                            <li><strong>SLG</strong> - Slugging Percentage (rate stat, requires 100 AB minimum)</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">⚾ Pitching Categories (6)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>K</strong> - Strikeouts</li>
+                            <li><strong>QA4</strong> - Quality Appearance 4 (4+ IP with 0 ER or 6+ IP with 3 ER or less)</li>
+                            <li><strong>SV+H</strong> - Saves + Holds</li>
+                            <li><strong>ERA</strong> - Earned Run Average (rate stat, requires 25 IP minimum)</li>
+                            <li><strong>WHIP</strong> - Walks + Hits per Inning Pitched (rate stat, requires 25 IP minimum)</li>
+                            <li><strong>K/BB</strong> - Strikeout to Walk Ratio (rate stat, requires 25 IP minimum)</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">👥 Roster Settings</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Total Roster:</strong> Maximum 70 players</li>
+                            <li><strong>Active Lineup:</strong> 19 players (C, 1B, 2B, 3B, SS, 3 OF, UT, 4 SP, 4 RP, 2 P)</li>
+                            <li><strong>Reserve:</strong> 21 players maximum</li>
+                            <li><strong>Injured Reserve:</strong> 4 players maximum (MLB IL only)</li>
+                            <li><strong>Minor League:</strong> 40 players maximum</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🎯 Position Eligibility</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Hitters:</strong> 12 games previous season OR 6 games current season</li>
+                            <li><strong>Starting Pitchers:</strong> 6 starts previous season OR 3 starts current season</li>
+                            <li><strong>Relief Pitchers:</strong> 8 relief appearances previous season OR 4 appearances current season</li>
+                        </ul>
+                        
                         <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">💰 Salary Cap</h4>
                         <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
-                            <li><strong>Cap Limit:</strong> $241M (luxury tax threshold)</li>
+                            <li><strong>Cap Limit:</strong> $241M (hard cap)</li>
                             <li><strong>League Minimum:</strong> $760K</li>
-                            <li><strong>Trades:</strong> Must stay under cap after trade completes</li>
+                            <li><strong>What Counts:</strong> Active, Reserve, and Injured Reserve players</li>
+                            <li><strong>Minors:</strong> Do NOT count against cap</li>
+                            <li><strong>Trades:</strong> Cannot exceed cap after trade</li>
                         </ul>
                         
                         <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🎯 Service Time & Eligibility</h4>
                         <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
-                            <li><strong>MiLB Eligibility:</strong> Lost at 130 MLB AB (hitters) or 50 MLB IP (pitchers)</li>
-                            <li><strong>Minor League Slots:</strong> Can hold unlimited MiLB-eligible players</li>
-                            <li><strong>Active/Reserve:</strong> Players who lose MiLB eligibility count against cap</li>
+                            <li><strong>MiLB Eligibility Lost At:</strong> 130 career + current season AB (hitters) or 50 IP (pitchers)</li>
+                            <li><strong>Minor League Slots:</strong> Maximum 40 players, unlimited depth</li>
+                            <li><strong>When Ineligible:</strong> Must move to Active/Reserve (counts against cap)</li>
+                            <li><strong>Grace Period:</strong> 0 scoring periods (immediate enforcement)</li>
                         </ul>
                         
                         <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">📉 Drop Penalties</h4>
@@ -4896,11 +4944,26 @@
                             <li><strong>Exception:</strong> No penalty for Team Control or league minimum players</li>
                         </ul>
                         
-                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🔄 Arbitration</h4>
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🔄 Arbitration & Contracts</h4>
                         <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
                             <li><strong>Progression:</strong> Team Control → Arb 1 → Arb 2 → Arb 3 → Free Agent</li>
-                            <li><strong>Salary Increases:</strong> Players typically see 30-50% raises in arb</li>
-                            <li><strong>Extensions:</strong> Can sign players to multi-year deals before FA</li>
+                            <li><strong>Salary Increases:</strong> Players typically see 30-50% raises in arbitration</li>
+                            <li><strong>Extensions:</strong> Can sign players to multi-year deals before free agency</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🔄 Trading</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Trade Period:</strong> All year (March 25 - August 12, 2026)</li>
+                            <li><strong>Trade Deadline:</strong> August 12, 2026 at 11:59 PM EDT</li>
+                            <li><strong>Unlimited Trades:</strong> No maximum per team</li>
+                            <li><strong>No Draft Picks:</strong> Cannot trade draft picks</li>
+                        </ul>
+                        
+                        <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">🏆 Playoffs</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Start Date:</strong> Week 22 (August 24-30, 2026)</li>
+                            <li><strong>Playoff Length:</strong> 5 rounds</li>
+                            <li><strong>Playoff Format:</strong> Manually entered matchups</li>
                         </ul>
                     </div>
                 `;
@@ -4908,13 +4971,121 @@
                 content.innerHTML = `
                     <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
                         <h3 style="color: #a855f7; margin-bottom: 15px;">🪑 Armchair GM's</h3>
-                        <p style="color: #cbd5e1; margin-bottom: 20px;"><em>League rules coming soon - add your league settings here!</em></p>
+                        <p style="color: #cbd5e1; margin-bottom: 20px;">12-team dynasty league with daily lineup changes and draft pick trading</p>
                         
-                        <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 15px;">
-                            <p style="color: #fcd34d; font-size: 0.875rem;">
-                                💡 <strong>Tip:</strong> Contact me to add your Armchair GM's league rules, scoring categories, roster settings, and dynasty rules to this section.
-                            </p>
-                        </div>
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">📊 Scoring Format</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>League Type:</strong> Head-to-Head Each Category</li>
+                            <li><strong>Season:</strong> March 25 - September 13, 2026</li>
+                            <li><strong>Matchup Format:</strong> Each category is worth 1 point (win/loss/tie)</li>
+                            <li><strong>Weekly Minimums:</strong> 130 PA (plate appearances) and 25 IP (innings pitched)</li>
+                            <li><strong>Weekly Maximums:</strong> 7 GS (games started) and 10 RA (relief appearances)</li>
+                            <li><strong>Missing Minimums:</strong> No penalty (still compete in all categories)</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">🏏 Hitting Categories (6)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>R</strong> - Runs Scored</li>
+                            <li><strong>RBI</strong> - Runs Batted In</li>
+                            <li><strong>SB</strong> - Stolen Bases</li>
+                            <li><strong>TB</strong> - Total Bases</li>
+                            <li><strong>BB+HBP</strong> - Walks + Hit By Pitch</li>
+                            <li><strong>SO</strong> - Strikeouts (fewer is better)</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">⚾ Pitching Categories (6)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>IP</strong> - Innings Pitched</li>
+                            <li><strong>K</strong> - Strikeouts</li>
+                            <li><strong>QS</strong> - Quality Starts (6+ IP with ≤3 ER)</li>
+                            <li><strong>SV+H</strong> - Saves + Holds</li>
+                            <li><strong>ERA</strong> - Earned Run Average (lower is better)</li>
+                            <li><strong>BB+HBP</strong> - Walks + Hit By Pitch (fewer is better)</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">👥 Roster Settings</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Total Roster:</strong> 30-38 players</li>
+                            <li><strong>Active Lineup:</strong> 18 players (C, 1B, 2B, 3B, SS, 3 OF, UT, 9 P)</li>
+                            <li><strong>Reserve:</strong> Maximum 20 players</li>
+                            <li><strong>Injured Reserve:</strong> 6 players maximum (MLB IL only, 7-week grace period)</li>
+                            <li><strong>Minor League:</strong> Maximum 10 players</li>
+                            <li><strong>Illegal Rosters:</strong> Always prevented (can't make transactions that break rules)</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">🎯 Position Eligibility</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Hitters:</strong> 1 game previous season OR 5 games current season</li>
+                            <li><strong>Starting Pitchers:</strong> 1 start previous season OR 3 starts current season</li>
+                            <li><strong>Relief Pitchers:</strong> 1 relief appearance previous season OR 5 appearances current season</li>
+                            <li><strong>Note:</strong> Very easy to gain multi-position eligibility!</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">🎯 Minor League Eligibility</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Hitters:</strong> Must have ≤130 career + current season AB</li>
+                            <li><strong>Pitchers:</strong> Must have ≤50 career + current season IP</li>
+                            <li><strong>Enforcement:</strong> Immediate (0 scoring period grace)</li>
+                            <li><strong>Violation:</strong> Locks ALL transactions until fixed</li>
+                            <li><strong>Max MiLB Slots:</strong> 10 players</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">📅 Lineups</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Lineup Changes:</strong> Daily</li>
+                            <li><strong>Lock Time:</strong> 5 minutes before each game</li>
+                            <li><strong>Manager Control:</strong> You set your own lineups</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">🔄 Trading</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Trade Period:</strong> All year (March 25 - July 31, 2026)</li>
+                            <li><strong>Trade Deadline:</strong> July 31, 2026 at 11:59 PM EDT</li>
+                            <li><strong>Trade Voting:</strong> League vote (6 objections required to veto)</li>
+                            <li><strong>Voting Period:</strong> 2 days</li>
+                            <li><strong>Draft Picks Tradeable:</strong> Yes (2 years out, 8 rounds deep)</li>
+                            <li><strong>Unlimited Trades:</strong> No maximum per team</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">🆓 Waivers & Free Agents</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Claim System:</strong> Automated Priority Order (rotating)</li>
+                            <li><strong>Processing:</strong> Daily at 7:00 PM EST</li>
+                            <li><strong>Claim Limits:</strong> Unlimited per week/season</li>
+                            <li><strong>Priority Rotation:</strong> Yes (order rotates after successful claim)</li>
+                            <li><strong>MLB Players Only:</strong> Must be on MLB team to be available</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">📝 Draft</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Draft Date:</strong> January 16, 2026 at 6:00 PM EST</li>
+                            <li><strong>Draft Type:</strong> Live Online Standard (Slow)</li>
+                            <li><strong>Rounds:</strong> 20 rounds</li>
+                            <li><strong>Time Limit:</strong> 2 hours per pick</li>
+                            <li><strong>Draft Order:</strong> Non-snake (same order each round)</li>
+                            <li><strong>Sleep Hours:</strong> 6:00 PM - 10:00 PM EST (clock stops)</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">🏆 Playoffs</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>Start Date:</strong> Week 22 (August 24-30, 2026)</li>
+                            <li><strong>Playoff Teams:</strong> 6 of 12 teams</li>
+                            <li><strong>Playoff Length:</strong> 3 rounds</li>
+                            <li><strong>Reseeding:</strong> Yes (reseed after each round)</li>
+                        </ul>
+                        
+                        <h4 style="color: #a855f7; margin-top: 20px; margin-bottom: 10px;">🔑 Key Differences from MBL</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
+                            <li><strong>✅ Each Category Scoring:</strong> Win 7-5 in categories = 7 points vs 5 points</li>
+                            <li><strong>✅ Daily Lineups:</strong> Can adjust every day (vs weekly in MBL)</li>
+                            <li><strong>✅ Draft Picks Tradeable:</strong> Can trade future picks (MBL cannot)</li>
+                            <li><strong>✅ Smaller League:</strong> 12 teams vs 30 in MBL</li>
+                            <li><strong>✅ No Salary Cap:</strong> Unlimited spending on players</li>
+                            <li><strong>✅ Trade Voting:</strong> League can veto trades (MBL has no voting)</li>
+                            <li><strong>✅ Lower MiLB Threshold:</strong> ≤130 AB/≤50 IP (MBL is <130/<50)</li>
+                            <li><strong>✅ Only 10 MiLB Slots:</strong> Much smaller farm system (MBL has 40)</li>
+                            <li><strong>✅ Unique Categories:</strong> TB, BB+HBP, SO for hitters; IP, QS for pitchers</li>
+                        </ul>
                     </div>
                 `;
             }
