@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.1.2 - Live MLB Prospects + Supabase Sync</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.1.3 - Notes & Watchlist Fixes</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1420,6 +1420,12 @@
                         </button>
                     </div>
                     <input type="text" id="watchlistAddInput" class="filter-select" style="width: 100%; margin-top: 15px;" placeholder="Enter player name and press Enter...">
+                </div>
+                
+                <!-- Players with Notes Section -->
+                <div id="playersWithNotesSection" style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 20px; margin-top: 20px; display: none;">
+                    <h3 style="color: #a78bfa; margin-bottom: 15px;">📝 Players with Notes (<span id="notesCount">0</span>)</h3>
+                    <div id="playersWithNotesList" style="display: grid; gap: 10px;"></div>
                 </div>
                 
                 <div id="watchlistGrid" class="players-grid"></div>
@@ -1640,7 +1646,7 @@
                     <h3 style="color: #60a5fa; margin-bottom: 10px;">📌 Current Status</h3>
                     <p style="color: #94a3b8; line-height: 1.6;">
                         <strong>MLB API Status:</strong> Offseason Mode (Limited Data)<br>
-                        <strong>Version:</strong> v1.7.4<br>
+                        <strong>Version:</strong> v4.1.2<br>
                         <strong>Last Updated:</strong> January 2026
                     </p>
                     <p style="color: #f59e0b; margin-top: 10px; font-size: 0.875rem;">
@@ -1833,6 +1839,71 @@
                             <li>Top Prospects tab will load current rankings</li>
                             <li>Breakout Watch will analyze live performance</li>
                             <li>Service time trackers will update with in-season AB/IP</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Version History -->
+                <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.1.3 - Notes & Watchlist Fixes (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed watchlist removal - now persists across refreshes</li>
+                            <li>✅ Added "Players with Notes" section in Watchlist tab</li>
+                            <li>✅ Quick view and delete notes functionality</li>
+                            <li>✅ Proper Supabase sync for deletions</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.1.2 - Smart Year Fallback + GitHub Actions</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Smart year fallback system (shows 2025 while waiting for 2026)</li>
+                            <li>✅ GitHub Actions for automated daily prospect updates</li>
+                            <li>✅ Year-agnostic system (works forever for 2027, 2028...)</li>
+                            <li>✅ No more waiting game - works TODAY with 2025 data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.1.0 - Live MLB Prospects</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Removed all hardcoded prospect data</li>
+                            <li>✅ Live fetching from MLB.com prospects page</li>
+                            <li>✅ Smart caching system for offline use</li>
+                            <li>✅ Date-aware fetching (won't try before release)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.0.0 - Supabase Cloud Sync</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Cross-device synchronization for notes and watchlist</li>
+                            <li>✅ Supabase database integration</li>
+                            <li>✅ Hybrid storage (cloud + local backup)</li>
+                            <li>✅ Real-time sync across all devices</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #94a3b8; margin-bottom: 8px;">v3.6.0 - Multi-Year Prospects</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>Year selector dropdown (2025/2026)</li>
+                            <li>Historical prospect class comparisons</li>
+                            <li>Separate databases per year</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #94a3b8; margin-bottom: 8px;">v3.5.0 & Earlier</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>Salary cap planning (2025-2028 projections)</li>
+                            <li>Trade analyzer with multi-player support</li>
+                            <li>Player research with MLB API integration</li>
+                            <li>Roster breakdown and composition analysis</li>
+                            <li>League rules documentation (MBL + Armchair GM's)</li>
                         </ul>
                     </div>
                 </div>
@@ -2493,9 +2564,35 @@
         }
         
         async function removeFromWatchlist(playerId) {
+            const playerToRemove = watchlistPlayers.find(p => p.id === playerId);
+            
+            // Remove from local array
             watchlistPlayers = watchlistPlayers.filter(p => p.id !== playerId);
+            
+            // Remove from Supabase
+            if (supabaseEnabled && supabaseClient && playerToRemove) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('watchlist')
+                        .delete()
+                        .eq('id', playerId);
+                    
+                    if (error) {
+                        console.error('Supabase delete error:', error);
+                    } else {
+                        console.log(`✅ Removed ${playerToRemove.name} from Supabase watchlist`);
+                    }
+                } catch (error) {
+                    console.error('Error removing from Supabase:', error);
+                }
+            }
+            
+            // Save to local storage
             await saveWatchlist();
+            
+            // Update UI
             renderWatchlist();
+            updateWatchlistBadge();
         }
         
         async function clearWatchlist() {
@@ -2504,6 +2601,84 @@
                 await saveWatchlist();
                 renderWatchlist();
             }
+        }
+        
+        // ========== PLAYERS WITH NOTES ==========
+        
+        function updatePlayersWithNotesList() {
+            const section = document.getElementById('playersWithNotesSection');
+            const list = document.getElementById('playersWithNotesList');
+            const count = document.getElementById('notesCount');
+            
+            if (!section || !list || !count) return;
+            
+            // Get all players with notes
+            const playersWithNotes = Object.entries(playerNotes).filter(([name, data]) => 
+                data.text && data.text.trim().length > 0
+            );
+            
+            if (playersWithNotes.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            count.textContent = playersWithNotes.length;
+            
+            list.innerHTML = playersWithNotes.map(([playerName, noteData]) => `
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1;">
+                        <strong style="color: #60a5fa;">${playerName}</strong>
+                        <p style="color: #94a3b8; font-size: 0.875rem; margin-top: 5px; margin-bottom: 0;">${noteData.text.substring(0, 100)}${noteData.text.length > 100 ? '...' : ''}</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-left: 15px;">
+                        <button onclick="quickViewNote('${playerName.replace(/'/g, "\\'")}');" style="background: rgba(59, 130, 246, 0.3); color: #60a5fa; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; white-space: nowrap;">
+                            View
+                        </button>
+                        <button onclick="deleteNoteConfirm('${playerName.replace(/'/g, "\\'")}');" style="background: rgba(239, 68, 68, 0.3); color: #f87171; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; white-space: nowrap;">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function quickViewNote(playerName) {
+            const noteData = playerNotes[playerName];
+            if (!noteData) return;
+            
+            alert(`Notes for ${playerName}:\n\n${noteData.text}`);
+        }
+        
+        async function deleteNoteConfirm(playerName) {
+            if (!confirm(`Delete all notes for ${playerName}?`)) return;
+            
+            delete playerNotes[playerName];
+            
+            // Save to Supabase
+            if (supabaseEnabled && supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('player_notes')
+                        .delete()
+                        .eq('player_name', playerName);
+                    
+                    if (error) {
+                        console.error('Error deleting note from Supabase:', error);
+                    } else {
+                        console.log(`✅ Deleted notes for ${playerName} from Supabase`);
+                    }
+                } catch (error) {
+                    console.error('Supabase delete error:', error);
+                }
+            }
+            
+            // Save to local storage
+            await savePlayerNotesToStorage();
+            
+            // Update UI
+            updatePlayersWithNotesList();
+            updateNotesBadge();
         }
         
         function renderWatchlist() {
@@ -3046,6 +3221,7 @@
                 document.getElementById('watchlistTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 renderWatchlist();
+                updatePlayersWithNotesList();
             } else if (tabName === 'prospects') {
                 document.getElementById('prospectsTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[3].classList.add('active');
@@ -3434,7 +3610,7 @@
         // Export/Import functions
         function exportPlayerNotes() {
             const exportData = {
-                version: '4.1.0',
+                version: '4.1.2',
                 exportDate: new Date().toISOString(),
                 league: currentLeague || 'mbl',
                 notes: playerNotes,
