@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Elite Prospect Scouting Dashboard</title>
@@ -1219,7 +1220,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.6.0 - Multi-Year Prospects</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.0.1 - Multi-Year Prospects</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1862,7 +1863,7 @@
         const SUPABASE_URL = 'https://bepztcnfnkdlehzodzmx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlcHp0Y25mbmtkbGVoem9kem14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjIwNTMsImV4cCI6MjA4NDQ5ODA1M30.FVIDG3Ap3tIu4hUg0WMvYIS2vZ7UcHuQP-Eq9u22TxY';
         
-        let supabase = null;
+        let supabaseClient = null;
         let supabaseEnabled = false;
         
         // Initialize Supabase client
@@ -1870,7 +1871,7 @@
             const statusEl = document.getElementById('supabaseStatus');
             try {
                 if (window.supabase && window.supabase.createClient) {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     supabaseEnabled = true;
                     console.log('✅ Supabase initialized successfully');
                     
@@ -2261,9 +2262,9 @@
         async function saveWatchlist() {
             try {
                 // Try Supabase first
-                if (supabaseEnabled && supabase) {
+                if (supabaseEnabled && supabaseClient) {
                     for (const player of watchlistPlayers) {
-                        const { error } = await supabase
+                        const { error } = await supabaseClient
                             .from('watchlist')
                             .upsert({
                                 id: player.id,
@@ -3229,10 +3230,10 @@
         async function savePlayerNotesToStorage() {
             try {
                 // Try Supabase first
-                if (supabaseEnabled && supabase) {
+                if (supabaseEnabled && supabaseClient) {
                     for (const [playerName, noteData] of Object.entries(playerNotes)) {
                         if (noteData.text || (noteData.tags && noteData.tags.length > 0)) {
-                            const { error } = await supabase
+                            const { error } = await supabaseClient
                                 .from('player_notes')
                                 .upsert({
                                     player_name: playerName,
@@ -3428,8 +3429,8 @@
         async function loadPlayerNotesFromStorage() {
             try {
                 // Try Supabase first
-                if (supabaseEnabled && supabase) {
-                    const { data, error } = await supabase
+                if (supabaseEnabled && supabaseClient) {
+                    const { data, error } = await supabaseClient
                         .from('player_notes')
                         .select('*');
                     
@@ -3465,8 +3466,8 @@
         async function loadWatchlist() {
             try {
                 // Try Supabase first
-                if (supabaseEnabled && supabase) {
-                    const { data, error } = await supabase
+                if (supabaseEnabled && supabaseClient) {
+                    const { data, error } = await supabaseClient
                         .from('watchlist')
                         .select('*')
                         .order('added_at', { ascending: false });
