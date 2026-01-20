@@ -1,4 +1,4 @@
-```yaml
+yaml
 name: Update MLB Prospects
 
 on:
@@ -59,4 +59,3 @@ jobs:
       - name: No changes
         if: steps.check_changes.outputs.changed != 'true'
         run: echo "📊 No changes detected - prospects are up to date"
-```
