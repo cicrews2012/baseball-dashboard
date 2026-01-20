@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Elite Prospect Scouting Dashboard</title>
+    <title>Prospect Scouting Dashboard</title>
     
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1218,9 +1218,9 @@
         <div class="header">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
                 <div>
-                    <h1>🎯 Elite Prospect Scouting Dashboard</h1>
+                    <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.1.0 - Live MLB Prospects + Supabase Sync</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.1.1 - Live MLB Prospects + Supabase Sync</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1244,15 +1244,19 @@
                 </div>
             </div>
             <div class="tabs">
+                <!-- Fantasy Dynasty League Tabs -->
                 <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
-                <button class="tab-btn" onclick="switchTab('research')">🔬 Player Research</button>
-                <button class="tab-btn" onclick="switchTab('watchlist')">👁️ Watchlist</button>
-                <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
-                <button class="tab-btn" onclick="switchTab('trade')">🔄 Trade Analyzer</button>
                 <button class="tab-btn" onclick="switchTab('composition')">📊 Roster Breakdown</button>
                 <button class="tab-btn" onclick="switchTab('capplanning')">💰 Cap Planning</button>
+                <button class="tab-btn" onclick="switchTab('trade')">🔄 Trade Analyzer</button>
                 <button class="tab-btn" onclick="switchTab('rules')">📖 League Rules</button>
-                <button class="tab-btn" onclick="switchTab('guide')">📖 Features & Guide</button>
+                
+                <!-- MLB Scouting/Research Tabs -->
+                <button class="tab-btn" onclick="switchTab('research')">🔬 Player Lookup</button>
+                <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
+                <button class="tab-btn" onclick="switchTab('watchlist')">👁️ Watchlist</button>
+                
+                <button class="tab-btn" onclick="switchTab('guide')">📖 Guide</button>
             </div>
             <div class="controls-row">
                 <input type="file" id="fileInput" accept=".csv" style="display: none;">
@@ -1968,6 +1972,18 @@
             const statusDiv = document.getElementById('refreshStatus');
             
             try {
+                // Check if it's before Friday 8pm ET (Jan 23, 2026)
+                const now = new Date();
+                const releaseDate = new Date('2026-01-24T01:00:00Z'); // Friday 8pm ET = Saturday 1am UTC
+                
+                if (now < releaseDate && year === '2026') {
+                    console.log('⏰ Top 100 not released yet - waiting for Friday 8pm ET');
+                    if (statusDiv) {
+                        statusDiv.innerHTML = '<span style="color: #fcd34d;">⏰ Top 100 releases Friday, Jan 23 @ 8pm ET on MLB Network</span>';
+                    }
+                    return null; // Exit early - don't try to fetch
+                }
+                
                 if (statusDiv) {
                     statusDiv.innerHTML = '<span style="color: #60a5fa;">🔄 Fetching live data from MLB.com...</span>';
                 }
@@ -1976,7 +1992,7 @@
                 
                 // Use CORS proxy to fetch MLB.com page
                 const proxy = 'https://api.allorigins.win/raw?url=';
-                const mlbUrl = `https://www.mlb.com/prospects/stats/top-prospects?type=all&dateRange=Year2026&minPA=1&minPA=1`;
+                const mlbUrl = `https://www.mlb.com/prospects/${year}`;
                 
                 const response = await fetch(proxy + encodeURIComponent(mlbUrl), {
                     headers: { 'Accept': 'text/html' }
@@ -2017,7 +2033,7 @@
                 console.error('❌ Live fetch failed:', error);
                 
                 if (statusDiv) {
-                    statusDiv.innerHTML = `<span style="color: #f59e0b;">⚠️ Live fetch failed, using cached data</span>`;
+                    statusDiv.innerHTML = `<span style="color: #f59e0b;">⚠️ Unable to fetch live data - check back after Friday 8pm ET</span>`;
                 }
                 
                 // Try to load from cache
