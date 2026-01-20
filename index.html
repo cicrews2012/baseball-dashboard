@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.1.1 - Live MLB Prospects + Supabase Sync</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.1.2 - Live MLB Prospects + Supabase Sync</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1972,16 +1972,34 @@
             const statusDiv = document.getElementById('refreshStatus');
             
             try {
-                // Check if it's before Friday 8pm ET (Jan 23, 2026)
+                // Determine if we should try fetching this year
                 const now = new Date();
-                const releaseDate = new Date('2026-01-24T01:00:00Z'); // Friday 8pm ET = Saturday 1am UTC
+                const currentYear = now.getFullYear();
+                const requestedYear = parseInt(year);
                 
-                if (now < releaseDate && year === '2026') {
-                    console.log('⏰ Top 100 not released yet - waiting for Friday 8pm ET');
+                // MLB releases Top 100 in late January each year (around Jan 23)
+                const releaseMonth = 0; // January (0-indexed)
+                const releaseDay = 23;
+                const releaseDate = new Date(requestedYear, releaseMonth, releaseDay, 20, 0, 0); // 8pm on release day
+                
+                let shouldFetch = true;
+                let fallbackYear = null;
+                
+                // If requesting current year and it's before release date
+                if (requestedYear === currentYear && now < releaseDate) {
+                    console.log(`⏰ ${year} Top 100 not released yet (releases ~Jan 23 @ 8pm ET)`);
+                    shouldFetch = false;
+                    fallbackYear = (requestedYear - 1).toString();
+                    
                     if (statusDiv) {
-                        statusDiv.innerHTML = '<span style="color: #fcd34d;">⏰ Top 100 releases Friday, Jan 23 @ 8pm ET on MLB Network</span>';
+                        statusDiv.innerHTML = `<span style="color: #fcd34d;">⏰ ${year} Top 100 releases Jan 23 @ 8pm ET. Loading ${fallbackYear} data...</span>`;
                     }
-                    return null; // Exit early - don't try to fetch
+                }
+                
+                // If not fetching current year, try previous year
+                if (!shouldFetch && fallbackYear) {
+                    console.log(`📅 Fetching ${fallbackYear} data instead...`);
+                    return await fetchLiveProspects(fallbackYear);
                 }
                 
                 if (statusDiv) {
@@ -1990,7 +2008,7 @@
                 
                 console.log(`🌐 Fetching ${year} prospects from MLB.com...`);
                 
-                // Use CORS proxy to fetch MLB.com page
+                // Try MLB Pipeline URL first
                 const proxy = 'https://api.allorigins.win/raw?url=';
                 const mlbUrl = `https://www.mlb.com/prospects/${year}`;
                 
@@ -2020,7 +2038,7 @@
                     localStorage.setItem('prospectsLastRefreshed', prospectsLastRefreshed);
                     
                     if (statusDiv) {
-                        statusDiv.innerHTML = `<span style="color: #10b981;">✅ Loaded ${prospects.length} live prospects from MLB.com!</span>`;
+                        statusDiv.innerHTML = `<span style="color: #10b981;">✅ Loaded ${prospects.length} ${year} prospects from MLB.com!</span>`;
                     }
                     
                     console.log(`✅ Loaded ${prospects.length} live ${year} prospects`);
@@ -2030,15 +2048,30 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Live fetch failed:', error);
-                
-                if (statusDiv) {
-                    statusDiv.innerHTML = `<span style="color: #f59e0b;">⚠️ Unable to fetch live data - check back after Friday 8pm ET</span>`;
-                }
+                console.error(`❌ Live fetch failed for ${year}:`, error);
                 
                 // Try to load from cache
                 if (loadCachedProspects()) {
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `<span style="color: #60a5fa;">📦 Using cached ${year} data</span>`;
+                    }
                     return liveProspectData;
+                }
+                
+                // If current year failed and we haven't tried fallback yet
+                const requestedYear = parseInt(year);
+                const now = new Date();
+                if (requestedYear === now.getFullYear()) {
+                    const fallbackYear = (requestedYear - 1).toString();
+                    console.log(`💡 ${year} not available, trying ${fallbackYear}...`);
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `<span style="color: #f59e0b;">⚠️ ${year} not available yet. Fetching ${fallbackYear}...</span>`;
+                    }
+                    return await fetchLiveProspects(fallbackYear);
+                }
+                
+                if (statusDiv) {
+                    statusDiv.innerHTML = `<span style="color: #ef4444;">❌ Unable to load ${year} prospects</span>`;
                 }
                 
                 return null;
