@@ -1215,7 +1215,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.4.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.5.0</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1450,9 +1450,9 @@
                         </select>
                         <select class="filter-select" id="prospectETAFilter">
                             <option value="">All ETAs</option>
-                            <option value="2025">2025</option>
                             <option value="2026">2026</option>
-                            <option value="2027">2027+</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028+</option>
                         </select>
                         <button class="upload-btn" onclick="loadTop100Prospects()">🔄 Refresh Rankings</button>
                     </div>
@@ -1863,6 +1863,103 @@
             { id: 'extension-target', label: 'Extension Target', color: '#10b981' },
             { id: 'watch', label: 'Watch List', color: '#64748b' }
         ];
+
+        // ========== PROSPECT DATABASE (2026 Rankings) ==========
+        const prospectDatabase = {
+            lastUpdated: "2026-01-20",
+            source: "FanGraphs, MLB Pipeline, Baseball America, Bleacher Report",
+            prospects: [
+                {rank: 1, name: "Travis Bazzana", pos: "2B", team: "CLE", age: 21, eta: "2026", tier: "Elite", notes: "No. 1 overall pick 2024. Pure hitting ability, solid power, excellent plate discipline."},
+                {rank: 2, name: "Jesus Made", pos: "SS", team: "MIL", age: 18, eta: "2027", tier: "Elite", notes: "Elite athlete, improving defense, showed power surge at High-A."},
+                {rank: 3, name: "Kevin McGonigle", pos: "2B", team: "STL", age: 21, eta: "2026", tier: "Elite", notes: "Real juice in hands, power-hitting second baseman, strong Futures Game showing."},
+                {rank: 4, name: "Samuel Basallo", pos: "C", team: "BAL", age: 20, eta: "2026", tier: "Elite", notes: "Offensive ceiling at catcher, plate discipline concerns, might move to 1B/DH."},
+                {rank: 5, name: "Bubba Chandler", pos: "RHP", team: "PIT", age: 22, eta: "2026", tier: "Elite", notes: "96-100 mph FB, great breaking stuff, mid-rotation starter projection."},
+                {rank: 6, name: "Andrew Painter", pos: "RHP", team: "PHI", age: 21, eta: "2026", tier: "Elite", notes: "Returning from TJ surgery, 96-100 with plus breaking ball."},
+                {rank: 7, name: "Michael Arroyo", pos: "2B", team: "TB", age: 20, eta: "2027", tier: "Elite", notes: "40 HRs past two seasons, tops all minor league 2B in power."},
+                {rank: 8, name: "Bryce Eldridge", pos: "1B/RHP", team: "SF", age: 20, eta: "2026", tier: "Elite", notes: "Two-way prospect, high-end hitting talent, could contribute immediately."},
+                {rank: 9, name: "Colton Cowser", pos: "OF", team: "BAL", age: 24, eta: "2026", tier: "MLB Ready", notes: "Already debuted, strong tools across the board."},
+                {rank: 10, name: "Dylan Beavers", pos: "OF", team: "BAL", age: 23, eta: "2026", tier: "MLB Ready", notes: "Posted 120 OPS+ in debut, front-runner for 2026 starting OF spot."},
+                {rank: 11, name: "Walker Jenkins", pos: "OF", team: "MIN", age: 19, eta: "2027", tier: "Star", notes: "Elite bat speed, wants to hit ball hard and usually does."},
+                {rank: 12, name: "Josuar Gonzalez", pos: "SS", team: "SF", age: 17, eta: "2028", tier: "Star", notes: "Top 2025 international signing, potential five-tool talent."},
+                {rank: 13, name: "George Lombard Jr.", pos: "SS", team: "NYY", age: 20, eta: "2027", tier: "Star", notes: "Hit .329/.495/.488 at High-A before promotion to Double-A."},
+                {rank: 14, name: "Eli Willits", pos: "SS", team: "WSH", age: 17, eta: "2028", tier: "Star", notes: "No. 1 overall 2025 draft pick, 60-hit/60-speed profile."},
+                {rank: 15, name: "Moises Ballesteros", pos: "C", team: "CHC", age: 21, eta: "2026", tier: "Star", notes: "Offensive-minded catcher, defensive questions but bat plays."},
+                {rank: 16, name: "Sal Stewart", pos: "1B/2B", team: "CIN", age: 23, eta: "2026", tier: "MLB Ready", notes: "121 OPS+ with 5 HR in September debut, versatile infielder."},
+                {rank: 17, name: "Noah Schultz", pos: "LHP", team: "CWS", age: 21, eta: "2026", tier: "Star", notes: "Frontline starter potential, needs to iron out walk rate spike."},
+                {rank: 18, name: "Bryce Rainer", pos: "SS", team: "DET", age: 20, eta: "2027", tier: "Star", notes: "Advanced hit tool, plus defense at shortstop."},
+                {rank: 19, name: "Carson Benge", pos: "OF", team: "NYM", age: 21, eta: "2026", tier: "Star", notes: "Power/speed combo, strong arm in outfield."},
+                {rank: 20, name: "Payton Tolle", pos: "RHP", team: "TEX", age: 23, eta: "2026", tier: "MLB Ready", notes: "Elite fastball, needs to develop secondary arsenal usage."},
+                {rank: 21, name: "Rainiel Rodriguez", pos: "C", team: "WSH", age: 18, eta: "2028", tier: "Star", notes: "Hit .276/.399/.555 with 20 HR across three levels, highest catching ceiling."},
+                {rank: 22, name: "Justin Crawford", pos: "OF", team: "PHI", age: 21, eta: "2026", tier: "Star", notes: "Elite speed, strong contact skills, son of Carl Crawford."},
+                {rank: 23, name: "Parker Messick", pos: "LHP", team: "CLE", age: 23, eta: "2026", tier: "MLB Ready", notes: "Advanced college arm, near MLB ready."},
+                {rank: 24, name: "Angel Genao", pos: "SS", team: "CLE", age: 20, eta: "2027", tier: "Star", notes: "Strong defensive shortstop with developing bat."},
+                {rank: 25, name: "Edward Florentino", pos: "OF", team: "PIT", age: 20, eta: "2027", tier: "Star", notes: "Power/speed potential, athletic outfielder."},
+                {rank: 26, name: "Franklin Arias", pos: "SS", team: "BOS", age: 19, eta: "2027", tier: "Star", notes: "Smooth defender, improving offensive profile."},
+                {rank: 27, name: "Cooper Ingle", pos: "C", team: "CLE", age: 21, eta: "2026", tier: "Solid", notes: "Defensive-minded catcher with solid bat."},
+                {rank: 28, name: "Caleb Bonemer", pos: "SS", team: "CWS", age: 20, eta: "2027", tier: "Star", notes: "Athletic middle infielder, strong defensive tools."},
+                {rank: 29, name: "Colson Montgomery", pos: "SS/3B", team: "CWS", age: 23, eta: "2026", tier: "MLB Ready", notes: "Encouraging MLB debut, versatile infield."},
+                {rank: 30, name: "Kyle Teel", pos: "C", team: "BOS", age: 22, eta: "2026", tier: "MLB Ready", notes: "Advanced catching skills, solid bat."},
+                {rank: 31, name: "Chase DeLauter", pos: "OF", team: "CLE", age: 22, eta: "2026", tier: "Solid", notes: "Power potential, recovering from injury."},
+                {rank: 32, name: "George Valera", pos: "OF", team: "CLE", age: 23, eta: "2026", tier: "MLB Ready", notes: "Strong tools, needs consistency."},
+                {rank: 33, name: "Jett Williams", pos: "SS", team: "NYM", age: 20, eta: "2027", tier: "Star", notes: "2023 2nd overall pick, plus defensive tools."},
+                {rank: 34, name: "Cam Collier", pos: "3B", team: "CIN", age: 19, eta: "2027", tier: "Star", notes: "2023 1st rounder, raw power potential."},
+                {rank: 35, name: "Jasson Dominguez", pos: "OF", team: "NYY", age: 22, eta: "2026", tier: "Star", notes: "Five-tool potential, injury concerns."},
+                {rank: 36, name: "Owen Caissie", pos: "OF", team: "CHC", age: 22, eta: "2026", tier: "Solid", notes: "Power threat, Joey Gallo comp, strikeout issues."},
+                {rank: 37, name: "Termarr Johnson", pos: "2B", team: "PIT", age: 20, eta: "2027", tier: "Solid", notes: "2022 4th overall, needs to improve consistency."},
+                {rank: 38, name: "James Triantos", pos: "2B/3B", team: "CHC", age: 22, eta: "2026", tier: "Solid", notes: "High contact hitter, versatile defender."},
+                {rank: 39, name: "Wyatt Langford", pos: "OF", team: "TEX", age: 23, eta: "2026", tier: "MLB Ready", notes: "2023 4th overall, advanced college bat."},
+                {rank: 40, name: "Jackson Chourio", pos: "OF", team: "MIL", age: 21, eta: "2026", tier: "MLB Ready", notes: "Already MLB regular, five-tool potential."},
+                {rank: 41, name: "Roman Anthony", pos: "OF", team: "BOS", age: 21, eta: "2026", tier: "Star", notes: "Strong arm, power potential, slowing down - likely RF."},
+                {rank: 42, name: "Colt Emerson", pos: "SS", team: "SEA", age: 20, eta: "2027", tier: "Star", notes: "2023 15th overall, plus defensive SS."},
+                {rank: 43, name: "Ceddanne Rafaela", pos: "OF/SS", team: "BOS", age: 24, eta: "2026", tier: "MLB Ready", notes: "Swing-happy but tools play, versatile defender."},
+                {rank: 44, name: "Matt Shaw", pos: "3B", team: "CHC", age: 23, eta: "2026", tier: "MLB Ready", notes: "Hit tool, advanced approach, near ready."},
+                {rank: 45, name: "Jackson Holliday", pos: "SS", team: "BAL", age: 21, eta: "2026", tier: "MLB Ready", notes: "2022 1st overall, elite bloodlines, struggled in debut."},
+                {rank: 46, name: "Brailer Guerrero", pos: "RHP", team: "SD", age: 21, eta: "2027", tier: "Solid", notes: "Shoulder issues, electric stuff when healthy."},
+                {rank: 47, name: "Jackson Baumeister", pos: "RHP", team: "DET", age: 22, eta: "2026", tier: "Solid", notes: "Mid-rotation upside, advanced command."},
+                {rank: 48, name: "Dalton Rushing", pos: "C", team: "LAD", age: 23, eta: "2026", tier: "Solid", notes: "Offensive-minded catcher, questions behind plate."},
+                {rank: 49, name: "Harry Ford", pos: "C", team: "SEA", age: 22, eta: "2026", tier: "Solid", notes: "Athletic catcher, switch-hitter with tools."},
+                {rank: 50, name: "Jacob Berry", pos: "1B/3B", team: "MIA", age: 23, eta: "2026", tier: "Solid", notes: "Raw power, limited defensive value."},
+                {rank: 51, name: "Ethan Salas", pos: "C", team: "SD", age: 18, eta: "2027", tier: "Star", notes: "Youngest player in minors, elite defensive catcher."},
+                {rank: 52, name: "Jackson Merrill", pos: "SS/OF", team: "SD", age: 22, eta: "2026", tier: "MLB Ready", notes: "Versatile, strong debut season potential."},
+                {rank: 53, name: "Tyler Black", pos: "2B", team: "MIL", age: 23, eta: "2026", tier: "Solid", notes: "Advanced college bat, plate discipline."},
+                {rank: 54, name: "Jac Caglianone", pos: "1B/LHP", team: "KC", age: 22, eta: "2026", tier: "Solid", notes: "Two-way potential, massive power."},
+                {rank: 55, name: "Nick Kurtz", pos: "1B", team: "OAK", age: 23, eta: "2026", tier: "MLB Ready", notes: "2024 4th overall, advanced college power hitter."},
+                {rank: 56, name: "Masyn Winn", pos: "SS", team: "STL", age: 23, eta: "2026", tier: "MLB Ready", notes: "Speed and defense, developing power."},
+                {rank: 57, name: "Curtis Mead", pos: "3B", team: "TB", age: 24, eta: "2026", tier: "MLB Ready", notes: "Hit tool, solid approach, near regular."},
+                {rank: 58, name: "Enrique Bradfield Jr.", pos: "OF", team: "BAL", age: 23, eta: "2026", tier: "Solid", notes: "Elite speed, top defensive CF."},
+                {rank: 59, name: "Pete Crow-Armstrong", pos: "OF", team: "CHC", age: 23, eta: "2026", tier: "MLB Ready", notes: "Elite defender, speed, improving bat."},
+                {rank: 60, name: "Emmanuel Rodriguez", pos: "OF", team: "MIN", age: 22, eta: "2026", tier: "Solid", notes: "Power/speed combo, international star."},
+                {rank: 61, name: "Christian Moore", pos: "2B", team: "LAA", age: 22, eta: "2026", tier: "MLB Ready", notes: "2024 8th overall, advanced college bat."},
+                {rank: 62, name: "Kristian Campbell", pos: "2B/OF", team: "BOS", age: 23, eta: "2026", tier: "MLB Ready", notes: "Hit tool, versatile, already graduated."},
+                {rank: 63, name: "Luke Keaschall", pos: "2B", team: "ATL", age: 23, eta: "2026", tier: "MLB Ready", notes: "Contact-oriented approach, already graduated."},
+                {rank: 64, name: "Junior Caminero", pos: "3B", team: "TB", age: 21, eta: "2026", tier: "Star", notes: "Elite raw power, aggressive approach."},
+                {rank: 65, name: "Brooks Lee", pos: "SS/3B", team: "MIN", age: 24, eta: "2026", tier: "MLB Ready", notes: "2022 8th overall, advanced hit tool."},
+                {rank: 66, name: "Coby Mayo", pos: "3B", team: "BAL", age: 23, eta: "2026", tier: "MLB Ready", notes: "Power potential, strikeout concerns."},
+                {rank: 67, name: "Heston Kjerstad", pos: "OF", team: "BAL", age: 26, eta: "2026", tier: "MLB Ready", notes: "Power bat, injury history."},
+                {rank: 68, name: "Noelvi Marte", pos: "SS/3B", team: "CIN", age: 23, eta: "2026", tier: "Star", notes: "Elite tools, served PED suspension."},
+                {rank: 69, name: "Druw Jones", pos: "OF", team: "ARI", age: 21, eta: "2027", tier: "Star", notes: "2022 2nd overall, elite bloodlines, injury concerns."},
+                {rank: 70, name: "Jacob Wilson", pos: "SS", team: "OAK", age: 23, eta: "2026", tier: "MLB Ready", notes: "2023 6th overall, advanced college SS."},
+                {rank: 71, name: "Marcelo Mayer", pos: "SS", team: "BOS", age: 22, eta: "2026", tier: "Star", notes: "2021 4th overall, smooth defensive SS."},
+                {rank: 72, name: "Evan Carter", pos: "OF", team: "TEX", age: 22, eta: "2026", tier: "MLB Ready", notes: "Already regular, breakout 2025 potential."},
+                {rank: 73, name: "Brady House", pos: "3B", team: "WSH", age: 21, eta: "2026", tier: "Star", notes: "Raw power, defensive improvements needed."},
+                {rank: 74, name: "Tyler Soderstrom", pos: "C/1B", team: "OAK", age: 23, eta: "2026", tier: "MLB Ready", notes: "Offensive-minded, positional flexibility."},
+                {rank: 75, name: "Junior Cano", pos: "2B", team: "LAD", age: 18, eta: "2028", tier: "Star", notes: "High-end international signing, advanced bat-to-ball skills."}
+            ]
+        };
+        
+        // Team name mappings for filter dropdown
+        const teamAbbreviations = {
+            "ARI": "Arizona Diamondbacks", "ATL": "Atlanta Braves", "BAL": "Baltimore Orioles",
+            "BOS": "Boston Red Sox", "CHC": "Chicago Cubs", "CWS": "Chicago White Sox",
+            "CIN": "Cincinnati Reds", "CLE": "Cleveland Guardians", "COL": "Colorado Rockies",
+            "DET": "Detroit Tigers", "HOU": "Houston Astros", "KC": "Kansas City Royals",
+            "LAA": "Los Angeles Angels", "LAD": "Los Angeles Dodgers", "MIA": "Miami Marlins",
+            "MIL": "Milwaukee Brewers", "MIN": "Minnesota Twins", "NYM": "New York Mets",
+            "NYY": "New York Yankees", "OAK": "Oakland Athletics", "PHI": "Philadelphia Phillies",
+            "PIT": "Pittsburgh Pirates", "SD": "San Diego Padres", "SF": "San Francisco Giants",
+            "SEA": "Seattle Mariners", "STL": "St. Louis Cardinals", "TB": "Tampa Bay Rays",
+            "TEX": "Texas Rangers", "TOR": "Toronto Blue Jays", "WSH": "Washington Nationals"
+        };
 
         // ========== DEMO MODE & MOCK DATA ==========
         
@@ -4410,74 +4507,190 @@
         }
 
         async function loadTop100Prospects() {
+            console.log('Loading Top 100 Prospects from embedded database...');
             const resultsDiv = document.getElementById('top100Results');
-            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading Top 100 Prospects from MLB Pipeline...</p></div>';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading Top 75 Prospects...</p></div>';
             
             try {
-                // Fetch top prospects from MLB API
-                const response = await fetch('https://statsapi.mlb.com/api/v1/prospects?sportId=1');
-                const data = await response.json();
+                // Use embedded prospect database
+                const prospects = prospectDatabase.prospects;
                 
-                if (!data.prospects || data.prospects.length === 0) {
-                    resultsDiv.innerHTML = '<div class="error-msg">No prospects data available</div>';
+                // Get current filters
+                const posFilter = document.getElementById('prospectPositionFilter')?.value || '';
+                const teamFilter = document.getElementById('prospectTeamFilter')?.value || '';
+                const etaFilter = document.getElementById('prospectETAFilter')?.value || '';
+                
+                // Apply filters
+                let filteredProspects = prospects.filter(p => {
+                    if (posFilter && p.pos !== posFilter) return false;
+                    if (teamFilter && p.team !== teamFilter) return false;
+                    if (etaFilter) {
+                        if (etaFilter === '2027' && parseInt(p.eta) < 2027) return false;
+                        if (etaFilter !== '2027' && p.eta !== etaFilter) return false;
+                    }
+                    return true;
+                });
+                
+                if (filteredProspects.length === 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="error-msg">
+                            No prospects match your filters. Try adjusting the position, team, or ETA filters.
+                        </div>
+                    `;
                     return;
                 }
                 
-                // Display prospects in table format
+                // Display prospects in card format
                 let html = `
-                    <table class="prospect-table">
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>Name</th>
-                                <th>Pos</th>
-                                <th>Team</th>
-                                <th>Age</th>
-                                <th>ETA</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="color: #60a5fa; margin: 0;">📊 ${filteredProspects.length} Prospects Found</h3>
+                            <div style="font-size: 0.875rem; color: #94a3b8;">
+                                <strong>Last Updated:</strong> ${prospectDatabase.lastUpdated} 
+                                <span style="margin-left: 10px;">📝 ${prospectDatabase.source}</span>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.875rem; color: #fcd34d; margin-top: 10px;">
+                            💡 <strong>MLB Pipeline Top 100</strong> releases Friday Jan 23rd at 8pm ET! Update this list then.
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 15px;">
                 `;
                 
-                data.prospects.slice(0, 100).forEach((prospect, index) => {
-                    const team = prospect.team?.name || 'N/A';
-                    const position = prospect.primaryPosition?.abbreviation || 'N/A';
-                    const age = prospect.currentAge || 'N/A';
-                    const eta = prospect.mlbDebutDate || 'TBD';
-                    const isOwned = players.some(p => p.name === prospect.fullName);
+                filteredProspects.forEach(prospect => {
+                    const isOwned = players.some(p => p.name === prospect.name);
+                    const tierColor = getTierColor(prospect.tier);
+                    const positionColor = getPositionColor(prospect.pos);
                     
                     html += `
-                        <tr>
-                            <td><span class="prospect-rank">${index + 1}</span></td>
-                            <td><span class="prospect-name">${prospect.fullName}</span></td>
-                            <td>${position}</td>
-                            <td>${team}</td>
-                            <td>${age}</td>
-                            <td>${eta}</td>
-                            <td>${isOwned ? '<span class="prospect-owned">✓ On Roster</span>' : ''}</td>
-                            <td>
-                                <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.fullName}')">
+                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; transition: all 0.3s;" 
+                             onmouseover="this.style.borderColor='#60a5fa'" 
+                             onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                <div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: white; margin-bottom: 5px;">
+                                        #${prospect.rank} ${prospect.name}
+                                    </div>
+                                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                        <span style="background: ${positionColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                            ${prospect.pos}
+                                        </span>
+                                        <span style="background: rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                            ${prospect.team}
+                                        </span>
+                                        <span style="background: ${tierColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                            ${prospect.tier}
+                                        </span>
+                                        <span style="background: rgba(168, 85, 247, 0.3); color: #c084fc; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">
+                                            ${prospect.age} yrs
+                                        </span>
+                                        <span style="background: rgba(251, 191, 36, 0.3); color: #fcd34d; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">
+                                            ETA: ${prospect.eta}
+                                        </span>
+                                        ${isOwned ? '<span style="background: rgba(34, 197, 94, 0.3); color: #4ade80; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">✓ ON ROSTER</span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.5; margin-bottom: 15px;">
+                                ${prospect.notes}
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.name.replace(/'/g, "\\'")}')">
                                     📊 View Stats
                                 </button>
-                            </td>
-                        </tr>
+                                <button class="prospect-action-btn" onclick="addProspectToWatchlist('${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
+                                    👁️ Add to Watchlist
+                                </button>
+                            </div>
+                        </div>
                     `;
                 });
                 
-                html += `
-                        </tbody>
-                    </table>
-                `;
+                html += `</div>`;
                 
                 resultsDiv.innerHTML = html;
+                console.log(`Displayed ${filteredProspects.length} prospects`);
                 
             } catch (error) {
                 console.error('Error loading prospects:', error);
-                resultsDiv.innerHTML = '<div class="error-msg">Error loading prospects. Please try again.</div>';
+                resultsDiv.innerHTML = `
+                    <div class="error-msg">
+                        Error loading prospects: ${error.message}
+                        <br><br>
+                        Please refresh the page and try again.
+                    </div>
+                `;
             }
         }
+        
+        // Helper functions for prospect display
+        function getTierColor(tier) {
+            const colors = {
+                'Elite': 'rgba(239, 68, 68, 0.8)',
+                'Star': 'rgba(251, 191, 36, 0.8)',
+                'Solid': 'rgba(34, 197, 94, 0.8)',
+                'MLB Ready': 'rgba(59, 130, 246, 0.8)'
+            };
+            return colors[tier] || 'rgba(100, 116, 139, 0.8)';
+        }
+        
+        function getPositionColor(pos) {
+            if (pos === 'C') return 'rgba(239, 68, 68, 0.6)';
+            if (['1B', '2B', '3B', 'SS'].includes(pos)) return 'rgba(59, 130, 246, 0.6)';
+            if (pos === 'OF' || pos.includes('/')) return 'rgba(34, 197, 94, 0.6)';
+            if (pos === 'RHP' || pos === 'LHP') return 'rgba(168, 85, 247, 0.6)';
+            return 'rgba(100, 116, 139, 0.6)';
+        }
+        
+        function researchProspectByName(name) {
+            // Switch to Research tab and search for player
+            switchTab('research');
+            document.getElementById('researchInput').value = name;
+            researchPlayer();
+        }
+        
+        function addProspectToWatchlist(name, position, team) {
+            // Check if already in watchlist
+            if (watchlistPlayers.some(p => p.name === name)) {
+                alert(`${name} is already on your watchlist!`);
+                return;
+            }
+            
+            // Add to watchlist
+            watchlistPlayers.push({
+                id: Date.now() + Math.random(),
+                name: name,
+                position: position,
+                team: team,
+                addedDate: new Date().toISOString(),
+                statsLoaded: false
+            });
+            
+            saveWatchlist();
+            updateDataStatus();
+            alert(`✅ Added ${name} to watchlist!`);
+        }
+        
+        // Add filter change listeners for prospects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate team dropdown for prospect filters
+            const prospectTeamFilter = document.getElementById('prospectTeamFilter');
+            if (prospectTeamFilter) {
+                const teams = [...new Set(prospectDatabase.prospects.map(p => p.team))].sort();
+                teams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team;
+                    option.textContent = teamAbbreviations[team] || team;
+                    prospectTeamFilter.appendChild(option);
+                });
+                
+                // Add change listeners to filters
+                prospectTeamFilter.addEventListener('change', loadTop100Prospects);
+                document.getElementById('prospectPositionFilter')?.addEventListener('change', loadTop100Prospects);
+                document.getElementById('prospectETAFilter')?.addEventListener('change', loadTop100Prospects);
+            }
+        });
 
         async function loadTeamProspects(teamId) {
             if (!teamId) return;
