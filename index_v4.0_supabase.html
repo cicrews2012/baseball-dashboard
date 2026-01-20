@@ -6,6 +6,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Elite Prospect Scouting Dashboard</title>
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         * {
             margin: 0;
@@ -1219,6 +1223,7 @@
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
+                        <span id="supabaseStatus" style="color: #94a3b8;">☁️ Cloud Sync: <span style="color: #fcd34d;">Connecting...</span></span>
                         <span id="rosterStatus" style="color: #94a3b8;">📋 Roster: <span style="color: #ef4444;">Not Loaded</span></span>
                         <span id="salaryStatus" style="color: #94a3b8;">💰 Salary: <span style="color: #ef4444;">Not Loaded</span></span>
                         <span id="notesStatus" style="color: #94a3b8;">📝 Notes: <span style="color: #ef4444;">0 players</span></span>
@@ -1461,8 +1466,12 @@
                             <option value="2027">2027</option>
                             <option value="2028">2028+</option>
                         </select>
-                        <button class="upload-btn" onclick="loadTop100Prospects()">🔄 Refresh Rankings</button>
+                        <button class="upload-btn" onclick="loadTop100Prospects()" style="background: #3b82f6; font-weight: 600;">🔄 Refresh Rankings</button>
+                        <div id="lastRefreshedTimestamp" style="font-size: 0.875rem; color: #94a3b8; padding: 0 10px; align-self: center;">
+                            📅 Never refreshed
+                        </div>
                     </div>
+                    <div id="refreshStatus" style="font-size: 0.875rem; color: #60a5fa; margin-bottom: 15px; min-height: 20px;"></div>
                     <div id="top100Results">
                         <div class="empty-state">
                             <div style="font-size: 3rem;">🏆</div>
@@ -1847,6 +1856,46 @@
     </div>
 
     <script>
+        // ============================================
+        // SUPABASE CONFIGURATION - v4.0
+        // ============================================
+        const SUPABASE_URL = 'https://bepztcnfnkdlehzodzmx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlcHp0Y25mbmtkbGVoem9kem14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjIwNTMsImV4cCI6MjA4NDQ5ODA1M30.FVIDG3Ap3tIu4hUg0WMvYIS2vZ7UcHuQP-Eq9u22TxY';
+        
+        let supabase = null;
+        let supabaseEnabled = false;
+        
+        // Initialize Supabase client
+        async function initSupabase() {
+            const statusEl = document.getElementById('supabaseStatus');
+            try {
+                if (window.supabase && window.supabase.createClient) {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    supabaseEnabled = true;
+                    console.log('✅ Supabase initialized successfully');
+                    
+                    // Update status indicator
+                    if (statusEl) {
+                        statusEl.innerHTML = '☁️ Cloud Sync: <span style="color: #22c55e;">✅ Active</span>';
+                    }
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.warn('⚠️ Supabase unavailable, using localStorage fallback:', error);
+                supabaseEnabled = false;
+                
+                // Update status indicator
+                if (statusEl) {
+                    statusEl.innerHTML = '☁️ Cloud Sync: <span style="color: #94a3b8;">Local Only</span>';
+                }
+            }
+            return false;
+        }
+        
+        // ============================================
+        // EXISTING VARIABLES
+        // ============================================
         let players = [];
         let selectedForComparison = new Set();
         let autocompleteTimeout;
@@ -2211,6 +2260,25 @@
         
         async function saveWatchlist() {
             try {
+                // Try Supabase first
+                if (supabaseEnabled && supabase) {
+                    for (const player of watchlistPlayers) {
+                        const { error } = await supabase
+                            .from('watchlist')
+                            .upsert({
+                                id: player.id,
+                                player_name: player.name,
+                                position: player.position,
+                                team: player.team,
+                                added_at: player.addedDate || new Date().toISOString()
+                            });
+                        
+                        if (error) console.warn('Supabase watchlist save error:', error);
+                    }
+                    console.log('✅ Watchlist synced to Supabase');
+                }
+                
+                // Also save to local storage as backup
                 if (window.storage) {
                     await window.storage.set('watchlist-players', JSON.stringify(watchlistPlayers));
                     console.log('Watchlist saved');
@@ -3160,6 +3228,26 @@
         
         async function savePlayerNotesToStorage() {
             try {
+                // Try Supabase first
+                if (supabaseEnabled && supabase) {
+                    for (const [playerName, noteData] of Object.entries(playerNotes)) {
+                        if (noteData.text || (noteData.tags && noteData.tags.length > 0)) {
+                            const { error } = await supabase
+                                .from('player_notes')
+                                .upsert({
+                                    player_name: playerName,
+                                    notes: noteData.text,
+                                    tags: noteData.tags || [],
+                                    updated_at: new Date().toISOString()
+                                });
+                            
+                            if (error) console.warn('Supabase save error:', error);
+                        }
+                    }
+                    console.log('✅ Player notes synced to Supabase');
+                }
+                
+                // Also save to local storage as backup
                 if (window.storage) {
                     await window.storage.set('player-notes', JSON.stringify(playerNotes));
                     console.log('Player notes saved to storage');
@@ -3339,11 +3427,33 @@
         // Call updateDataStatus whenever data changes
         async function loadPlayerNotesFromStorage() {
             try {
+                // Try Supabase first
+                if (supabaseEnabled && supabase) {
+                    const { data, error } = await supabase
+                        .from('player_notes')
+                        .select('*');
+                    
+                    if (!error && data && data.length > 0) {
+                        // Convert Supabase data to playerNotes format
+                        playerNotes = {};
+                        data.forEach(note => {
+                            playerNotes[note.player_name] = {
+                                text: note.notes || '',
+                                tags: note.tags || []
+                            };
+                        });
+                        console.log(`✅ Loaded ${data.length} notes from Supabase`);
+                        updateDataStatus();
+                        return;
+                    }
+                }
+                
+                // Fallback to local storage
                 if (window.storage) {
                     const result = await window.storage.get('player-notes');
                     if (result && result.value) {
                         playerNotes = JSON.parse(result.value);
-                        console.log(`Loaded notes for ${Object.keys(playerNotes).length} players`);
+                        console.log(`Loaded notes for ${Object.keys(playerNotes).length} players from storage`);
                     }
                 }
             } catch (error) {
@@ -3354,6 +3464,33 @@
         
         async function loadWatchlist() {
             try {
+                // Try Supabase first
+                if (supabaseEnabled && supabase) {
+                    const { data, error } = await supabase
+                        .from('watchlist')
+                        .select('*')
+                        .order('added_at', { ascending: false });
+                    
+                    if (!error && data && data.length > 0) {
+                        // Convert Supabase data to watchlistPlayers format
+                        watchlistPlayers = data.map(item => ({
+                            id: item.id,
+                            name: item.player_name,
+                            position: item.position || '',
+                            team: item.team || '',
+                            status: '',
+                            age: 0,
+                            statsLoaded: false,
+                            stats: null,
+                            addedDate: item.added_at
+                        }));
+                        console.log(`✅ Loaded ${watchlistPlayers.length} players from Supabase watchlist`);
+                        updateDataStatus();
+                        return;
+                    }
+                }
+                
+                // Fallback to local storage
                 if (window.storage) {
                     const result = await window.storage.get('watchlist-players');
                     if (result && result.value) {
@@ -4555,6 +4692,54 @@
             });
         }
 
+        // ========== PROSPECT REFRESH SYSTEM v4.0 ==========
+        let prospectsLastRefreshed = localStorage.getItem('prospectsLastRefreshed') || null;
+        
+        function updateRefreshTimestamp() {
+            const timestampDiv = document.getElementById('lastRefreshedTimestamp');
+            if (!timestampDiv) return;
+            
+            if (!prospectsLastRefreshed) {
+                timestampDiv.innerHTML = '<span style="color: #94a3b8;">📅 Never refreshed</span>';
+                return;
+            }
+            
+            const date = new Date(prospectsLastRefreshed);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            let timeAgo;
+            if (diffMins < 1) timeAgo = 'Just now';
+            else if (diffMins === 1) timeAgo = '1 min ago';
+            else if (diffMins < 60) timeAgo = `${diffMins} mins ago`;
+            else if (diffHours === 1) timeAgo = '1 hr ago';
+            else if (diffHours < 24) timeAgo = `${diffHours} hrs ago`;
+            else if (diffDays === 1) timeAgo = '1 day ago';
+            else timeAgo = `${diffDays} days ago`;
+            
+            const formattedDate = date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            
+            timestampDiv.innerHTML = `
+                <span style="color: #10b981;">📅 Last updated:</span> 
+                <strong>${formattedDate}</strong> 
+                <span style="color: #94a3b8;">(${timeAgo})</span>
+            `;
+        }
+        
+        // Update timestamp display every minute
+        setInterval(updateRefreshTimestamp, 60000);
+        
+        // ========== END PROSPECT REFRESH SYSTEM ==========
+        
         async function loadTop100Prospects() {
             console.log(`Loading ${currentProspectYear} Prospects...`);
             const resultsDiv = document.getElementById('top100Results');
@@ -4673,6 +4858,11 @@
                 
                 resultsDiv.innerHTML = html;
                 console.log(`Displayed ${filteredProspects.length} prospects`);
+                
+                // Update last refreshed timestamp
+                prospectsLastRefreshed = new Date().toISOString();
+                localStorage.setItem('prospectsLastRefreshed', prospectsLastRefreshed);
+                updateRefreshTimestamp();
                 
             } catch (error) {
                 console.error('Error loading prospects:', error);
@@ -5367,7 +5557,15 @@
         }
         
         // Initialize rules to MBL on load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize Supabase
+            await initSupabase();
+            
+            // Load data from Supabase/storage
+            await loadPlayerNotesFromStorage();
+            await loadWatchlist();
+            
+            // Select default league
             selectLeague('mbl');
         });
         
