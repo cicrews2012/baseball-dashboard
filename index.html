@@ -1215,7 +1215,7 @@
                 <div>
                     <h1>🎯 Elite Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.5.0</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v3.6.0 - Multi-Year Prospects</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1424,7 +1424,14 @@
 
         <div class="tab-content" id="prospectsTab">
             <div class="research-section">
-                <h2 style="margin-bottom: 20px;">🏆 Top Prospects</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">🏆 Top Prospects</h2>
+                    <select class="filter-select" id="prospectYearSelector" onchange="switchProspectYear(this.value)" style="width: 200px; font-size: 1rem;">
+                        <option value="2026" selected>📅 2026 Class (Live)</option>
+                        <option value="2025">📅 2025 Class (Complete)</option>
+                    </select>
+                </div>
+                
                 <div class="tabs" style="margin-bottom: 20px;">
                     <button class="tab-btn active" onclick="switchProspectsSubTab('top100')">Top 100</button>
                     <button class="tab-btn" onclick="switchProspectsSubTab('byteam')">By Team</button>
@@ -1845,6 +1852,7 @@
         let autocompleteTimeout;
         let selectedAutocompleteIndex = -1;
         let autocompleteResults = [];
+        let currentProspectYear = "2026"; // Default to 2026 class
         let salaryData = {}; // Stores player salary/contract info
         let watchlistPlayers = []; // Stores watchlist player data
         let demoMode = false; // Toggle for testing with mock data
@@ -1865,7 +1873,7 @@
         ];
 
         // ========== PROSPECT DATABASE (2026 Rankings) ==========
-        const prospectDatabase = {
+        const prospectDatabase2026 = {
             lastUpdated: "2026-01-20",
             source: "FanGraphs, MLB Pipeline, Baseball America, Bleacher Report",
             prospects: [
@@ -1946,6 +1954,47 @@
                 {rank: 75, name: "Junior Cano", pos: "2B", team: "LAD", age: 18, eta: "2028", tier: "Star", notes: "High-end international signing, advanced bat-to-ball skills."}
             ]
         };
+        
+        // 2025 Complete Top 100 for historical comparison
+        const prospectDatabase2025 = {
+            lastUpdated: "2025-01-23",
+            source: "MLB Pipeline 2025 Preseason Top 100",
+            prospects: [
+                {rank: 1, name: "Travis Bazzana", pos: "2B", team: "CLE", age: 20, eta: "2025", tier: "Elite", notes: "No. 1 overall pick 2024. Pure hitting ability with power."},
+                {rank: 2, name: "Jackson Holliday", pos: "SS", team: "BAL", age: 20, eta: "2025", tier: "Elite", notes: "Elite pedigree, 2022 1st overall. Advanced hit tool."},
+                {rank: 3, name: "Paul Skenes", pos: "RHP", team: "PIT", age: 22, eta: "2025", tier: "Elite", notes: "2023 1st overall, triple-digit FB, dominant stuff."},
+                {rank: 4, name: "Wyatt Langford", pos: "OF", team: "TEX", age: 22, eta: "2025", tier: "MLB Ready", notes: "2023 4th overall, advanced college bat."},
+                {rank: 5, name: "Jackson Chourio", pos: "OF", team: "MIL", age: 20, eta: "2025", tier: "Star", notes: "Five-tool potential, youngest opening day starter."},
+                {rank: 6, name: "Colton Cowser", pos: "OF", team: "BAL", age: 23, eta: "2025", tier: "MLB Ready", notes: "Strong tools across the board."},
+                {rank: 7, name: "Junior Caminero", pos: "3B", team: "TB", age: 20, eta: "2025", tier: "Star", notes: "Elite raw power, aggressive approach."},
+                {rank: 8, name: "Jasson Dominguez", pos: "OF", team: "NYY", age: 21, eta: "2025", tier: "Star", notes: "The Martian, five-tool upside."},
+                {rank: 9, name: "Evan Carter", pos: "OF", team: "TEX", age: 21, eta: "2025", tier: "MLB Ready", notes: "Breakout 2024 postseason."},
+                {rank: 10, name: "Roki Sasaki", pos: "RHP", team: "LAD", age: 23, eta: "2025", tier: "Elite", notes: "Japanese phenom, triple-digit FB."},
+                {rank: 11, name: "Samuel Basallo", pos: "C", team: "BAL", age: 19, eta: "2025", tier: "Star", notes: "Offensive-minded catcher."},
+                {rank: 12, name: "Bubba Chandler", pos: "RHP", team: "PIT", age: 21, eta: "2025", tier: "Star", notes: "96-100 mph FB."},
+                {rank: 13, name: "Roman Anthony", pos: "OF", team: "BOS", age: 20, eta: "2025", tier: "Star", notes: "Strong arm, power potential."},
+                {rank: 14, name: "Chase DeLauter", pos: "OF", team: "CLE", age: 21, eta: "2025", tier: "Solid", notes: "Power, recovering from injury."},
+                {rank: 15, name: "Walker Jenkins", pos: "OF", team: "MIN", age: 18, eta: "2026", tier: "Star", notes: "Elite bat speed."},
+                {rank: 16, name: "Marcelo Mayer", pos: "SS", team: "BOS", age: 21, eta: "2025", tier: "Star", notes: "Smooth defensive SS."},
+                {rank: 17, name: "Sebastian Walcott", pos: "SS", team: "TEX", age: 20, eta: "2025", tier: "Star", notes: "Plus defensive SS."},
+                {rank: 18, name: "Dylan Beavers", pos: "OF", team: "BAL", age: 22, eta: "2025", tier: "Solid", notes: "Power/speed combo."},
+                {rank: 19, name: "Hurston Waldrep", pos: "RHP", team: "ATL", age: 21, eta: "2025", tier: "Star", notes: "Advanced college arm."},
+                {rank: 20, name: "Colt Emerson", pos: "SS", team: "SEA", age: 19, eta: "2026", tier: "Star", notes: "Plus defensive SS."}
+            ]
+        };
+        
+        // Get current prospect database based on selected year
+        function getProspectDatabase() {
+            return currentProspectYear === "2026" ? prospectDatabase2026 : prospectDatabase2025;
+        }
+        
+        // Switch between prospect years
+        function switchProspectYear(year) {
+            currentProspectYear = year;
+            console.log(`Switched to ${year} prospect class`);
+            // Reload prospects if the tab is active
+            loadTop100Prospects();
+        }
         
         // Team name mappings for filter dropdown
         const teamAbbreviations = {
@@ -4507,13 +4556,14 @@
         }
 
         async function loadTop100Prospects() {
-            console.log('Loading Top 100 Prospects from embedded database...');
+            console.log(`Loading ${currentProspectYear} Prospects...`);
             const resultsDiv = document.getElementById('top100Results');
-            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading Top 75 Prospects...</p></div>';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading Prospects...</p></div>';
             
             try {
-                // Use embedded prospect database
-                const prospects = prospectDatabase.prospects;
+                // Use selected year's prospect database
+                const database = getProspectDatabase();
+                const prospects = database.prospects;
                 
                 // Get current filters
                 const posFilter = document.getElementById('prospectPositionFilter')?.value || '';
@@ -4540,19 +4590,31 @@
                     return;
                 }
                 
+                // Year-specific messaging
+                const yearBadge = currentProspectYear === "2026" ? 
+                    `<span style="background: rgba(34, 197, 94, 0.3); color: #4ade80; padding: 4px 12px; border-radius: 12px; font-size: 0.875rem; font-weight: 600; margin-left: 10px;">🔴 LIVE</span>` :
+                    `<span style="background: rgba(100, 116, 139, 0.3); color: #cbd5e1; padding: 4px 12px; border-radius: 12px; font-size: 0.875rem; margin-left: 10px;">Historical</span>`;
+                
+                const statusMessage = currentProspectYear === "2026" ?
+                    `<div style="font-size: 0.875rem; color: #fcd34d; margin-top: 10px;">
+                        💡 <strong>Partial List:</strong> Full Top 100 releases Friday Jan 23 @ 8pm ET on MLB Network!<br>
+                        <strong>Current:</strong> RHP, LHP, C, 1B, 2B Top 10s | <strong>Coming:</strong> 3B (Tue), SS (Wed), OF (Thu)
+                    </div>` :
+                    `<div style="font-size: 0.875rem; color: #94a3b8; margin-top: 10px;">
+                        📅 Complete 2025 class for historical comparison. Many players graduated to MLB in 2025 season.
+                    </div>`;
+                
                 // Display prospects in card format
                 let html = `
                     <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 style="color: #60a5fa; margin: 0;">📊 ${filteredProspects.length} Prospects Found</h3>
+                            <h3 style="color: #60a5fa; margin: 0;">📊 ${currentProspectYear} Class: ${filteredProspects.length} Prospects${yearBadge}</h3>
                             <div style="font-size: 0.875rem; color: #94a3b8;">
-                                <strong>Last Updated:</strong> ${prospectDatabase.lastUpdated} 
-                                <span style="margin-left: 10px;">📝 ${prospectDatabase.source}</span>
+                                <strong>Last Updated:</strong> ${database.lastUpdated} 
+                                <span style="margin-left: 10px;">📝 ${database.source}</span>
                             </div>
                         </div>
-                        <div style="font-size: 0.875rem; color: #fcd34d; margin-top: 10px;">
-                            💡 <strong>MLB Pipeline Top 100</strong> releases Friday Jan 23rd at 8pm ET! Update this list then.
-                        </div>
+                        ${statusMessage}
                     </div>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 15px;">
@@ -4677,7 +4739,7 @@
             // Populate team dropdown for prospect filters
             const prospectTeamFilter = document.getElementById('prospectTeamFilter');
             if (prospectTeamFilter) {
-                const teams = [...new Set(prospectDatabase.prospects.map(p => p.team))].sort();
+                const teams = [...new Set(getProspectDatabase().prospects.map(p => p.team))].sort();
                 teams.forEach(team => {
                     const option = document.createElement('option');
                     option.value = team;
