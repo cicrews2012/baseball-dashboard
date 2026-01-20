@@ -101,11 +101,81 @@ def fetch_prospects(year):
         # Method 2: Look for prospect cards/divs (fallback)
         if not prospects:
             print("No table found, trying alternative selectors...")
-            prospect_cards = soup.find_all(['div', 'article'], class_=lambda x: x and ('prospect' in x.lower() or 'player' in x.lower()))
-            print(f"Found {len(prospect_cards)} potential prospect cards")
             
-            # This would need custom parsing based on MLB.com's actual structure
-            # For now, return empty if table method fails
+            # Try to find any divs or articles with prospect/player data
+            prospect_cards = soup.find_all(['div', 'article', 'li'])
+            print(f"Found {len(prospect_cards)} potential elements, filtering for prospects...")
+            
+            rank = 1
+            for card in prospect_cards:
+                try:
+                    # Look for player names in links or headings
+                    name_elem = card.find(['a', 'h1', 'h2', 'h3', 'h4', 'span'], class_=lambda x: x and ('name' in str(x).lower() or 'player' in str(x).lower()))
+                    
+                    if not name_elem:
+                        # Try finding any link that might be a player
+                        name_elem = card.find('a', href=lambda x: x and '/player/' in str(x))
+                    
+                    if name_elem:
+                        name = name_elem.get_text(strip=True)
+                        
+                        # Clean name and validate
+                        name = ' '.join(name.split())
+                        if len(name) < 3 or len(name) > 50:
+                            continue
+                        
+                        # Skip if it's not a person's name (heuristic checks)
+                        if any(skip in name.lower() for skip in ['news', 'video', 'stats', 'roster', 'schedule', 'more', 'mlb', 'prospects', 'rankings']):
+                            continue
+                        
+                        # Try to extract team, position, age from the card
+                        card_text = card.get_text()
+                        
+                        # Look for position codes
+                        position = ''
+                        for pos in ['RHP', 'LHP', 'C', '1B', '2B', '3B', 'SS', 'OF', 'DH', 'P']:
+                            if pos in card_text:
+                                position = pos
+                                break
+                        
+                        # Look for team abbreviation (3 capital letters)
+                        import re
+                        team_match = re.search(r'\b([A-Z]{2,3})\b', card_text)
+                        team = team_match.group(1) if team_match else ''
+                        
+                        # Look for age (2 digit number between 16-35)
+                        age_match = re.search(r'\b(1[6-9]|2[0-9]|3[0-5])\b', card_text)
+                        age = int(age_match.group(1)) if age_match else 20
+                        
+                        # Determine tier based on rank
+                        if rank <= 10:
+                            tier = 'Elite'
+                        elif rank <= 30:
+                            tier = 'Star'
+                        elif rank <= 60:
+                            tier = 'Solid'
+                        else:
+                            tier = 'Prospect'
+                        
+                        prospects.append({
+                            'rank': rank,
+                            'name': name,
+                            'pos': position or 'OF',
+                            'team': team or 'N/A',
+                            'age': age,
+                            'eta': year,
+                            'tier': tier,
+                            'notes': f'{year} prospect via MLB Pipeline'
+                        })
+                        
+                        rank += 1
+                        
+                        # Stop at 100 prospects
+                        if rank > 100:
+                            break
+                        
+                except Exception as e:
+                    continue
         
         if prospects:
             print(f"✅ Successfully parsed {len(prospects)} prospects for {year}")
