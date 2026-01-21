@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.1.3 - Notes & Watchlist Fixes</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.0 - Notes & Watchlist Fixes</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -2021,7 +2021,7 @@
         const FANGRAPHS_2026_PROSPECTS = [
         {
                 "rank": 1,
-                "name": "Jes\u00fas Made",
+                "name": "Jesús Made",
                 "team": "MIL",
                 "pos": "SS",
                 "tier": "Elite",
@@ -2101,7 +2101,7 @@
         },
         {
                 "rank": 9,
-                "name": "Luis Pe\u00f1a",
+                "name": "Luis Peña",
                 "team": "MIL",
                 "pos": "SS",
                 "tier": "Excellent",
@@ -2361,7 +2361,7 @@
         },
         {
                 "rank": 41,
-                "name": "H\u00e9ctor Rodr\u00edguez",
+                "name": "Héctor Rodríguez",
                 "team": "CIN",
                 "pos": "OF",
                 "tier": "Average",
@@ -3511,7 +3511,7 @@
         },
         {
                 "rank": 224,
-                "name": "Yorman G\u00f3mez",
+                "name": "Yorman Gómez",
                 "team": "CLE",
                 "pos": "RHP",
                 "tier": "Below Avg",
@@ -3551,7 +3551,7 @@
         },
         {
                 "rank": 230,
-                "name": "Jos\u00e9 Rodr\u00edguez",
+                "name": "José Rodríguez",
                 "team": "LAD",
                 "pos": "RHP",
                 "tier": "Below Avg",
@@ -4379,13 +4379,13 @@
             // Remove from local array
             watchlistPlayers = watchlistPlayers.filter(p => p.id !== playerId);
             
-            // Remove from Supabase
+            // Remove from Supabase - use player_name to match, not id
             if (supabaseEnabled && supabaseClient && playerToRemove) {
                 try {
                     const { error } = await supabaseClient
                         .from('watchlist')
                         .delete()
-                        .eq('id', playerId);
+                        .eq('player_name', playerToRemove.name);  // Changed from id to player_name
                     
                     if (error) {
                         console.error('Supabase delete error:', error);
@@ -6906,13 +6906,16 @@
             resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading Prospects...</p></div>';
             
             try {
-                // Smart loading: try cache first, fetch if forced or no cache
-                if (!liveProspectData || forceFetch) {
+                // If we already have FanGraphs 2026 data and not forcing refresh, skip fetch
+                if (liveProspectData && liveProspectData.length > 0 && !forceFetch) {
+                    console.log('✓ Using existing prospect data (no fetch needed)');
+                } else if (!liveProspectData || forceFetch) {
+                    // Smart loading: try cache first, fetch if forced or no cache
                     // Try cached first
                     if (!forceFetch && loadCachedProspects()) {
                         console.log('Using cached prospect data');
-                    } else {
-                        // Need to fetch live data
+                    } else if (forceFetch) {
+                        // Only fetch if user explicitly clicked refresh
                         console.log('Fetching live prospect data...');
                         const fetched = await fetchLiveProspects(currentProspectYear);
                         if (!fetched || fetched.length === 0) {
@@ -7012,6 +7015,8 @@
                 
                 filteredProspects.forEach(prospect => {
                     const isOwned = players.some(p => p.name === prospect.name);
+                    const isOnWatchlist = watchlistPlayers.some(p => p.name === prospect.name);
+                    const watchlistPlayer = watchlistPlayers.find(p => p.name === prospect.name);
                     const tierColor = getTierColor(prospect.tier);
                     const positionColor = getPositionColor(prospect.pos);
                     
@@ -7041,6 +7046,7 @@
                                             ETA: ${prospect.eta}
                                         </span>
                                         ${isOwned ? '<span style="background: rgba(34, 197, 94, 0.3); color: #4ade80; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">✓ ON ROSTER</span>' : ''}
+                                        ${isOnWatchlist ? '<span style="background: rgba(96, 165, 250, 0.3); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">👁️ ON WATCHLIST</span>' : ''}
                                     </div>
                                 </div>
                             </div>
@@ -7051,9 +7057,14 @@
                                 <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.name.replace(/'/g, "\\'")}')">
                                     📊 View Stats
                                 </button>
-                                <button class="prospect-action-btn" onclick="addProspectToWatchlist('${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
-                                    👁️ Add to Watchlist
-                                </button>
+                                ${isOnWatchlist ? 
+                                    `<button class="prospect-action-btn" onclick="removeFromWatchlist(${watchlistPlayer.id})" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">
+                                        🗑️ Remove from Watchlist
+                                    </button>` :
+                                    `<button class="prospect-action-btn" onclick="addProspectToWatchlist('${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
+                                        👁️ Add to Watchlist
+                                    </button>`
+                                }
                             </div>
                         </div>
                     `;
