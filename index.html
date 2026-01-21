@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.0 - Notes & Watchlist Fixes</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.1 - FanGraphs Integration + Watchlist Fixes</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1864,6 +1864,16 @@
                             <li>✅ GitHub Actions for automated daily prospect updates</li>
                             <li>✅ Year-agnostic system (works forever for 2027, 2028...)</li>
                             <li>✅ No more waiting game - works TODAY with 2025 data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.2.1 - Year Switching Fix</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed auto-fetch issue when switching prospect years</li>
+                            <li>✅ 2026 data properly reloads from FanGraphs when switching back</li>
+                            <li>✅ No more unnecessary MLB.com fetches</li>
+                            <li>✅ Version number now visible in header</li>
                         </ul>
                     </div>
 
@@ -4091,9 +4101,21 @@
             currentProspectYear = year;
             console.log(`Switched to ${year} prospect class`);
             
-            // Try to load cached data for this year
-            if (!loadCachedProspects()) {
-                console.log(`No cached ${year} data, will need to fetch...`);
+            // Clear current data when switching years
+            liveProspectData = null;
+            prospectDataSource = 'none';
+            
+            // If switching to 2026, reload the FanGraphs data
+            if (year === '2026' && FANGRAPHS_2026_PROSPECTS) {
+                liveProspectData = FANGRAPHS_2026_PROSPECTS;
+                prospectDataSource = 'fangraphs';
+                prospectsLastRefreshed = 'January 2026';
+                console.log(`✓ Reloaded ${liveProspectData.length} prospects from FanGraphs 2026 rankings`);
+            } else {
+                // Try to load cached data for this year
+                if (!loadCachedProspects()) {
+                    console.log(`No cached ${year} data available`);
+                }
             }
             
             // Reload prospects if the tab is active
