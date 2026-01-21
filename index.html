@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.3 - Bug Fixes (342 Prospects)</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.4 - Auto-load Fix + Privacy Notice</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1638,6 +1638,26 @@
             <div class="research-section">
                 <h2 style="margin-bottom: 20px;">📖 Dashboard Features & Guide</h2>
                 
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #f87171; margin-bottom: 10px;">⚠️ Privacy & Data Sharing Notice</h3>
+                    <p style="color: #cbd5e1; line-height: 1.6; margin-bottom: 10px;">
+                        <strong>Important:</strong> If you share this dashboard URL with someone, they will have access to the same Supabase database, which means:
+                    </p>
+                    <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px;">
+                        <li>They can see your notes and watchlist</li>
+                        <li>They can modify or delete your data</li>
+                        <li>You will see each other's changes in real-time</li>
+                    </ul>
+                    <p style="color: #cbd5e1; line-height: 1.6; margin-top: 10px;">
+                        <strong>Solutions:</strong>
+                    </p>
+                    <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px;">
+                        <li><strong>For private use:</strong> Don't share the URL publicly</li>
+                        <li><strong>For sharing with others:</strong> They should create their own copy with their own Supabase project</li>
+                        <li><strong>For collaboration:</strong> This setup works great for league-mates working together on the same data</li>
+                    </ul>
+                </div>
+                
                 <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                     <h3 style="color: #60a5fa; margin-bottom: 10px;">📌 Current Status</h3>
                     <p style="color: #94a3b8; line-height: 1.6;">
@@ -1860,6 +1880,16 @@
                             <li>✅ GitHub Actions for automated daily prospect updates</li>
                             <li>✅ Year-agnostic system (works forever for 2027, 2028...)</li>
                             <li>✅ No more waiting game - works TODAY with 2025 data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.2.4 - Auto-load & Privacy Fixes</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed prospects not loading on initial page load</li>
+                            <li>✅ Fixed "Clear Watchlist" - now properly deletes from Supabase</li>
+                            <li>✅ Added privacy warning about data sharing in Guide tab</li>
+                            <li>⚠️ Important: Anyone with this URL shares the same database</li>
                         </ul>
                     </div>
 
@@ -5978,9 +6008,33 @@
         
         async function clearWatchlist() {
             if (confirm('Are you sure you want to clear your entire watchlist?')) {
+                // Clear from Supabase first
+                if (supabaseEnabled && supabaseClient) {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('watchlist')
+                            .delete()
+                            .neq('id', 0); // Delete all rows (since id is never 0)
+                        
+                        if (error) {
+                            console.error('Error clearing Supabase watchlist:', error);
+                        } else {
+                            console.log('✅ Cleared all watchlist items from Supabase');
+                        }
+                    } catch (error) {
+                        console.error('Error clearing Supabase watchlist:', error);
+                    }
+                }
+                
+                // Clear local array
                 watchlistPlayers = [];
+                
+                // Save to local storage
                 await saveWatchlist();
+                
+                // Update UI
                 renderWatchlist();
+                updateWatchlistBadge();
             }
         }
         
@@ -6607,6 +6661,7 @@
                 document.getElementById('prospectsTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 populateTeamDropdowns();
+                loadTop100Prospects(); // Load prospects when tab is opened
             } else if (tabName === 'trade') {
                 document.getElementById('tradeTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[4].classList.add('active');
