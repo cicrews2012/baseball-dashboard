@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.1 - Watchlist Improvements</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.4 - Fixed Syntax + More Debug</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1872,6 +1872,34 @@
                     </div>
 
                     <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.4 - Fixed Syntax + Enhanced Debug</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed "Missing catch or finally after try" syntax error</li>
+                            <li>✅ Added comprehensive Supabase initialization debugging</li>
+                            <li>✅ Now logs: URL, key exists, library loaded, client created, connection test</li>
+                            <li>🔍 Check console on page load for detailed Supabase setup info</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.3 - Watchlist Debug Logging</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Added comprehensive debug logging for save/load operations</li>
+                            <li>📊 Console now shows: Loading source (Supabase/local), sync status, errors</li>
+                            <li>🔍 When you add a player, check console for "Synced to Supabase" messages</li>
+                            <li>⚠️ If you see "Supabase not enabled" - that's the problem</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.2 - Search Web Fix</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Changed player not found button to "Search Web" (opens Google in new tab)</li>
+                            <li>✅ Searches for "{player name} baseball stats MLB"</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
                         <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.1 - Watchlist Improvements</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>✅ Added "Search in Player Lookup" link when player not found in MLB API</li>
@@ -2066,12 +2094,32 @@
         
         // Initialize Supabase client
         async function initSupabase() {
+            console.log('🔧 Initializing Supabase...');
+            console.log('  SUPABASE_URL:', SUPABASE_URL);
+            console.log('  SUPABASE_KEY exists:', !!SUPABASE_KEY);
+            console.log('  window.supabase exists:', !!window.supabase);
+            
             const statusEl = document.getElementById('supabaseStatus');
             try {
                 if (window.supabase && window.supabase.createClient) {
+                    console.log('  ✓ Supabase library loaded');
                     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     supabaseEnabled = true;
                     console.log('✅ Supabase initialized successfully');
+                    console.log('  supabaseClient:', supabaseClient ? 'created' : 'null');
+                    console.log('  supabaseEnabled:', supabaseEnabled);
+                    
+                    // Test connection
+                    try {
+                        const { data, error } = await supabaseClient.from('watchlist').select('count');
+                        if (error) {
+                            console.warn('⚠️ Supabase connection test failed:', error);
+                        } else {
+                            console.log('✅ Supabase connection test passed');
+                        }
+                    } catch (testError) {
+                        console.warn('⚠️ Supabase connection test error:', testError);
+                    }
                     
                     // Update status indicator
                     if (statusEl) {
@@ -2079,9 +2127,12 @@
                     }
                     
                     return true;
+                } else {
+                    console.warn('❌ Supabase library not loaded');
+                    console.log('  window.supabase:', window.supabase);
                 }
             } catch (error) {
-                console.warn('⚠️ Supabase unavailable, using localStorage fallback:', error);
+                console.error('❌ Supabase initialization error:', error);
                 supabaseEnabled = false;
                 
                 // Update status indicator
@@ -5979,10 +6030,13 @@
         
         async function saveWatchlist() {
             try {
+                console.log(`💾 Saving watchlist with ${watchlistPlayers.length} players...`);
+                
                 // Try Supabase first
                 if (supabaseEnabled && supabaseClient) {
+                    console.log('☁️ Attempting Supabase sync...');
                     for (const player of watchlistPlayers) {
-                        const { error } = await supabaseClient
+                        const { data, error } = await supabaseClient
                             .from('watchlist')
                             .upsert({
                                 id: player.id,
@@ -5990,20 +6044,30 @@
                                 position: player.position,
                                 team: player.team,
                                 added_at: player.addedDate || new Date().toISOString()
+                            }, {
+                                onConflict: 'id'
                             });
                         
-                        if (error) console.warn('Supabase watchlist save error:', error);
+                        if (error) {
+                            console.error('❌ Supabase watchlist save error for', player.name, ':', error);
+                        } else {
+                            console.log('✅ Synced', player.name, 'to Supabase');
+                        }
                     }
                     console.log('✅ Watchlist synced to Supabase');
+                } else {
+                    console.warn('⚠️ Supabase not enabled or client not initialized');
+                    console.log('supabaseEnabled:', supabaseEnabled);
+                    console.log('supabaseClient:', supabaseClient ? 'exists' : 'null');
                 }
                 
                 // Also save to local storage as backup
                 if (window.storage) {
                     await window.storage.set('watchlist-players', JSON.stringify(watchlistPlayers));
-                    console.log('Watchlist saved');
+                    console.log('💾 Watchlist saved to local storage');
                 }
             } catch (error) {
-                console.error('Error saving watchlist:', error);
+                console.error('❌ Error saving watchlist:', error);
             }
         }
         
@@ -6262,7 +6326,7 @@
             if (player.stats && player.stats.error) {
                 let errorHTML = `<div class="error-msg">${player.stats.error}`;
                 if (player.stats.showSearchLink) {
-                    errorHTML += `<br><br><button class="research-btn" onclick="searchPlayerLookup('${player.name.replace(/'/g, "\\'")}')">🔍 Search in Player Lookup</button>`;
+                    errorHTML += `<br><br><button class="research-btn" onclick="searchWebForPlayer('${player.name.replace(/'/g, "\\'")}')">🔍 Search Web for ${player.name}</button>`;
                 }
                 errorHTML += `</div>`;
                 content.innerHTML = errorHTML;
@@ -7327,14 +7391,19 @@
         
         async function loadWatchlist() {
             try {
+                console.log('📥 Loading watchlist...');
+                
                 // Try Supabase first
                 if (supabaseEnabled && supabaseClient) {
+                    console.log('☁️ Attempting to load from Supabase...');
                     const { data, error } = await supabaseClient
                         .from('watchlist')
                         .select('*')
                         .order('added_at', { ascending: false });
                     
-                    if (!error && data && data.length > 0) {
+                    if (error) {
+                        console.error('❌ Supabase load error:', error);
+                    } else if (data && data.length > 0) {
                         // Convert Supabase data to watchlistPlayers format
                         watchlistPlayers = data.map(item => ({
                             id: item.id,
@@ -7350,15 +7419,22 @@
                         console.log(`✅ Loaded ${watchlistPlayers.length} players from Supabase watchlist`);
                         updateDataStatus();
                         return;
+                    } else {
+                        console.log('ℹ️ No watchlist data in Supabase');
                     }
+                } else {
+                    console.warn('⚠️ Supabase not enabled for loading');
                 }
                 
                 // Fallback to local storage
                 if (window.storage) {
+                    console.log('💾 Loading from local storage...');
                     const result = await window.storage.get('watchlist-players');
                     if (result && result.value) {
                         watchlistPlayers = JSON.parse(result.value);
-                        console.log(`Loaded ${watchlistPlayers.length} players from watchlist`);
+                        console.log(`📦 Loaded ${watchlistPlayers.length} players from local storage`);
+                    } else {
+                        console.log('ℹ️ No watchlist in local storage');
                     }
                 }
             } catch (error) {
@@ -8929,13 +9005,10 @@
             researchPlayer();
         }
 
-        function searchPlayerLookup(playerName) {
-            // Switch to Player Lookup tab and populate search
-            switchTab('research');
-            document.getElementById('playerLookupInput').value = playerName;
-            // Trigger autocomplete/search
-            const event = new Event('input', { bubbles: true });
-            document.getElementById('playerLookupInput').dispatchEvent(event);
+        function searchWebForPlayer(playerName) {
+            // Open web search in new tab
+            const searchQuery = encodeURIComponent(`${playerName} baseball stats MLB`);
+            window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
         }
 
         async function showYoungElite() {
