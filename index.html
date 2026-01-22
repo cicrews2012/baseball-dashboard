@@ -339,6 +339,8 @@
             padding: 25px;
             cursor: pointer;
             position: relative;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
         }
 
         .player-header:hover {
@@ -1220,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.6 - Removed Undefined Badge Function</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.7 - Watchlist Card Match & iOS Fix</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1852,7 +1854,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.3.6 - Console Error Fix (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.3.7 - Watchlist Card Match & iOS Fix (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Watchlist cards now match roster card design with status badges</li>
+                            <li>✅ Added "View in Player Lookup" button to watchlist cards</li>
+                            <li>🍎 Fixed iOS/iPadOS touch interaction - cards now expand properly</li>
+                            <li>🔧 Added touch-action CSS for better mobile support</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.6 - Console Error Fix</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔧 Removed undefined updateWatchlistBadge() function calls</li>
                             <li>✅ No more console errors when removing watchlist players</li>
@@ -6117,6 +6129,24 @@
             renderWatchlist();
         }
         
+        
+        function openPlayerLookup(playerName) {
+            // Switch to research tab
+            switchTab('research');
+            
+            // Set the player name in the search input
+            const researchInput = document.getElementById('researchInput');
+            if (researchInput) {
+                researchInput.value = playerName;
+                researchInput.focus();
+                
+                // Trigger the search automatically
+                setTimeout(() => {
+                    researchPlayer();
+                }, 100);
+            }
+        }
+        
         async function removeFromWatchlist(playerId) {
             const playerToRemove = watchlistPlayers.find(p => p.id === playerId);
             
@@ -6291,19 +6321,24 @@
         function createWatchlistCard(player) {
             const card = document.createElement('div');
             card.className = 'player-card';
+            
             card.innerHTML = `
-                <div class="player-header" onclick="toggleWatchlistCard(${player.id})">
+                <div class="player-header" onclick="toggleWatchlistCard(${player.id})" style="touch-action: manipulation;">
                     <div class="player-name">${player.name}</div>
                     <div class="player-badges">
                         ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
                         ${player.position ? `<span class="badge badge-position">${player.position}</span>` : ''}
+                        ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
                         ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
                     </div>
                 </div>
                 <div class="player-details" id="watchlist-details-${player.id}">
                     <div id="watchlist-content-${player.id}"></div>
-                    <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button class="prospect-action-btn" onclick="event.stopPropagation(); removeFromWatchlist(${player.id})" style="flex: 1; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">
+                    <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="prospect-action-btn" onclick="event.stopPropagation(); openPlayerLookup('${player.name.replace(/'/g, "\\'")}');" style="flex: 1; min-width: 200px; background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5);">
+                            🔍 View in Player Lookup
+                        </button>
+                        <button class="prospect-action-btn" onclick="event.stopPropagation(); removeFromWatchlist(${player.id})" style="flex: 1; min-width: 200px; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">
                             🗑️ Remove from Watchlist
                         </button>
                     </div>
