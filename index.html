@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.0 - Young & Elite Working!</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.1 - Watchlist Improvements</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1419,7 +1419,8 @@
                             🗑️ Clear All
                         </button>
                     </div>
-                    <input type="text" id="watchlistAddInput" class="filter-select" style="width: 100%; margin-top: 15px;" placeholder="Enter player name and press Enter...">
+                    <input type="text" id="watchlistAddInput" list="prospectNames" class="filter-select" style="width: 100%; margin-top: 15px;" placeholder="Start typing player name and press Enter...">
+                    <datalist id="prospectNames"></datalist>
                 </div>
                 
                 <!-- Players with Notes Section -->
@@ -1867,6 +1868,17 @@
                             <li>✅ GitHub Actions for automated daily prospect updates</li>
                             <li>✅ Year-agnostic system (works forever for 2027, 2028...)</li>
                             <li>✅ No more waiting game - works TODAY with 2025 data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.1 - Watchlist Improvements</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Added "Search in Player Lookup" link when player not found in MLB API</li>
+                            <li>✅ Quick Add now has autocomplete with all 342 prospect names</li>
+                            <li>✅ Fixed watchlist UI updates (badge counter)</li>
+                            <li>⏰ Supabase sync happens immediately - may take ~1-2 seconds</li>
+                            <li>📱 Cross-device sync: Should work - all devices share same Supabase database</li>
                         </ul>
                     </div>
 
@@ -6248,7 +6260,12 @@
             const player = watchlistPlayers.find(p => p.id === id);
             
             if (player.stats && player.stats.error) {
-                content.innerHTML = `<div class="error-msg">${player.stats.error}</div>`;
+                let errorHTML = `<div class="error-msg">${player.stats.error}`;
+                if (player.stats.showSearchLink) {
+                    errorHTML += `<br><br><button class="research-btn" onclick="searchPlayerLookup('${player.name.replace(/'/g, "\\'")}')">🔍 Search in Player Lookup</button>`;
+                }
+                errorHTML += `</div>`;
+                content.innerHTML = errorHTML;
                 return;
             }
             
@@ -8814,6 +8831,7 @@
             });
             
             saveWatchlist();
+            updateWatchlistBadge();
             updateDataStatus();
             alert(`✅ Added ${name} to watchlist!`);
         }
@@ -8909,6 +8927,15 @@
             switchTab('research');
             document.getElementById('researchInput').value = playerName;
             researchPlayer();
+        }
+
+        function searchPlayerLookup(playerName) {
+            // Switch to Player Lookup tab and populate search
+            switchTab('research');
+            document.getElementById('playerLookupInput').value = playerName;
+            // Trigger autocomplete/search
+            const event = new Event('input', { bubbles: true });
+            document.getElementById('playerLookupInput').dispatchEvent(event);
         }
 
         async function showYoungElite() {
@@ -9455,6 +9482,16 @@
             // This prevents the need to switch to 2025 and back
             if (liveProspectData && liveProspectData.length > 0) {
                 console.log('📊 Prospects pre-loaded and ready');
+                
+                // Populate prospect names datalist for quick add watchlist
+                const datalist = document.getElementById('prospectNames');
+                if (datalist) {
+                    liveProspectData.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.name;
+                        datalist.appendChild(option);
+                    });
+                }
             }
         });
         
