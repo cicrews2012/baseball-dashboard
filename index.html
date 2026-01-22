@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.8 - Young & Elite Debug</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.9 - Young & Elite Auto-Load</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1499,17 +1499,11 @@
                 <!-- By Team Sub-tab -->
                 <!-- Young & Elite Sub-tab -->
                 <div id="prospects-breakout" class="prospects-subtab" style="display: none;">
-                    <div style="margin-bottom: 20px;">
-                        <p style="color: #94a3b8; margin-bottom: 15px;">
-                            ⚡ High-upside prospects: FV 55+ under age 22, sorted by Future Value
-                        </p>
-                        <button class="research-btn" onclick="showYoungElite()">🔥 Show Young & Elite Prospects</button>
-                    </div>
                     <div id="breakoutResults">
                         <div class="empty-state">
                             <div style="font-size: 3rem;">⚡</div>
                             <h3>Young & Elite Prospects</h3>
-                            <p style="color: #94a3b8; margin-top: 10px;">Click to see high-FV prospects under 22 years old</p>
+                            <p style="color: #94a3b8; margin-top: 10px;">High-FV prospects (55+) under 22 years old - Auto-loading...</p>
                         </div>
                     </div>
                 </div>
@@ -1873,6 +1867,15 @@
                             <li>✅ GitHub Actions for automated daily prospect updates</li>
                             <li>✅ Year-agnostic system (works forever for 2027, 2028...)</li>
                             <li>✅ No more waiting game - works TODAY with 2025 data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.2.9 - Young & Elite Auto-Load</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Young & Elite now auto-loads when switching to that tab</li>
+                            <li>✅ Removed manual "Show" button - no longer needed</li>
+                            <li>✅ Should now display 6 prospects immediately when tab is clicked</li>
                         </ul>
                     </div>
 
@@ -6747,6 +6750,8 @@
             } else if (subtabName === 'breakout') {
                 document.getElementById('prospects-breakout').classList.add('active');
                 document.querySelectorAll('#prospectsTab .tab-btn')[1].classList.add('active');
+                // Auto-load Young & Elite when switching to this tab
+                showYoungElite();
             }
         }
 
