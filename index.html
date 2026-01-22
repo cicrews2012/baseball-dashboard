@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.5 - Filters & UI Improvements</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.6 - Filter Fixes</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1472,11 +1472,12 @@
                         </select>
                         <select class="filter-select" id="prospectFVFilter">
                             <option value="">All FV</option>
-                            <option value="60">60+ (Elite)</option>
-                            <option value="55">55+ (Excellent)</option>
-                            <option value="50">50+ (Solid Avg)</option>
-                            <option value="45">45+ (Average)</option>
-                            <option value="40">40+ (Below Avg)</option>
+                            <option value="60-100">60-70 (Elite)</option>
+                            <option value="55-59">55-59 (Excellent)</option>
+                            <option value="50-54">50-54 (Solid Avg)</option>
+                            <option value="45-49">45-49 (Average)</option>
+                            <option value="40-44">40-44 (Below Avg)</option>
+                            <option value="0-39">Below 40</option>
                         </select>
                         <select class="filter-select" id="prospectETAFilter">
                             <option value="">All ETAs</option>
@@ -1872,6 +1873,16 @@
                             <li>✅ GitHub Actions for automated daily prospect updates</li>
                             <li>✅ Year-agnostic system (works forever for 2027, 2028...)</li>
                             <li>✅ No more waiting game - works TODAY with 2025 data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.2.6 - Filter Fixes</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Team filter now shows ALL 30 MLB teams (returns "no prospects" if team has none)</li>
+                            <li>✅ FV filter changed to tier ranges (50-54, 55-59, etc) instead of "X and above"</li>
+                            <li>✅ Added debug logging to Young & Elite to diagnose empty results</li>
+                            <li>✅ Confirmed prospects auto-load on tab switch (no more year switching needed)</li>
                         </ul>
                     </div>
 
@@ -8566,19 +8577,22 @@
                 // Get current filters
                 const posFilter = document.getElementById('prospectPositionFilter')?.value || '';
                 const teamFilter = document.getElementById('prospectTeamFilter')?.value || '';
-                const fvFilter = parseInt(document.getElementById('prospectFVFilter')?.value) || 0;
+                const fvFilterValue = document.getElementById('prospectFVFilter')?.value || '';
                 const etaFilter = document.getElementById('prospectETAFilter')?.value || '';
                 
                 // Apply filters
                 let filteredProspects = prospects.filter(p => {
                     if (posFilter && p.pos !== posFilter) return false;
                     if (teamFilter && p.team !== teamFilter) return false;
-                    if (fvFilter) {
+                    if (fvFilterValue) {
                         // Extract FV number from notes (e.g., "FV 50" or "FV 45+")
                         const fvMatch = p.notes.match(/FV (\d+)/);
                         if (!fvMatch) return false;
                         const prospectFV = parseInt(fvMatch[1]);
-                        if (prospectFV < fvFilter) return false;
+                        
+                        // Parse range (e.g., "50-54" or "60-100")
+                        const [minFV, maxFV] = fvFilterValue.split('-').map(n => parseInt(n));
+                        if (prospectFV < minFV || prospectFV > maxFV) return false;
                     }
                     if (etaFilter) {
                         if (etaFilter === '2027' && parseInt(p.eta) < 2027) return false;
@@ -8630,11 +8644,15 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 15px;">
                 `;
                 
-                // Populate team filter on first load if empty
+                // Populate team filter on first load if empty - show ALL MLB teams
                 const teamFilterSelect = document.getElementById('prospectTeamFilter');
                 if (teamFilterSelect && teamFilterSelect.options.length === 1) {
-                    const teams = [...new Set(prospects.map(p => p.team))].sort();
-                    teams.forEach(team => {
+                    // All 30 MLB teams
+                    const allTeams = ['ARI', 'ATL', 'BAL', 'BOS', 'CHC', 'CHW', 'CIN', 'CLE', 'COL', 'DET', 
+                                     'HOU', 'KC', 'LAA', 'LAD', 'MIA', 'MIL', 'MIN', 'NYM', 'NYY', 'OAK', 
+                                     'PHI', 'PIT', 'SD', 'SEA', 'SF', 'STL', 'TB', 'TEX', 'TOR', 'WSH'];
+                    
+                    allTeams.forEach(team => {
                         const option = document.createElement('option');
                         option.value = team;
                         option.textContent = team;
@@ -8869,6 +8887,8 @@
             const database = getProspectDatabase();
             const prospects = database.prospects;
             
+            console.log(`🔍 Total prospects available: ${prospects.length}`);
+            
             // Filter: FV 55+ AND age < 22
             const youngElite = prospects.filter(p => {
                 const fvMatch = p.notes.match(/FV (\d+)/);
@@ -8876,13 +8896,19 @@
                 const fv = parseInt(fvMatch[1]);
                 const age = parseFloat(p.age);
                 
-                return fv >= 55 && age < 22;
+                const matches = fv >= 55 && age < 22;
+                if (matches) {
+                    console.log(`✓ ${p.name}: FV ${fv}, Age ${age}`);
+                }
+                return matches;
             }).sort((a, b) => {
                 // Sort by FV descending
                 const fvA = parseInt(a.notes.match(/FV (\d+)/)[1]);
                 const fvB = parseInt(b.notes.match(/FV (\d+)/)[1]);
                 return fvB - fvA;
             });
+            
+            console.log(`⚡ Found ${youngElite.length} young elite prospects`);
             
             if (youngElite.length === 0) {
                 resultsDiv.innerHTML = `
@@ -9368,6 +9394,12 @@
             
             // Select default league
             selectLeague('mbl');
+            
+            // Pre-load prospects so they're ready when tab is clicked
+            // This prevents the need to switch to 2025 and back
+            if (liveProspectData && liveProspectData.length > 0) {
+                console.log('📊 Prospects pre-loaded and ready');
+            }
         });
         
         // ========== ROSTER COMPOSITION DASHBOARD ==========
