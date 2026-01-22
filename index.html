@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.5 - Watchlist UUID Fix</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.6 - Removed Undefined Badge Function</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1852,7 +1852,15 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.3.5 - Watchlist UUID Fix (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.3.6 - Console Error Fix (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🔧 Removed undefined updateWatchlistBadge() function calls</li>
+                            <li>✅ No more console errors when removing watchlist players</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.5 - Watchlist UUID Fix</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔧 Fixed Supabase watchlist save - removed UUID conflict with player_name key</li>
                             <li>✅ Watchlist now properly syncs to cloud database</li>
@@ -6138,7 +6146,6 @@
             
             // Update UI
             renderWatchlist();
-            updateWatchlistBadge();
         }
         
         async function clearWatchlist() {
@@ -6179,7 +6186,6 @@
                 
                 // Update UI
                 renderWatchlist();
-                updateWatchlistBadge();
                 updateDataStatus();
             }
         }
@@ -8915,7 +8921,6 @@
             });
             
             saveWatchlist();
-            updateWatchlistBadge();
             updateDataStatus();
             alert(`✅ Added ${name} to watchlist!`);
         }
