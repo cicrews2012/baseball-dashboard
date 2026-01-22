@@ -1220,7 +1220,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.6 - Filter Fixes</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.2.7 - Critical Bug Fixes</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1873,6 +1873,15 @@
                             <li>✅ GitHub Actions for automated daily prospect updates</li>
                             <li>✅ Year-agnostic system (works forever for 2027, 2028...)</li>
                             <li>✅ No more waiting game - works TODAY with 2025 data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.2.7 - Critical Bug Fixes</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed "Cannot set properties of null" error in populateTeamDropdowns</li>
+                            <li>✅ Fixed infinite year switching loop (2025 ↔ 2026)</li>
+                            <li>✅ Added guard to prevent switching to same year twice</li>
                         </ul>
                     </div>
 
@@ -5691,6 +5700,12 @@
         
         // Switch between prospect years
         async function switchProspectYear(year) {
+            // Prevent switching if already on this year
+            if (currentProspectYear === year) {
+                console.log(`Already on ${year} prospect class`);
+                return;
+            }
+            
             currentProspectYear = year;
             console.log(`Switched to ${year} prospect class`);
             
@@ -8480,23 +8495,15 @@
 
         function populateTeamDropdowns() {
             const teamFilter = document.getElementById('prospectTeamFilter');
-            const teamSelect = document.getElementById('teamProspectsSelect');
+            
+            // Only populate if element exists and is empty (beyond default option)
+            if (!teamFilter) return;
             
             // Clear existing options (except first)
             teamFilter.innerHTML = '<option value="">All Teams</option>';
-            teamSelect.innerHTML = '<option value="">Select a Team...</option>';
             
-            mlbTeams.forEach(team => {
-                const option1 = document.createElement('option');
-                option1.value = team.id;
-                option1.textContent = team.name;
-                teamFilter.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = team.id;
-                option2.textContent = team.name;
-                teamSelect.appendChild(option2);
-            });
+            // Don't need to populate - we already have all 30 teams hardcoded in loadTop100Prospects
+            // This function is now mostly unused but kept for compatibility
         }
 
         // ========== PROSPECT REFRESH SYSTEM v4.0 ==========
