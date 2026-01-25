@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.5 - Fixed MLB Team Badge</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.6 - Fixed Winter Ball Teams</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.5 - Fixed MLB Team Badge (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.6 - Fixed Winter Ball / MiLB Teams (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Issue: Players showed winter ball teams (e.g., "Scottsdale Scorpions") or MiLB affiliates</li>
+                            <li>✅ Now uses parentOrgId to get MLB organization instead of currentTeam</li>
+                            <li>⚾ Acuna Jr. now shows "ATL" instead of "Tiburones de La Guaira"</li>
+                            <li>🔧 McGonigle now shows "DET" instead of "Scottsdale Scorpions"</li>
+                            <li>📊 Fetches team info from /teams API for accurate MLB org names</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.5 - Fixed MLB Team Badge</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Found issue: MLB search API wasn't returning currentTeam data</li>
                             <li>✅ Added `&hydrate=currentTeam` to search API calls</li>
@@ -7552,8 +7563,29 @@
                 
                 // Update player with MLB data
                 player.age = mlbPlayer.currentAge || 0;
-                player.mlbTeam = mlbPlayer.currentTeam?.name || '';
-                player.mlbOrg = mlbPlayer.currentTeam?.name || 'Free Agent';
+                
+                // Get MLB organization (not current team which could be MiLB/Winter ball)
+                // Use currentTeam.parentOrgId to get the MLB organization
+                const teamId = mlbPlayer.currentTeam?.parentOrgId || mlbPlayer.currentTeam?.id;
+                
+                if (teamId) {
+                    // Fetch the org/team info
+                    const teamUrl = `https://statsapi.mlb.com/api/v1/teams/${teamId}`;
+                    const teamRes = await fetch(teamUrl);
+                    const teamData = await teamRes.json();
+                    
+                    if (teamData.teams && teamData.teams.length > 0) {
+                        player.mlbTeam = teamData.teams[0].name || '';
+                        player.mlbOrg = teamData.teams[0].name || 'Free Agent';
+                    } else {
+                        player.mlbTeam = '';
+                        player.mlbOrg = 'Free Agent';
+                    }
+                } else {
+                    player.mlbTeam = '';
+                    player.mlbOrg = 'Free Agent';
+                }
+                
                 player.status = mlbPlayer.active ? 'Act' : 'Min';
                 
                 console.log(`  ✅ ${player.name}: mlbTeam="${player.mlbTeam}", fantraxTeam="${player.fantraxTeam}"`);
