@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.1 - Fixed Stats Matching</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.2 - Fixed Career Stats Calculation</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.6.1 - Fixed Stats Matching (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.6.2 - Fixed Career Stats Calculation (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>⚾ Fixed batting average calculation for aggregated stats</li>
+                            <li>🔧 Rate stats (AVG, OBP, SLG, OPS, ERA, WHIP) now recalculated from counting stats</li>
+                            <li>✅ Kevin McGonigle now shows correct .308 AVG (was showing .254)</li>
+                            <li>📊 Accurate stats for players with multiple teams/levels</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.6.1 - Fixed Stats Matching</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>✅ fetchPlayerStats now uses cached mlbPlayerId from enrichment</li>
                             <li>🔧 Converts "Last, First" to "First Last" when searching MLB API</li>
@@ -8709,6 +8719,14 @@
                                     
                                     // Merge aggregated stats with first split (for any fields we don't aggregate)
                                     const combinedStat = { ...firstSplit.stat, ...aggregated };
+                                    
+                                    // Remove rate stats so buildStatObject will recalculate them from aggregated counting stats
+                                    delete combinedStat.avg;
+                                    delete combinedStat.obp;
+                                    delete combinedStat.slg;
+                                    delete combinedStat.ops;
+                                    delete combinedStat.era;
+                                    delete combinedStat.whip;
                                     
                                     if (isCareerStats) {
                                         hasMLBStats = true;
