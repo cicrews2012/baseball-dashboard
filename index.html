@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.6 - Fixed Winter Ball Teams</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.7 - Fixed Commissioner's Office</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.6 - Fixed Winter Ball / MiLB Teams (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.7 - Fixed "Office of the Commissioner" (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Issue: Acuna Jr. showed "Office of the Commissioner" instead of "Atlanta Braves"</li>
+                            <li>✅ Now tries multiple sources: parentOrgId → primaryTeam → currentTeam</li>
+                            <li>🚫 Filters out Commissioner's Office (team ID 0)</li>
+                            <li>⚾ Added primaryTeam to hydrate parameter</li>
+                            <li>🔧 Added error handling for team API calls</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.6 - Fixed Winter Ball / MiLB Teams</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Issue: Players showed winter ball teams (e.g., "Scottsdale Scorpions") or MiLB affiliates</li>
                             <li>✅ Now uses parentOrgId to get MLB organization instead of currentTeam</li>
@@ -7526,7 +7537,7 @@
                     }
                 }
                 
-                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}&hydrate=currentTeam`;
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}&hydrate=currentTeam,primaryTeam`;
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
                 
@@ -7535,7 +7546,7 @@
                     const nameParts = searchName.split(' ');
                     if (nameParts.length > 1) {
                         const lastName = nameParts[nameParts.length - 1];
-                        const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}&hydrate=currentTeam`;
+                        const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}&hydrate=currentTeam,primaryTeam`;
                         const altSearchRes = await fetch(altSearchUrl);
                         const altSearchData = await altSearchRes.json();
                         
@@ -7565,19 +7576,45 @@
                 player.age = mlbPlayer.currentAge || 0;
                 
                 // Get MLB organization (not current team which could be MiLB/Winter ball)
-                // Use currentTeam.parentOrgId to get the MLB organization
-                const teamId = mlbPlayer.currentTeam?.parentOrgId || mlbPlayer.currentTeam?.id;
+                // Priority: 1) parentOrgId, 2) primaryTeam, 3) currentTeam
+                let teamId = null;
+                
+                // Check if currentTeam has a parentOrgId (MiLB team)
+                if (mlbPlayer.currentTeam?.parentOrgId && mlbPlayer.currentTeam.parentOrgId !== 0) {
+                    teamId = mlbPlayer.currentTeam.parentOrgId;
+                }
+                // Otherwise use primaryTeam if available
+                else if (mlbPlayer.primaryTeam?.id && mlbPlayer.primaryTeam.id !== 0) {
+                    teamId = mlbPlayer.primaryTeam.id;
+                }
+                // Last resort: currentTeam if it's an MLB team (not Commissioner's Office)
+                else if (mlbPlayer.currentTeam?.id && mlbPlayer.currentTeam.id !== 0 && mlbPlayer.currentTeam.sport?.id === 1) {
+                    teamId = mlbPlayer.currentTeam.id;
+                }
                 
                 if (teamId) {
-                    // Fetch the org/team info
-                    const teamUrl = `https://statsapi.mlb.com/api/v1/teams/${teamId}`;
-                    const teamRes = await fetch(teamUrl);
-                    const teamData = await teamRes.json();
-                    
-                    if (teamData.teams && teamData.teams.length > 0) {
-                        player.mlbTeam = teamData.teams[0].name || '';
-                        player.mlbOrg = teamData.teams[0].name || 'Free Agent';
-                    } else {
+                    try {
+                        // Fetch the org/team info
+                        const teamUrl = `https://statsapi.mlb.com/api/v1/teams/${teamId}`;
+                        const teamRes = await fetch(teamUrl);
+                        const teamData = await teamRes.json();
+                        
+                        if (teamData.teams && teamData.teams.length > 0) {
+                            const team = teamData.teams[0];
+                            // Make sure it's not "Office of the Commissioner"
+                            if (team.id !== 0 && !team.name.includes('Commissioner')) {
+                                player.mlbTeam = team.name || '';
+                                player.mlbOrg = team.name || 'Free Agent';
+                            } else {
+                                player.mlbTeam = '';
+                                player.mlbOrg = 'Free Agent';
+                            }
+                        } else {
+                            player.mlbTeam = '';
+                            player.mlbOrg = 'Free Agent';
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching team ${teamId}:`, error);
                         player.mlbTeam = '';
                         player.mlbOrg = 'Free Agent';
                     }
