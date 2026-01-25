@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.2 - Fixed Career Aggregation</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.3 - Fixed 3 Issues</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.2 - Fixed Career Stats Aggregation! (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.3 - Fixed 3 Issues (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🔍 Added logging to debug incorrect stats (e.g., Jarlin Susana showing hitting stats)</li>
+                            <li>✅ Fixed: Sorting/filtering now respects team selection (won't lose your team filter)</li>
+                            <li>⚾ Added 3-letter MLB team abbreviations (e.g., "SF" instead of "San Francisco Giants")</li>
+                            <li>👥 Fantasy owner badge stays full name for clarity</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.2 - Fixed Career Stats Aggregation!</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Found the bug: `aggregateCareerStats` was using `levels[0].avg` instead of calculating</li>
                             <li>✅ Now sums hits across all levels and calculates AVG = total hits / total at-bats</li>
@@ -2298,6 +2308,23 @@
         // STATS VERSION - Increment when calculation logic changes
         // ============================================
         const STATS_VERSION = 5; // v5 = Fix aggregateCareerStats to calculate from totals, not levels[0]
+        
+        // MLB Team Abbreviations
+        function getTeamAbbreviation(teamName) {
+            const abbrevMap = {
+                'Arizona Diamondbacks': 'ARI', 'Atlanta Braves': 'ATL', 'Baltimore Orioles': 'BAL',
+                'Boston Red Sox': 'BOS', 'Chicago Cubs': 'CHC', 'Chicago White Sox': 'CHW',
+                'Cincinnati Reds': 'CIN', 'Cleveland Guardians': 'CLE', 'Colorado Rockies': 'COL',
+                'Detroit Tigers': 'DET', 'Houston Astros': 'HOU', 'Kansas City Royals': 'KC',
+                'Los Angeles Angels': 'LAA', 'Los Angeles Dodgers': 'LAD', 'Miami Marlins': 'MIA',
+                'Milwaukee Brewers': 'MIL', 'Minnesota Twins': 'MIN', 'New York Mets': 'NYM',
+                'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK', 'Philadelphia Phillies': 'PHI',
+                'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SD', 'San Francisco Giants': 'SF',
+                'Seattle Mariners': 'SEA', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TB',
+                'Texas Rangers': 'TEX', 'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
+            };
+            return abbrevMap[teamName] || teamName;
+        }
         
         // ============================================
         // SUPABASE CONFIGURATION - v4.0
@@ -8436,7 +8463,13 @@
                 const matchesPos = !posFilter || p.position.includes(posFilter);
                 const matchesStatus = !statusFilter || p.status === statusFilter;
                 const matchesQuickFilter = meetsQuickFilterCriteria(p);
-                return matchesSearch && matchesPos && matchesStatus && matchesQuickFilter;
+                
+                // Apply team filter if a team is selected
+                const matchesTeam = selectedTeamFilter === 'ALL' || 
+                                   (p.fantraxTeam === selectedTeamFilter) || 
+                                   (p.team === selectedTeamFilter);
+                
+                return matchesSearch && matchesPos && matchesStatus && matchesQuickFilter && matchesTeam;
             });
 
             // Sort
@@ -8491,7 +8524,7 @@
                            ${selectedForComparison.has(player.id) ? 'checked' : ''}>
                     <div class="player-name">${player.name}</div>
                     <div class="player-badges">
-                        ${player.mlbTeam ? `<span class="badge badge-team">${player.mlbTeam}</span>` : ''}
+                        ${player.mlbTeam ? `<span class="badge badge-team">${getTeamAbbreviation(player.mlbTeam)}</span>` : ''}
                         ${player.fantraxTeam && selectedFantraxLeague !== 'NONE' ? `<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border-color: rgba(34, 197, 94, 0.5);">${player.fantraxTeam}</span>` : ''}
                         <span class="badge badge-position">${player.position}</span>
                         ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
@@ -8603,17 +8636,9 @@
             // Check if stats need to be reloaded (not loaded, or old version)
             const needsReload = !player.statsLoaded || !player.statsVersion || player.statsVersion < STATS_VERSION;
             
-            console.log(`📊 Stats check for ${player.name}:`, {
-                statsLoaded: player.statsLoaded,
-                statsVersion: player.statsVersion,
-                currentVersion: STATS_VERSION,
-                needsReload: needsReload
-            });
-            
             if (needsReload) {
                 // Clear old stats if they exist
                 if (player.stats) {
-                    console.log(`🔄 Clearing old stats (v${player.statsVersion || 'unknown'}) for ${player.name}`);
                     player.stats = null;
                     player.statsLoaded = false;
                 }
@@ -8695,6 +8720,8 @@
 
                 const isPitcher = playerInfo.primaryPosition?.abbreviation === 'P' || 
                                 playerInfo.primaryPosition?.code === '1';
+                
+                console.log(`🔍 ${player.name}: isPitcher=${isPitcher}, position=${playerInfo.primaryPosition?.abbreviation || 'unknown'}`);
 
                 // Process stats with level breakdown
                 let hasMLBStats = false;
@@ -8961,12 +8988,6 @@
                 // Calculate AVG
                 if (stat.hits && stat.atBats && stat.atBats > 0) {
                     avg = (stat.hits / stat.atBats).toFixed(3);
-                    console.log(`📊 Calculating AVG for ${level}:`, {
-                        hits: stat.hits,
-                        atBats: stat.atBats,
-                        calculated: avg,
-                        apiProvided: stat.avg
-                    });
                 }
                 
                 // Calculate OBP: (H + BB + HBP) / (AB + BB + HBP + SF)
