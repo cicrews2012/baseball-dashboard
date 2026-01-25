@@ -7546,6 +7546,8 @@
                 player.mlbOrg = mlbPlayer.currentTeam?.name || 'Free Agent';
                 player.status = mlbPlayer.active ? 'Act' : 'Min';
                 
+                console.log(`  ✅ ${player.name}: mlbTeam="${player.mlbTeam}", fantraxTeam="${player.fantraxTeam}"`);
+                
                 // Check if on IL
                 if (mlbPlayer.status?.statusCode === 'IL60' || mlbPlayer.status?.statusCode === 'IL10') {
                     player.status = mlbPlayer.status.statusCode;
