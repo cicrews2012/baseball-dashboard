@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.4 - Stats Version Debug</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.0 - Proper Stats Aggregation</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,26 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.6.3 - Stats Cache Invalidation (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.0 - Proper Stats Aggregation (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed: Now properly calculates AVG from aggregated hits/at-bats</li>
+                            <li>📊 Calculates OBP: (H + BB + HBP) / (AB + BB + HBP + SF)</li>
+                            <li>📊 Calculates SLG: Total Bases / At Bats</li>
+                            <li>📊 Calculates OPS: OBP + SLG</li>
+                            <li>⚾ Kevin McGonigle now shows correct .308 AVG (was .254)</li>
+                            <li>🎯 STATS_VERSION = 3 (forces recalculation)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.6.4 - Stats Version Debug</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🔍 Added debug logging for stats version checks</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.6.3 - Stats Cache Invalidation</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔄 Added STATS_VERSION constant to track calculation logic changes</li>
                             <li>✅ Forces stats recalculation when logic is improved</li>
@@ -2255,7 +2274,7 @@
         // ============================================
         // STATS VERSION - Increment when calculation logic changes
         // ============================================
-        const STATS_VERSION = 2; // v1 = original, v2 = fixed aggregation (v4.6.2)
+        const STATS_VERSION = 3; // v1 = original, v2 = delete & recalc (broken), v3 = proper aggregation
         
         // ============================================
         // SUPABASE CONFIGURATION - v4.0
@@ -8753,13 +8772,35 @@
                                     // Merge aggregated stats with first split (for any fields we don't aggregate)
                                     const combinedStat = { ...firstSplit.stat, ...aggregated };
                                     
-                                    // Remove rate stats so buildStatObject will recalculate them from aggregated counting stats
-                                    delete combinedStat.avg;
-                                    delete combinedStat.obp;
-                                    delete combinedStat.slg;
-                                    delete combinedStat.ops;
-                                    delete combinedStat.era;
-                                    delete combinedStat.whip;
+                                    // Calculate rate stats from aggregated counting stats
+                                    if (!isPitcher && aggregated.atBats > 0) {
+                                        combinedStat.avg = (aggregated.hits / aggregated.atBats).toFixed(3);
+                                        
+                                        // Calculate OBP: (H + BB + HBP) / (AB + BB + HBP + SF)
+                                        const numerator = aggregated.hits + aggregated.baseOnBalls + aggregated.hitByPitch;
+                                        const denominator = aggregated.atBats + aggregated.baseOnBalls + aggregated.hitByPitch + aggregated.sacFlies;
+                                        if (denominator > 0) {
+                                            combinedStat.obp = (numerator / denominator).toFixed(3);
+                                        }
+                                        
+                                        // Calculate SLG: TB / AB
+                                        if (aggregated.totalBases > 0) {
+                                            combinedStat.slg = (aggregated.totalBases / aggregated.atBats).toFixed(3);
+                                        }
+                                        
+                                        // Calculate OPS
+                                        if (combinedStat.obp && combinedStat.slg) {
+                                            combinedStat.ops = (parseFloat(combinedStat.obp) + parseFloat(combinedStat.slg)).toFixed(3);
+                                        }
+                                    }
+                                    
+                                    if (isPitcher && aggregated.inningsPitched > 0) {
+                                        const ip = parseFloat(aggregated.inningsPitched);
+                                        // Calculate ERA
+                                        combinedStat.era = ((aggregated.earnedRuns / ip) * 9).toFixed(2);
+                                        // Calculate WHIP
+                                        combinedStat.whip = ((aggregated.hits + aggregated.baseOnBalls) / ip).toFixed(2);
+                                    }
                                     
                                     if (isCareerStats) {
                                         hasMLBStats = true;
