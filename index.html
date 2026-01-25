@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.3 - Stats Cache Invalidation</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.4 - Stats Version Debug</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -8561,7 +8561,21 @@
             // Check if stats need to be reloaded (not loaded, or old version)
             const needsReload = !player.statsLoaded || !player.statsVersion || player.statsVersion < STATS_VERSION;
             
+            console.log(`📊 Stats check for ${player.name}:`, {
+                statsLoaded: player.statsLoaded,
+                statsVersion: player.statsVersion,
+                currentVersion: STATS_VERSION,
+                needsReload: needsReload
+            });
+            
             if (needsReload) {
+                // Clear old stats if they exist
+                if (player.stats) {
+                    console.log(`🔄 Clearing old stats (v${player.statsVersion || 'unknown'}) for ${player.name}`);
+                    player.stats = null;
+                    player.statsLoaded = false;
+                }
+                
                 content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading comprehensive player data...</p></div>';
                 await fetchPlayerStats(player);
                 player.statsVersion = STATS_VERSION; // Mark with current version
