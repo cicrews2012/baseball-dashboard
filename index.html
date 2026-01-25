@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.4.0 - League Selector (Phase 1)</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.5.0 - Fantrax Auto-Sync Complete!</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1281,8 +1281,9 @@
         <div class="tab-content active" id="rosterTab">
             <!-- League Selector Section -->
             <div style="background: rgba(59, 130, 246, 0.1); border: 2px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                    <div style="flex: 1; min-width: 300px;">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- League Selector Row -->
+                    <div>
                         <label style="display: block; color: #60a5fa; font-weight: 600; margin-bottom: 8px; font-size: 0.875rem;">
                             🏆 SELECT LEAGUE
                         </label>
@@ -1292,12 +1293,26 @@
                             <option value="ARMCHAIR">Armchair GM's - 12 teams, no cap</option>
                         </select>
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: flex-end;">
-                        <button id="refreshRosterBtn" class="upload-btn" onclick="refreshFantraxRoster()" disabled style="background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.5); white-space: nowrap;">
-                            🔄 Refresh Roster
+                    
+                    <!-- Team Filter Row -->
+                    <div id="teamSelectorContainer" style="display: none;">
+                        <label style="display: block; color: #60a5fa; font-weight: 600; margin-bottom: 8px; font-size: 0.875rem;">
+                            👥 VIEW TEAM
+                        </label>
+                        <select id="teamSelector" class="filter-select" style="width: 100%; font-size: 1rem; padding: 12px;" onchange="handleTeamFilterChange(this.value)">
+                            <option value="ALL">All Teams (Scout Mode)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Refresh Button Row -->
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button id="refreshRosterBtn" class="upload-btn" onclick="refreshFantraxRoster()" disabled style="background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.5); white-space: nowrap; flex: 1;">
+                            🔄 Refresh Roster from Fantrax
                         </button>
                     </div>
                 </div>
+                
+                <!-- Status Display -->
                 <div id="leagueStatus" style="margin-top: 12px; padding: 10px; border-radius: 6px; background: rgba(100, 116, 139, 0.1); display: none;">
                     <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.875rem;">
                         <span id="leagueStatusIcon">ℹ️</span>
@@ -1881,7 +1896,21 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.4.0 - Fantrax Auto-Sync Phase 1 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.5.0 - Fantrax Auto-Sync Complete! 🎉 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🌐 Full Fantrax API integration - auto-sync rosters from both leagues</li>
+                            <li>👥 Team filter dropdown - view all teams or filter to your team</li>
+                            <li>⭐ Your team highlighted in dropdown (San Francisco Giants / CCrews2012@aol.com)</li>
+                            <li>💾 Smart caching - auto-refresh if data >1 hour old</li>
+                            <li>📊 Player count updates based on team filter</li>
+                            <li>⚡ Instant load from cache if fresh (<1 hour)</li>
+                            <li>❌ Error handling - falls back to cache if API fails</li>
+                            <li>💰 Salary data integration ready (upload CSV to overlay)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.4.0 - Fantrax Auto-Sync Phase 1</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🏆 Added league selector dropdown (MBL, Armchair GM's, Manual CSV)</li>
                             <li>✅ League selection persists across sessions</li>
@@ -2239,6 +2268,7 @@
             MBL: {
                 name: "Multiverse Baseball League (MBL)",
                 fantraxId: "et8ng63pmg6t1pzl",
+                myTeam: "San Francisco Giants",
                 salaryCapEnabled: true,
                 capAmount: 241000000,
                 description: "30-team dynasty, $241M cap"
@@ -2246,6 +2276,7 @@
             ARMCHAIR: {
                 name: "Armchair GM's",
                 fantraxId: "cbla2gq5mhdvy7q4",
+                myTeam: "CCrews2012@aol.com",
                 salaryCapEnabled: false,
                 capAmount: null,
                 description: "12-team dynasty, no cap"
@@ -2253,6 +2284,7 @@
             NONE: {
                 name: "No League (Manual Upload)",
                 fantraxId: null,
+                myTeam: null,
                 salaryCapEnabled: false,
                 capAmount: null,
                 description: "CSV import only"
@@ -2261,6 +2293,8 @@
         
         // Current league state for Fantrax sync
         let selectedFantraxLeague = localStorage.getItem('selectedFantraxLeague') || 'NONE';
+        let selectedTeamFilter = 'ALL'; // 'ALL' or specific team name
+        let fantraxTeams = []; // Populated after API sync
         
         // Available tags - user can customize these
         const availableTags = [
@@ -6948,6 +6982,7 @@
             const statusIcon = document.getElementById('leagueStatusIcon');
             const statusText = document.getElementById('leagueStatusText');
             const refreshBtn = document.getElementById('refreshRosterBtn');
+            const teamSelectorContainer = document.getElementById('teamSelectorContainer');
             
             // Update UI based on league selection
             if (leagueKey === 'NONE') {
@@ -6957,6 +6992,7 @@
                 statusIcon.textContent = 'ℹ️';
                 statusText.textContent = 'Manual CSV upload mode - use "Upload Roster CSV" button above';
                 refreshBtn.disabled = true;
+                teamSelectorContainer.style.display = 'none';
             } else {
                 // League selected - show status
                 statusDiv.style.display = 'block';
@@ -6964,6 +7000,7 @@
                 statusIcon.textContent = '🔄';
                 statusText.textContent = `${league.name} selected - Click "Refresh Roster" to sync from Fantrax`;
                 refreshBtn.disabled = false;
+                teamSelectorContainer.style.display = 'block';
                 
                 // Check if we have cached data
                 const cacheKey = `${leagueKey}_roster_cache`;
@@ -6975,20 +7012,69 @@
                     const syncDate = new Date(lastSync);
                     const now = new Date();
                     const minutesAgo = Math.floor((now - syncDate) / 1000 / 60);
+                    const hoursAgo = Math.floor(minutesAgo / 60);
                     
                     statusIcon.textContent = '✅';
-                    statusText.textContent = `${league.name} - Last synced ${minutesAgo < 60 ? minutesAgo + 'm' : Math.floor(minutesAgo/60) + 'h'} ago`;
+                    const timeAgo = minutesAgo < 60 ? `${minutesAgo}m` : `${hoursAgo}h`;
+                    statusText.textContent = `${league.name} - Last synced ${timeAgo} ago`;
                     statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
                     
                     console.log(`📦 Found cached roster for ${leagueKey} (${minutesAgo}m old)`);
                     
-                    // TODO Phase 2: Auto-load if cache is fresh
-                    // For now, just show it exists
+                    // Check if we should auto-refresh (>1 hour old)
+                    if (minutesAgo > 60) {
+                        console.log('⏰ Cache is stale (>1 hour), auto-refreshing...');
+                        setTimeout(() => refreshFantraxRoster(), 500);
+                    } else {
+                        // Load cached roster
+                        loadCachedFantraxRoster(leagueKey);
+                    }
                 }
             }
         }
         
-        function refreshFantraxRoster() {
+        function handleTeamFilterChange(teamName) {
+            console.log('👥 Team filter changed to:', teamName);
+            selectedTeamFilter = teamName;
+            localStorage.setItem(`${selectedFantraxLeague}_selectedTeam`, teamName);
+            
+            // Re-render players with filter
+            applyTeamFilter();
+        }
+        
+        function applyTeamFilter() {
+            if (selectedTeamFilter === 'ALL') {
+                // Show all players
+                renderPlayers(players);
+            } else {
+                // Filter to specific team
+                const filteredPlayers = players.filter(p => p.team === selectedTeamFilter);
+                renderPlayers(filteredPlayers);
+            }
+            
+            updatePlayerCounts();
+        }
+        
+        function updatePlayerCounts() {
+            const statusText = document.getElementById('leagueStatusText');
+            if (!statusText) return;
+            
+            const totalPlayers = players.length;
+            const displayedPlayers = selectedTeamFilter === 'ALL' ? totalPlayers : players.filter(p => p.team === selectedTeamFilter).length;
+            const teamCount = fantraxTeams.length;
+            
+            if (selectedTeamFilter === 'ALL') {
+                const currentText = statusText.textContent;
+                const baseText = currentText.split('•')[0].trim();
+                statusText.textContent = `${baseText} • 📊 ${displayedPlayers} players (${teamCount} teams)`;
+            } else {
+                const currentText = statusText.textContent;
+                const baseText = currentText.split('•')[0].trim();
+                statusText.textContent = `${baseText} • 📊 ${displayedPlayers} players (${selectedTeamFilter})`;
+            }
+        }
+        
+        async function refreshFantraxRoster() {
             console.log('🔄 Refresh roster clicked for league:', selectedFantraxLeague);
             
             if (selectedFantraxLeague === 'NONE') {
@@ -7000,20 +7086,241 @@
             const statusDiv = document.getElementById('leagueStatus');
             const statusIcon = document.getElementById('leagueStatusIcon');
             const statusText = document.getElementById('leagueStatusText');
+            const refreshBtn = document.getElementById('refreshRosterBtn');
             
             // Show loading state
             statusDiv.style.display = 'block';
             statusDiv.style.background = 'rgba(251, 191, 36, 0.1)';
             statusIcon.textContent = '⏳';
             statusText.textContent = `Syncing ${league.name} from Fantrax...`;
+            refreshBtn.disabled = true;
             
-            // TODO Phase 2: Actually call Fantrax API
-            // For now, just simulate
-            setTimeout(() => {
+            try {
+                // Call Fantrax API via CORS proxy
+                console.log('🌐 Fetching rosters from Fantrax for league:', league.fantraxId);
+                
+                const PROXY_URL = 'https://fantrax-proxy.vercel.app/api/roster';
+                
+                const response = await fetch(`${PROXY_URL}?leagueId=${league.fantraxId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Fantrax API Response:', data);
+                
+                // Parse roster data
+                let teamRosters = [];
+                
+                if (data.rosters) {
+                    // Convert rosters object to array
+                    teamRosters = Object.entries(data.rosters).map(([teamId, rosterData]) => ({
+                        teamId: teamId,
+                        name: rosterData.teamName || rosterData.name || 'Unknown Team',
+                        roster: rosterData.rosterItems || rosterData.roster || []
+                    }));
+                    console.log('📋 Converted rosters to array:', teamRosters.length, 'teams');
+                } else if (data.teamRosters) {
+                    teamRosters = data.teamRosters;
+                } else if (data.responses && data.responses[0]) {
+                    const responseData = data.responses[0];
+                    if (responseData.data && responseData.data.teamRosters) {
+                        teamRosters = responseData.data.teamRosters;
+                    }
+                }
+                
+                if (!teamRosters || teamRosters.length === 0) {
+                    throw new Error('No team rosters found in response');
+                }
+                
+                // Build player array
+                const playerNames = data.playerNames || {};
+                console.log('👥 Player names available:', Object.keys(playerNames).length);
+                
+                const rosterPlayers = [];
+                fantraxTeams = [];
+                
+                teamRosters.forEach(team => {
+                    const teamName = team.name || team.teamName || 'Unknown Team';
+                    fantraxTeams.push(teamName);
+                    const rosterItems = team.roster || team.rosterItems || [];
+                    
+                    console.log(`  Processing ${teamName}: ${rosterItems.length} players`);
+                    
+                    rosterItems.forEach(item => {
+                        const fantraxId = item.id || item.playerId;
+                        const position = item.position || '';
+                        
+                        // Look up player name from playerNames mapping
+                        const playerData = playerNames[fantraxId] || {};
+                        const playerName = playerData.name || playerData.fullName || `Player_${fantraxId}`;
+                        
+                        rosterPlayers.push({
+                            id: Date.now() + Math.random(), // Unique ID for comparison system
+                            name: playerName,
+                            position: position,
+                            team: teamName,
+                            fantraxTeam: teamName, // Store Fantrax team separately from MLB team
+                            fantraxId: fantraxId,
+                            status: '',
+                            age: 0,
+                            ranking: null,
+                            statsLoaded: false,
+                            stats: null,
+                            flags: [],
+                            changes: []
+                        });
+                    });
+                });
+                
+                console.log(`✅ Parsed ${rosterPlayers.length} players from ${fantraxTeams.length} teams`);
+                
+                // Cache the roster
+                const cacheKey = `${selectedFantraxLeague}_roster_cache`;
+                const lastSyncKey = `${selectedFantraxLeague}_lastSync`;
+                localStorage.setItem(cacheKey, JSON.stringify(rosterPlayers));
+                localStorage.setItem(lastSyncKey, new Date().toISOString());
+                
+                // Update players array
+                players = rosterPlayers;
+                
+                // Populate team selector
+                populateTeamSelector(league);
+                
+                // Load salary data if available
+                loadSalaryDataForLeague(selectedFantraxLeague);
+                
+                // Render players
+                applyTeamFilter();
+                
+                // Update status
                 statusIcon.textContent = '✅';
-                statusText.textContent = `${league.name} - Ready to sync (API integration coming in Phase 2)`;
-                statusDiv.style.background = 'rgba(59, 130, 246, 0.1)';
-            }, 1000);
+                statusText.textContent = `${league.name} - Synced just now`;
+                statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+                refreshBtn.disabled = false;
+                
+                updatePlayerCounts();
+                
+                // Show the roster sections
+                document.getElementById('searchSection').classList.remove('hidden');
+                document.getElementById('statSummary').classList.remove('hidden');
+                updateStats();
+                
+            } catch (error) {
+                console.error('❌ Fantrax sync error:', error);
+                
+                // Show error state
+                statusIcon.textContent = '❌';
+                statusText.textContent = `Sync failed: ${error.message}`;
+                statusDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+                refreshBtn.disabled = false;
+                
+                // Try to load from cache
+                loadCachedFantraxRoster(selectedFantraxLeague);
+            }
+        }
+        
+        function loadCachedFantraxRoster(leagueKey) {
+            console.log('📦 Loading cached roster for:', leagueKey);
+            
+            const cacheKey = `${leagueKey}_roster_cache`;
+            const cachedRoster = localStorage.getItem(cacheKey);
+            
+            if (!cachedRoster) {
+                console.log('⚠️ No cached roster found');
+                return;
+            }
+            
+            try {
+                const rosterPlayers = JSON.parse(cachedRoster);
+                console.log(`✅ Loaded ${rosterPlayers.length} players from cache`);
+                
+                players = rosterPlayers;
+                
+                // Extract unique teams
+                fantraxTeams = [...new Set(rosterPlayers.map(p => p.fantraxTeam || p.team))];
+                
+                const league = LEAGUES[leagueKey];
+                populateTeamSelector(league);
+                
+                // Load salary data if available
+                loadSalaryDataForLeague(leagueKey);
+                
+                // Render players
+                applyTeamFilter();
+                
+                // Show the roster sections
+                document.getElementById('searchSection').classList.remove('hidden');
+                document.getElementById('statSummary').classList.remove('hidden');
+                updateStats();
+                
+                updatePlayerCounts();
+                
+            } catch (error) {
+                console.error('❌ Error loading cached roster:', error);
+            }
+        }
+        
+        function populateTeamSelector(league) {
+            const teamSelector = document.getElementById('teamSelector');
+            if (!teamSelector) return;
+            
+            // Clear existing options
+            teamSelector.innerHTML = '<option value="ALL">All Teams (Scout Mode)</option>';
+            
+            // Sort teams, but put user's team first
+            const sortedTeams = [...fantraxTeams].sort((a, b) => {
+                if (a === league.myTeam) return -1;
+                if (b === league.myTeam) return 1;
+                return a.localeCompare(b);
+            });
+            
+            sortedTeams.forEach(teamName => {
+                const option = document.createElement('option');
+                option.value = teamName;
+                if (teamName === league.myTeam) {
+                    option.textContent = `⭐ ${teamName} (My Team)`;
+                } else {
+                    option.textContent = teamName;
+                }
+                teamSelector.appendChild(option);
+            });
+            
+            // Restore saved team filter
+            const savedTeam = localStorage.getItem(`${selectedFantraxLeague}_selectedTeam`);
+            if (savedTeam && sortedTeams.includes(savedTeam)) {
+                teamSelector.value = savedTeam;
+                selectedTeamFilter = savedTeam;
+            } else {
+                teamSelector.value = 'ALL';
+                selectedTeamFilter = 'ALL';
+            }
+            
+            console.log(`👥 Populated team selector with ${sortedTeams.length} teams`);
+        }
+        
+        function loadSalaryDataForLeague(leagueKey) {
+            // Check if we have salary data cached for this league
+            const salaryKey = `${leagueKey}_salary_data`;
+            const cachedSalary = localStorage.getItem(salaryKey);
+            
+            if (cachedSalary) {
+                try {
+                    salaryData = JSON.parse(cachedSalary);
+                    console.log(`💰 Loaded salary data for ${Object.keys(salaryData).length} players`);
+                } catch (error) {
+                    console.error('Error loading salary data:', error);
+                    salaryData = {};
+                }
+            } else {
+                salaryData = {};
+            }
         }
         
         function switchTab(tabName) {
