@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.8.0 - Watchlist Parity</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.8.1 - Top Prospects Full Cards</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.8.0 - Watchlist Player Cards Match Roster (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.8.1 - Top Prospects Show Full Player Cards (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🎴 Converted Top Prospects to expandable player cards (like roster/watchlist)</li>
+                            <li>📊 Click prospect header to expand and see full stats inline</li>
+                            <li>⏱️ Shows Service Time Tracker, Career Stats, Level-by-Level Performance</li>
+                            <li>🔍 No longer redirects to Player Lookup - stats load right in the card</li>
+                            <li>💾 Caches loaded stats so re-expanding is instant</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.8.0 - Watchlist Player Cards Match Roster</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>📊 Added "Level-by-Level Performance" section to watchlist cards</li>
                             <li>⏱️ Added "Service Time Tracker" section to watchlist cards</li>
@@ -10243,32 +10254,39 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 15px;">
             `;
             
-            youngElite.forEach(prospect => {
+            youngElite.forEach((prospect, index) => {
                 const isOwned = players.some(p => p.name === prospect.name);
                 const isOnWatchlist = watchlistPlayers.some(p => p.name === prospect.name);
                 const watchlistPlayer = watchlistPlayers.find(p => p.name === prospect.name);
                 const tierColor = getTierColor(prospect.tier);
                 const positionColor = getPositionColor(prospect.pos);
+                const cardId = `prospect-${index}`;
                 
                 html += `
-                    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
-                        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">#${prospect.rank} ${prospect.name}</div>
-                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
-                            <span style="background: ${positionColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${prospect.pos}</span>
-                            <span style="background: rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${prospect.team}</span>
-                            <span style="background: ${tierColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${prospect.tier}</span>
-                            <span style="background: rgba(168, 85, 247, 0.3); color: #c084fc; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">${prospect.age} yrs</span>
-                            <span style="background: rgba(251, 191, 36, 0.3); color: #fcd34d; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">ETA: ${prospect.eta}</span>
-                            ${isOwned ? '<span style="background: rgba(34, 197, 94, 0.3); color: #4ade80; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">✓ ON ROSTER</span>' : ''}
-                            ${isOnWatchlist ? '<span style="background: rgba(96, 165, 250, 0.3); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">👁️ ON WATCHLIST</span>' : ''}
+                    <div class="player-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div class="player-header" onclick="toggleProspectCard('${cardId}', '${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
+                            <div class="player-name">#${prospect.rank} ${prospect.name}</div>
+                            <div class="player-badges">
+                                <span class="badge badge-position" style="background: ${positionColor};">${prospect.pos}</span>
+                                <span class="badge badge-team" style="background: rgba(59, 130, 246, 0.3); color: #60a5fa;">${prospect.team}</span>
+                                <span class="badge" style="background: ${tierColor}; color: white;">${prospect.tier}</span>
+                                <span class="badge badge-age">${prospect.age} yrs</span>
+                                <span class="badge" style="background: rgba(251, 191, 36, 0.3); color: #fcd34d;">ETA: ${prospect.eta}</span>
+                                ${isOwned ? '<span class="badge" style="background: rgba(34, 197, 94, 0.3); color: #4ade80;">✓ ROSTER</span>' : ''}
+                                ${isOnWatchlist ? '<span class="badge" style="background: rgba(96, 165, 250, 0.3); color: #60a5fa;">👁️ WATCHLIST</span>' : ''}
+                            </div>
                         </div>
-                        <div style="color: #cbd5e1; font-size: 0.875rem; margin-bottom: 15px;">${prospect.notes}</div>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.name.replace(/'/g, "\\'")}')">📊 View Stats</button>
-                            ${isOnWatchlist ? 
-                                `<button class="prospect-action-btn" onclick="removeFromWatchlist(${watchlistPlayer.id})" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">🗑️ Remove from Watchlist</button>` :
-                                `<button class="prospect-action-btn" onclick="addProspectToWatchlist('${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">👁️ Add to Watchlist</button>`
-                            }
+                        <div class="player-details" id="${cardId}">
+                            <div style="color: #cbd5e1; font-size: 0.875rem; margin-bottom: 15px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                                ${prospect.notes}
+                            </div>
+                            <div id="${cardId}-content"></div>
+                            <div style="margin-top: 15px; display: flex; gap: 8px;">
+                                ${isOnWatchlist ? 
+                                    `<button class="prospect-action-btn" onclick="event.stopPropagation(); removeFromWatchlist(${watchlistPlayer.id})" style="flex: 1; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">🗑️ Remove from Watchlist</button>` :
+                                    `<button class="prospect-action-btn" onclick="event.stopPropagation(); addProspectToWatchlist('${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')" style="flex: 1;">👁️ Add to Watchlist</button>`
+                                }
+                            </div>
                         </div>
                     </div>
                 `;
@@ -10277,6 +10295,130 @@
             html += '</div>';
             resultsDiv.innerHTML = html;
             console.log('✅ HTML inserted into resultsDiv, length:', html.length);
+        }
+        
+        // Handle toggling prospect cards in Top Prospects view
+        const loadedProspects = new Map(); // Cache loaded prospect stats
+        
+        async function toggleProspectCard(cardId, name, position, team) {
+            const details = document.getElementById(cardId);
+            const content = document.getElementById(`${cardId}-content`);
+            
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                return;
+            }
+            
+            details.classList.add('expanded');
+            
+            // Check if already loaded
+            if (!loadedProspects.has(cardId)) {
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
+                
+                // Create temporary player object
+                const tempPlayer = {
+                    id: Date.now() + Math.random(),
+                    name: name,
+                    position: position,
+                    team: team,
+                    mlbOrg: team,
+                    statsLoaded: false,
+                    stats: null
+                };
+                
+                // Fetch stats
+                await fetchPlayerStatsWithDemo(tempPlayer);
+                loadedProspects.set(cardId, tempPlayer);
+            }
+            
+            // Render stats
+            const player = loadedProspects.get(cardId);
+            renderProspectCardContent(cardId, player);
+        }
+        
+        function renderProspectCardContent(cardId, player) {
+            const content = document.getElementById(`${cardId}-content`);
+            
+            if (player.stats && player.stats.error) {
+                let errorHTML = `<div class="error-msg">${player.stats.error}`;
+                if (player.stats.showSearchLink) {
+                    errorHTML += `<br><br><button class="research-btn" onclick="searchWebForPlayer('${player.name.replace(/'/g, "\\'")}')">🔍 Search Web for ${player.name}</button>`;
+                }
+                errorHTML += `</div>`;
+                content.innerHTML = errorHTML;
+                return;
+            }
+            
+            const careerStats = player.stats?.career;
+            if (!careerStats || !careerStats.games) {
+                content.innerHTML = `<div class="error-msg">No stats available for this player</div>`;
+                return;
+            }
+
+            const isHitter = careerStats.type === 'hitting';
+            const currentYear = new Date().getFullYear();
+            const seasonStats = player.stats?.season;
+
+            let html = `
+                <div class="org-info-box">
+                    <div class="org-name">${player.mlbOrg}</div>
+                    ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' MLB baseball')}" 
+                       target="_blank" class="search-link" style="margin-top: 10px; display: inline-block;">
+                        🔍 Search "${player.name}" Online
+                    </a>
+                </div>
+                
+                ${player.serviceInfo ? renderServiceTimeTracker(player) : ''}
+            `;
+
+            // Current Season Stats
+            if (seasonStats && seasonStats.games > 0) {
+                html += `
+                    <div class="section-title">📊 ${currentYear} Stats - ${seasonStats.level}</div>
+                    <div class="stats-grid">
+                        ${isHitter ? renderHitterStats(seasonStats, true) : renderPitcherStats(seasonStats, true)}
+                    </div>
+                `;
+            }
+
+            // Career Stats
+            html += `
+                <div class="section-title">📈 Career Stats - ${careerStats.level}</div>
+                <div class="stats-grid">
+                    ${isHitter ? renderHitterStats(careerStats, false) : renderPitcherStats(careerStats, false)}
+                </div>
+            `;
+
+            // Level-by-level breakdown
+            if (player.levelBreakdown && player.levelBreakdown.length > 1) {
+                const levelOrder = { 'MLB': 0, 'AAA': 1, 'AA': 2, 'A+': 3, 'A': 4, 'Rookie': 5 };
+                const sortedLevels = [...player.levelBreakdown].sort((a, b) => {
+                    if (a.year !== b.year) return b.year - a.year;
+                    return (levelOrder[a.level] || 99) - (levelOrder[b.level] || 99);
+                });
+                
+                html += `
+                    <div class="section-title">📊 Level-by-Level Performance</div>
+                    <div class="timeline">
+                `;
+                sortedLevels.forEach(level => {
+                    html += `
+                        <div class="timeline-item">
+                            <div class="timeline-date">${level.year || 'N/A'} - ${level.level} - ${level.games}G</div>
+                            <div class="timeline-content">
+                                ${isHitter ? 
+                                    `AVG: ${level.avg} | HR: ${level.hr} | RBI: ${level.rbi} | SB: ${level.sb} | OPS: ${level.ops}` :
+                                    `ERA: ${level.era} | W-L: ${level.w}-${level.l} | SO: ${level.so} | WHIP: ${level.whip}`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            content.innerHTML = html;
         }
 
         // ========== DROP PENALTY CALCULATOR ==========
