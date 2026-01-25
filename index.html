@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.3.8 - Fixed Watchlist Click Bug</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.4.0 - League Selector (Phase 1)</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1279,6 +1279,33 @@
         </div>
 
         <div class="tab-content active" id="rosterTab">
+            <!-- League Selector Section -->
+            <div style="background: rgba(59, 130, 246, 0.1); border: 2px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <label style="display: block; color: #60a5fa; font-weight: 600; margin-bottom: 8px; font-size: 0.875rem;">
+                            🏆 SELECT LEAGUE
+                        </label>
+                        <select id="leagueSelector" class="filter-select" style="width: 100%; font-size: 1rem; padding: 12px;" onchange="handleLeagueChange(this.value)">
+                            <option value="NONE">No League (Manual CSV Upload)</option>
+                            <option value="MBL">Multiverse Baseball League (MBL) - 30 teams, $241M cap</option>
+                            <option value="ARMCHAIR">Armchair GM's - 12 teams, no cap</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <button id="refreshRosterBtn" class="upload-btn" onclick="refreshFantraxRoster()" disabled style="background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.5); white-space: nowrap;">
+                            🔄 Refresh Roster
+                        </button>
+                    </div>
+                </div>
+                <div id="leagueStatus" style="margin-top: 12px; padding: 10px; border-radius: 6px; background: rgba(100, 116, 139, 0.1); display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.875rem;">
+                        <span id="leagueStatusIcon">ℹ️</span>
+                        <span id="leagueStatusText">Select a league to auto-sync roster from Fantrax</span>
+                    </div>
+                </div>
+            </div>
+            
             <div class="stat-summary hidden" id="statSummary">
                 <div class="summary-box">
                     <div class="summary-label">Total Players</div>
@@ -1854,7 +1881,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.3.8 - Fixed Watchlist Click Bug (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.4.0 - Fantrax Auto-Sync Phase 1 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🏆 Added league selector dropdown (MBL, Armchair GM's, Manual CSV)</li>
+                            <li>✅ League selection persists across sessions</li>
+                            <li>📊 Status indicator shows current league and sync state</li>
+                            <li>🔄 Refresh button ready (API integration coming in Phase 2)</li>
+                            <li>💾 Detects cached roster data and displays age</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.3.8 - Fixed Watchlist Click Bug</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔧 Fixed syntax error preventing watchlist cards from expanding</li>
                             <li>✅ Changed from inline onclick to addEventListener (better iOS support)</li>
@@ -2195,6 +2233,34 @@
         let watchlistPlayers = []; // Stores watchlist player data
         let demoMode = false; // Toggle for testing with mock data
         let playerNotes = {}; // Stores notes and tags for each player
+        
+        // ========== LEAGUE CONFIGURATION ==========
+        const LEAGUES = {
+            MBL: {
+                name: "Multiverse Baseball League (MBL)",
+                fantraxId: "et8ng63pmg6t1pzl",
+                salaryCapEnabled: true,
+                capAmount: 241000000,
+                description: "30-team dynasty, $241M cap"
+            },
+            ARMCHAIR: {
+                name: "Armchair GM's",
+                fantraxId: "cbla2gq5mhdvy7q4",
+                salaryCapEnabled: false,
+                capAmount: null,
+                description: "12-team dynasty, no cap"
+            },
+            NONE: {
+                name: "No League (Manual Upload)",
+                fantraxId: null,
+                salaryCapEnabled: false,
+                capAmount: null,
+                description: "CSV import only"
+            }
+        };
+        
+        // Current league state for Fantrax sync
+        let selectedFantraxLeague = localStorage.getItem('selectedFantraxLeague') || 'NONE';
         
         // Available tags - user can customize these
         const availableTags = [
@@ -6852,6 +6918,104 @@
             researchPlayer();
         }
 
+        
+        // ========== LEAGUE MANAGEMENT FUNCTIONS ==========
+        
+        function initializeLeagueSelector() {
+            console.log('🏆 Initializing league selector...');
+            const selector = document.getElementById('leagueSelector');
+            
+            if (!selector) {
+                console.error('League selector not found');
+                return;
+            }
+            
+            // Set the saved league selection
+            selector.value = selectedFantraxLeague;
+            console.log(`  Current league: ${selectedFantraxLeague}`);
+            
+            // Trigger the change handler to update UI
+            handleLeagueChange(selectedFantraxLeague);
+        }
+        
+        function handleLeagueChange(leagueKey) {
+            console.log('📋 League changed to:', leagueKey);
+            selectedFantraxLeague = leagueKey;
+            localStorage.setItem('selectedFantraxLeague', leagueKey);
+            
+            const league = LEAGUES[leagueKey];
+            const statusDiv = document.getElementById('leagueStatus');
+            const statusIcon = document.getElementById('leagueStatusIcon');
+            const statusText = document.getElementById('leagueStatusText');
+            const refreshBtn = document.getElementById('refreshRosterBtn');
+            
+            // Update UI based on league selection
+            if (leagueKey === 'NONE') {
+                // No league selected - manual CSV only
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = 'rgba(100, 116, 139, 0.1)';
+                statusIcon.textContent = 'ℹ️';
+                statusText.textContent = 'Manual CSV upload mode - use "Upload Roster CSV" button above';
+                refreshBtn.disabled = true;
+            } else {
+                // League selected - show status
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = 'rgba(59, 130, 246, 0.1)';
+                statusIcon.textContent = '🔄';
+                statusText.textContent = `${league.name} selected - Click "Refresh Roster" to sync from Fantrax`;
+                refreshBtn.disabled = false;
+                
+                // Check if we have cached data
+                const cacheKey = `${leagueKey}_roster_cache`;
+                const cachedRoster = localStorage.getItem(cacheKey);
+                const lastSyncKey = `${leagueKey}_lastSync`;
+                const lastSync = localStorage.getItem(lastSyncKey);
+                
+                if (cachedRoster && lastSync) {
+                    const syncDate = new Date(lastSync);
+                    const now = new Date();
+                    const minutesAgo = Math.floor((now - syncDate) / 1000 / 60);
+                    
+                    statusIcon.textContent = '✅';
+                    statusText.textContent = `${league.name} - Last synced ${minutesAgo < 60 ? minutesAgo + 'm' : Math.floor(minutesAgo/60) + 'h'} ago`;
+                    statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+                    
+                    console.log(`📦 Found cached roster for ${leagueKey} (${minutesAgo}m old)`);
+                    
+                    // TODO Phase 2: Auto-load if cache is fresh
+                    // For now, just show it exists
+                }
+            }
+        }
+        
+        function refreshFantraxRoster() {
+            console.log('🔄 Refresh roster clicked for league:', selectedFantraxLeague);
+            
+            if (selectedFantraxLeague === 'NONE') {
+                alert('Please select a league first');
+                return;
+            }
+            
+            const league = LEAGUES[selectedFantraxLeague];
+            const statusDiv = document.getElementById('leagueStatus');
+            const statusIcon = document.getElementById('leagueStatusIcon');
+            const statusText = document.getElementById('leagueStatusText');
+            
+            // Show loading state
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = 'rgba(251, 191, 36, 0.1)';
+            statusIcon.textContent = '⏳';
+            statusText.textContent = `Syncing ${league.name} from Fantrax...`;
+            
+            // TODO Phase 2: Actually call Fantrax API
+            // For now, just simulate
+            setTimeout(() => {
+                statusIcon.textContent = '✅';
+                statusText.textContent = `${league.name} - Ready to sync (API integration coming in Phase 2)`;
+                statusDiv.style.background = 'rgba(59, 130, 246, 0.1)';
+            }, 1000);
+        }
+        
         function switchTab(tabName) {
             // Hide all tabs
             document.getElementById('rosterTab').classList.remove('active');
@@ -9625,6 +9789,9 @@
             
             // Update prospect timestamp display
             updateRefreshTimestamp();
+            
+            // Initialize league selector
+            initializeLeagueSelector();
             
             // Select default league
             selectLeague('mbl');
