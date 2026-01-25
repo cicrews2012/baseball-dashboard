@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.0 - Proper Stats Aggregation</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.1 - Never Trust API Rate Stats</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,19 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.0 - Proper Stats Aggregation (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.1 - Never Trust API Rate Stats! (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🔧 ALWAYS recalculate AVG/OBP/SLG/OPS from counting stats</li>
+                            <li>❌ Never trust MLB API's rate stats (they can be wrong!)</li>
+                            <li>✅ Kevin McGonigle now shows .308 AVG (208/676)</li>
+                            <li>📊 Applies to both single-split and multi-split career stats</li>
+                            <li>⚾ Pitchers: ERA and WHIP also always recalculated</li>
+                            <li>🎯 STATS_VERSION = 4 (forces all stats to recalculate)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.0 - Proper Stats Aggregation</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>✅ Fixed: Now properly calculates AVG from aggregated hits/at-bats</li>
                             <li>📊 Calculates OBP: (H + BB + HBP) / (AB + BB + HBP + SF)</li>
@@ -2274,7 +2286,7 @@
         // ============================================
         // STATS VERSION - Increment when calculation logic changes
         // ============================================
-        const STATS_VERSION = 3; // v1 = original, v2 = delete & recalc (broken), v3 = proper aggregation
+        const STATS_VERSION = 4; // v4 = ALWAYS recalculate from counting stats, never trust API rates
         
         // ============================================
         // SUPABASE CONFIGURATION - v4.0
@@ -8892,19 +8904,20 @@
             const year = split?.season || null;
             
             if (isPitcher) {
-                // Use API-provided rate stats directly when available, only recalculate if missing
-                let era = stat.era || '0.00';
-                let whip = stat.whip || '0.00';
+                // ALWAYS recalculate rate stats from counting stats (API values can be wrong)
+                let era = '0.00';
+                let whip = '0.00';
                 
-                // Only recalculate if we don't have the rate stats from API
-                if (!stat.era && stat.earnedRuns && stat.inningsPitched) {
+                // Calculate ERA
+                if (stat.earnedRuns && stat.inningsPitched) {
                     const ip = parseFloat(stat.inningsPitched);
                     if (ip > 0) {
                         era = ((stat.earnedRuns / ip) * 9).toFixed(2);
                     }
                 }
                 
-                if (!stat.whip && stat.hits && stat.baseOnBalls && stat.inningsPitched) {
+                // Calculate WHIP
+                if (stat.hits && stat.baseOnBalls && stat.inningsPitched) {
                     const ip = parseFloat(stat.inningsPitched);
                     if (ip > 0) {
                         whip = ((stat.hits + stat.baseOnBalls) / ip).toFixed(2);
@@ -8928,18 +8941,31 @@
                     kbb: stat.strikeOuts && stat.baseOnBalls ? (stat.strikeOuts / Math.max(stat.baseOnBalls, 1)).toFixed(2) : '0.00'
                 };
             } else {
-                // Use API-provided rate stats directly when available
-                let avg = stat.avg || '.000';
-                let obp = stat.obp || '.000';
-                let slg = stat.slg || '.000';
-                let ops = stat.ops || '.000';
+                // ALWAYS recalculate rate stats from counting stats (API values can be wrong)
+                let avg = '.000';
+                let obp = '.000';
+                let slg = '.000';
+                let ops = '.000';
                 
-                // Only recalculate if we don't have the rate stats from API
-                if (!stat.avg && stat.hits && stat.atBats && stat.atBats > 0) {
+                // Calculate AVG
+                if (stat.hits && stat.atBats && stat.atBats > 0) {
                     avg = (stat.hits / stat.atBats).toFixed(3);
                 }
                 
-                if (!stat.ops && obp !== '.000' && slg !== '.000') {
+                // Calculate OBP: (H + BB + HBP) / (AB + BB + HBP + SF)
+                const obpNumerator = (stat.hits || 0) + (stat.baseOnBalls || 0) + (stat.hitByPitch || 0);
+                const obpDenominator = (stat.atBats || 0) + (stat.baseOnBalls || 0) + (stat.hitByPitch || 0) + (stat.sacFlies || 0);
+                if (obpDenominator > 0) {
+                    obp = (obpNumerator / obpDenominator).toFixed(3);
+                }
+                
+                // Calculate SLG: TB / AB
+                if (stat.totalBases && stat.atBats > 0) {
+                    slg = (stat.totalBases / stat.atBats).toFixed(3);
+                }
+                
+                // Calculate OPS
+                if (obp !== '.000' || slg !== '.000') {
                     ops = (parseFloat(obp) + parseFloat(slg)).toFixed(3);
                 }
                 
