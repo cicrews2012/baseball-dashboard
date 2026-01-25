@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.9 - Better Logging</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.8.0 - Watchlist Parity</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.9 - Better Logging & Stats (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.8.0 - Watchlist Player Cards Match Roster (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>📊 Added "Level-by-Level Performance" section to watchlist cards</li>
+                            <li>⏱️ Added "Service Time Tracker" section to watchlist cards</li>
+                            <li>💰 Added "Contract Information" section to watchlist cards (if salary data loaded)</li>
+                            <li>✅ Watchlist cards now have complete feature parity with roster cards</li>
+                            <li>🎯 Shows timeline of performance across different MiLB levels by year</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.9 - Better Logging & Stats</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>📊 Added enrichment summary statistics at end of sync</li>
                             <li>🔍 Shows: MLB API Success / Fantrax Fallback / Not Found counts</li>
@@ -6751,6 +6762,9 @@
                         🔍 Search "${player.name}" Online
                     </a>
                 </div>
+                
+                ${player.serviceInfo ? renderServiceTimeTracker(player) : ''}
+                ${salaryData[player.name] ? renderContractInfo(player) : ''}
             `;
 
             // Current Season Stats
@@ -6770,6 +6784,35 @@
                     ${isHitter ? renderHitterStats(careerStats, false) : renderPitcherStats(careerStats, false)}
                 </div>
             `;
+
+            // Level-by-level breakdown with YEAR
+            if (player.levelBreakdown && player.levelBreakdown.length > 1) {
+                // Sort by year descending (most recent first), then by level
+                const levelOrder = { 'MLB': 0, 'AAA': 1, 'AA': 2, 'A+': 3, 'A': 4, 'Rookie': 5 };
+                const sortedLevels = [...player.levelBreakdown].sort((a, b) => {
+                    if (a.year !== b.year) return b.year - a.year; // Most recent year first
+                    return (levelOrder[a.level] || 99) - (levelOrder[b.level] || 99);
+                });
+                
+                html += `
+                    <div class="section-title">📊 Level-by-Level Performance</div>
+                    <div class="timeline">
+                `;
+                sortedLevels.forEach(level => {
+                    html += `
+                        <div class="timeline-item">
+                            <div class="timeline-date">${level.year || 'N/A'} - ${level.level} - ${level.games}G</div>
+                            <div class="timeline-content">
+                                ${isHitter ? 
+                                    `AVG: ${level.avg} | HR: ${level.hr} | RBI: ${level.rbi} | SB: ${level.sb} | OPS: ${level.ops}` :
+                                    `ERA: ${level.era} | W-L: ${level.w}-${level.l} | SO: ${level.so} | WHIP: ${level.whip}`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
 
             content.innerHTML = html;
         }
