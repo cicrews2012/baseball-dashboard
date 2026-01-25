@@ -8950,6 +8950,12 @@
                 // Calculate AVG
                 if (stat.hits && stat.atBats && stat.atBats > 0) {
                     avg = (stat.hits / stat.atBats).toFixed(3);
+                    console.log(`📊 Calculating AVG for ${level}:`, {
+                        hits: stat.hits,
+                        atBats: stat.atBats,
+                        calculated: avg,
+                        apiProvided: stat.avg
+                    });
                 }
                 
                 // Calculate OBP: (H + BB + HBP) / (AB + BB + HBP + SF)
