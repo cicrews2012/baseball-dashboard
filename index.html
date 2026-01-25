@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.8 - Fantrax Team Fallback</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.9 - Better Logging</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.8 - Fantrax Team Fallback (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.9 - Better Logging & Stats (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>📊 Added enrichment summary statistics at end of sync</li>
+                            <li>🔍 Shows: MLB API Success / Fantrax Fallback / Not Found counts</li>
+                            <li>⚠️ Detailed logging for players not found in MLB API</li>
+                            <li>✅ Shows SUCCESS/FAILED messages for fallback attempts</li>
+                            <li>💡 Helps debug which players need Fantrax team data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.8 - Fantrax Team Fallback</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔄 Added fallback to extract MLB team from Fantrax roster data</li>
                             <li>✅ Created getFullTeamName() function to convert abbreviations (e.g., "ATL" → "Atlanta Braves")</li>
@@ -7596,6 +7607,23 @@
                 
                 if (!searchData.people || searchData.people.length === 0) {
                     // Player not found in MLB database
+                    console.log(`  ⚠️ ${player.name} not found in MLB API - checking Fantrax fallback (team="${player.team}")`);
+                    
+                    // Try Fantrax fallback
+                    if (player.team && (player.team.length === 2 || player.team.length === 3)) {
+                        const fullTeamName = getFullTeamName(player.team);
+                        if (fullTeamName) {
+                            player.mlbTeam = fullTeamName;
+                            player.mlbOrg = fullTeamName;
+                            player.usedFallback = true; // Mark for stats tracking
+                            console.log(`  🔄 Fallback SUCCESS for ${player.name}: "${player.team}" → "${fullTeamName}"`);
+                        } else {
+                            console.log(`  ❌ Fallback FAILED for ${player.name}: "${player.team}" not a valid MLB abbreviation`);
+                        }
+                    } else {
+                        console.log(`  ❌ No Fantrax team data for ${player.name} (team="${player.team}")`);
+                    }
+                    
                     player.mlbDataEnriched = true;
                     player.mlbNotFound = true;
                     return player;
@@ -7700,6 +7728,12 @@
             const statusText = document.getElementById('leagueStatusText');
             
             let enrichedCount = 0;
+            let stats = {
+                total: playersList.length,
+                mlbApiSuccess: 0,
+                fantraxFallback: 0,
+                notFound: 0
+            };
             
             // Process in batches to avoid overwhelming the API
             for (let i = 0; i < playersList.length; i += batchSize) {
@@ -7713,7 +7747,18 @@
                 }
                 
                 // Process batch in parallel
-                await Promise.all(batch.map(player => enrichPlayerWithMLBData(player)));
+                const results = await Promise.all(batch.map(player => enrichPlayerWithMLBData(player)));
+                
+                // Track stats
+                results.forEach(player => {
+                    if (player.usedFallback) {
+                        stats.fantraxFallback++;
+                    } else if (player.mlbTeam && player.mlbTeam !== '') {
+                        stats.mlbApiSuccess++;
+                    } else if (player.mlbNotFound) {
+                        stats.notFound++;
+                    }
+                });
                 
                 enrichedCount += batch.length;
                 
@@ -7725,6 +7770,11 @@
             }
             
             console.log(`✅ Enriched ${enrichedCount} players with MLB data`);
+            console.log(`📊 Enrichment Stats:
+  Total Players: ${stats.total}
+  ✅ MLB API Success: ${stats.mlbApiSuccess} (${Math.round(stats.mlbApiSuccess/stats.total*100)}%)
+  🔄 Fantrax Fallback: ${stats.fantraxFallback} (${Math.round(stats.fantraxFallback/stats.total*100)}%)
+  ❌ Not Found: ${stats.notFound} (${Math.round(stats.notFound/stats.total*100)}%)`);
             
             // Final render
             applyTeamFilter();
