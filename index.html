@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.7 - Fixed Commissioner's Office</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.8 - Fantrax Team Fallback</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.7 - Fixed "Office of the Commissioner" (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.8 - Fantrax Team Fallback (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🔄 Added fallback to extract MLB team from Fantrax roster data</li>
+                            <li>✅ Created getFullTeamName() function to convert abbreviations (e.g., "ATL" → "Atlanta Braves")</li>
+                            <li>📊 Now extracts team from playerData.team or playerData.mlbTeam if available</li>
+                            <li>🎯 If MLB API fails to find team, uses Fantrax team abbreviation as backup</li>
+                            <li>💡 Should fix players like Acuna Jr. who had empty MLB teams</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.7 - Fixed "Office of the Commissioner"</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Issue: Acuna Jr. showed "Office of the Commissioner" instead of "Atlanta Braves"</li>
                             <li>✅ Now tries multiple sources: parentOrgId → primaryTeam → currentTeam</li>
@@ -2366,6 +2377,25 @@
                 'Texas Rangers': 'TEX', 'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
             };
             return abbrevMap[teamName] || teamName;
+        }
+        
+        // Reverse lookup: Convert abbreviation to full team name
+        function getFullTeamName(abbrev) {
+            if (!abbrev) return null;
+            const upperAbbrev = abbrev.toUpperCase();
+            const fullNameMap = {
+                'ARI': 'Arizona Diamondbacks', 'ATL': 'Atlanta Braves', 'BAL': 'Baltimore Orioles',
+                'BOS': 'Boston Red Sox', 'CHC': 'Chicago Cubs', 'CHW': 'Chicago White Sox',
+                'CIN': 'Cincinnati Reds', 'CLE': 'Cleveland Guardians', 'COL': 'Colorado Rockies',
+                'DET': 'Detroit Tigers', 'HOU': 'Houston Astros', 'KC': 'Kansas City Royals',
+                'LAA': 'Los Angeles Angels', 'LAD': 'Los Angeles Dodgers', 'MIA': 'Miami Marlins',
+                'MIL': 'Milwaukee Brewers', 'MIN': 'Minnesota Twins', 'NYM': 'New York Mets',
+                'NYY': 'New York Yankees', 'OAK': 'Oakland Athletics', 'PHI': 'Philadelphia Phillies',
+                'PIT': 'Pittsburgh Pirates', 'SD': 'San Diego Padres', 'SF': 'San Francisco Giants',
+                'SEA': 'Seattle Mariners', 'STL': 'St. Louis Cardinals', 'TB': 'Tampa Bay Rays',
+                'TEX': 'Texas Rangers', 'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals'
+            };
+            return fullNameMap[upperAbbrev] || null;
         }
         
         // ============================================
@@ -7342,12 +7372,13 @@
                         // Look up player name from playerNames mapping
                         const playerData = playerNames[fantraxId] || {};
                         const playerName = playerData.name || playerData.fullName || `Player_${fantraxId}`;
+                        const mlbTeamAbbrev = playerData.team || playerData.mlbTeam || ''; // Extract MLB team if available
                         
                         rosterPlayers.push({
                             id: Date.now() + Math.random(), // Unique ID for comparison system
                             name: playerName,
                             position: position,
-                            team: teamName,
+                            team: mlbTeamAbbrev, // MLB team abbreviation (e.g., "ATL", "NYY")
                             fantraxTeam: teamName, // Store Fantrax team separately from MLB team
                             fantraxId: fantraxId,
                             status: '',
@@ -7621,6 +7652,22 @@
                 } else {
                     player.mlbTeam = '';
                     player.mlbOrg = 'Free Agent';
+                }
+                
+                // FALLBACK: If still no MLB team, try to extract from player.team or player.position
+                // Fantrax often includes team abbreviations in the roster data
+                if (!player.mlbTeam || player.mlbTeam === '') {
+                    // Try to find team from any available data
+                    // Check if player.team is an MLB team abbreviation (2-3 letters like "ATL", "NYY", "KC")
+                    if (player.team && (player.team.length === 2 || player.team.length === 3)) {
+                        // This might be an MLB abbreviation - convert to full name
+                        const fullTeamName = getFullTeamName(player.team);
+                        if (fullTeamName) {
+                            player.mlbTeam = fullTeamName;
+                            player.mlbOrg = fullTeamName;
+                            console.log(`  🔄 Fallback: Used Fantrax team for ${player.name}: "${player.team}" → "${fullTeamName}"`);
+                        }
+                    }
                 }
                 
                 player.status = mlbPlayer.active ? 'Act' : 'Min';
