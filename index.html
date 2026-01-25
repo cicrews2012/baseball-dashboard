@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.5.2 - Players Now Rendering</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.0 - MLB Data Enrichment (Phase 3)</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,21 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.5.2 - Players Now Rendering (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.6.0 - MLB Data Enrichment Complete! 🎉 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🔍 Auto-enriches Fantrax players with MLB API data (age, team, status)</li>
+                            <li>⚾ Shows actual MLB team badge (e.g., "Detroit Tigers")</li>
+                            <li>👥 Shows Fantrax owner in green badge (e.g., "CCrews2012@aol.com")</li>
+                            <li>📊 Batch processing with progress indicator (10 players at a time)</li>
+                            <li>✅ Handles "Last, First" name format from Fantrax</li>
+                            <li>💾 Enriched data cached - no re-enrichment needed on reload</li>
+                            <li>🔧 Fixed stats matching - now finds correct player in MLB database</li>
+                            <li>⏱️ Progress shows: "Enriching player data... X%"</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.5.2 - Players Now Rendering</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>✅ Fixed team filter to use fantraxTeam field</li>
                             <li>👁️ Added empty state hiding when roster loads</li>
@@ -7236,6 +7250,11 @@
                 document.getElementById('statSummary').classList.remove('hidden');
                 updateSummaryStats();
                 
+                // Start background enrichment with MLB data
+                setTimeout(() => {
+                    batchEnrichPlayers(players);
+                }, 100);
+                
             } catch (error) {
                 console.error('❌ Fantrax sync error:', error);
                 
@@ -7287,6 +7306,15 @@
                 updateSummaryStats();
                 
                 updatePlayerCounts();
+                
+                // Check if data needs MLB enrichment
+                const needsEnrichment = rosterPlayers.some(p => !p.mlbDataEnriched);
+                if (needsEnrichment) {
+                    console.log('📊 Cached data needs MLB enrichment, starting background process...');
+                    setTimeout(() => {
+                        batchEnrichPlayers(players);
+                    }, 100);
+                }
                 
             } catch (error) {
                 console.error('❌ Error loading cached roster:', error);
@@ -7347,6 +7375,132 @@
             } else {
                 salaryData = {};
             }
+        }
+        
+        
+        async function enrichPlayerWithMLBData(player) {
+            try {
+                // Fantrax names come as "Last, First" - need to convert for MLB API
+                let searchName = player.name;
+                
+                // Check if name is in "Last, First" format
+                if (player.name.includes(',')) {
+                    const parts = player.name.split(',').map(s => s.trim());
+                    if (parts.length === 2) {
+                        searchName = `${parts[1]} ${parts[0]}`; // "First Last"
+                    }
+                }
+                
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}`;
+                const searchRes = await fetch(searchUrl);
+                const searchData = await searchRes.json();
+                
+                if (!searchData.people || searchData.people.length === 0) {
+                    // Try alternate search with just last name
+                    const nameParts = searchName.split(' ');
+                    if (nameParts.length > 1) {
+                        const lastName = nameParts[nameParts.length - 1];
+                        const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}`;
+                        const altSearchRes = await fetch(altSearchUrl);
+                        const altSearchData = await altSearchRes.json();
+                        
+                        if (altSearchData.people && altSearchData.people.length > 0) {
+                            const bestMatch = altSearchData.people.find(p => {
+                                const fullName = p.fullName.toLowerCase();
+                                const compareName = searchName.toLowerCase();
+                                return fullName === compareName || fullName.includes(compareName) || compareName.includes(fullName);
+                            });
+                            if (bestMatch) {
+                                searchData.people = [bestMatch];
+                            }
+                        }
+                    }
+                }
+                
+                if (!searchData.people || searchData.people.length === 0) {
+                    // Player not found in MLB database
+                    player.mlbDataEnriched = true;
+                    player.mlbNotFound = true;
+                    return player;
+                }
+                
+                const mlbPlayer = searchData.people[0];
+                
+                // Update player with MLB data
+                player.age = mlbPlayer.currentAge || 0;
+                player.mlbTeam = mlbPlayer.currentTeam?.name || '';
+                player.mlbOrg = mlbPlayer.currentTeam?.name || 'Free Agent';
+                player.status = mlbPlayer.active ? 'Act' : 'Min';
+                
+                // Check if on IL
+                if (mlbPlayer.status?.statusCode === 'IL60' || mlbPlayer.status?.statusCode === 'IL10') {
+                    player.status = mlbPlayer.status.statusCode;
+                }
+                
+                player.mlbDataEnriched = true;
+                player.mlbPlayerId = mlbPlayer.id;
+                
+                return player;
+                
+            } catch (error) {
+                console.error(`Error enriching ${player.name}:`, error);
+                player.mlbDataEnriched = true;
+                player.mlbNotFound = true;
+                return player;
+            }
+        }
+        
+        async function batchEnrichPlayers(playersList, batchSize = 10) {
+            console.log(`🔄 Starting MLB data enrichment for ${playersList.length} players...`);
+            
+            const statusDiv = document.getElementById('leagueStatus');
+            const statusIcon = document.getElementById('leagueStatusIcon');
+            const statusText = document.getElementById('leagueStatusText');
+            
+            let enrichedCount = 0;
+            
+            // Process in batches to avoid overwhelming the API
+            for (let i = 0; i < playersList.length; i += batchSize) {
+                const batch = playersList.slice(i, i + batchSize);
+                
+                // Update progress
+                const progress = Math.floor((i / playersList.length) * 100);
+                if (statusDiv && statusText) {
+                    statusIcon.textContent = '⏳';
+                    statusText.textContent = `Enriching player data... ${progress}% (${i}/${playersList.length})`;
+                }
+                
+                // Process batch in parallel
+                await Promise.all(batch.map(player => enrichPlayerWithMLBData(player)));
+                
+                enrichedCount += batch.length;
+                
+                // Re-render after each batch to show progress
+                if (i % 50 === 0 && i > 0) {
+                    applyTeamFilter();
+                    updateSummaryStats();
+                }
+            }
+            
+            console.log(`✅ Enriched ${enrichedCount} players with MLB data`);
+            
+            // Final render
+            applyTeamFilter();
+            updateSummaryStats();
+            
+            // Update status
+            const league = LEAGUES[selectedFantraxLeague];
+            if (statusDiv && statusText) {
+                statusIcon.textContent = '✅';
+                statusText.textContent = `${league.name} - All player data loaded`;
+                statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+            }
+            
+            // Update cache with enriched data
+            const cacheKey = `${selectedFantraxLeague}_roster_cache`;
+            const lastSyncKey = `${selectedFantraxLeague}_lastSync`;
+            localStorage.setItem(cacheKey, JSON.stringify(players));
+            localStorage.setItem(lastSyncKey, new Date().toISOString());
         }
         
         function switchTab(tabName) {
@@ -8260,7 +8414,8 @@
                            ${selectedForComparison.has(player.id) ? 'checked' : ''}>
                     <div class="player-name">${player.name}</div>
                     <div class="player-badges">
-                        ${player.team ? `<span class="badge badge-team">${player.team}</span>` : ''}
+                        ${player.mlbTeam ? `<span class="badge badge-team">${player.mlbTeam}</span>` : ''}
+                        ${player.fantraxTeam && selectedFantraxLeague !== 'NONE' ? `<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border-color: rgba(34, 197, 94, 0.5);">${player.fantraxTeam}</span>` : ''}
                         <span class="badge badge-position">${player.position}</span>
                         ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
                         ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
