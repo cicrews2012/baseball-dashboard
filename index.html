@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.5.1 - Fixed Function Names</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.5.2 - Players Now Rendering</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.5.1 - Bug Fixes (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.5.2 - Players Now Rendering (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed team filter to use fantraxTeam field</li>
+                            <li>👁️ Added empty state hiding when roster loads</li>
+                            <li>📊 Players grid now shows properly after Fantrax sync</li>
+                            <li>🔍 Team filtering works for both cached and fresh data</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.5.1 - Bug Fixes</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔧 Fixed updateStats → updateSummaryStats function name</li>
                             <li>💰 Made salary cap dynamic based on selected league</li>
@@ -7056,8 +7066,10 @@
                 // Show all players
                 renderPlayers(players);
             } else {
-                // Filter to specific team
-                const filteredPlayers = players.filter(p => p.team === selectedTeamFilter);
+                // Filter to specific team (use fantraxTeam to filter by fantasy team owner)
+                const filteredPlayers = players.filter(p => 
+                    (p.fantraxTeam === selectedTeamFilter) || (p.team === selectedTeamFilter)
+                );
                 renderPlayers(filteredPlayers);
             }
             
@@ -7069,7 +7081,8 @@
             if (!statusText) return;
             
             const totalPlayers = players.length;
-            const displayedPlayers = selectedTeamFilter === 'ALL' ? totalPlayers : players.filter(p => p.team === selectedTeamFilter).length;
+            const displayedPlayers = selectedTeamFilter === 'ALL' ? totalPlayers : 
+                players.filter(p => (p.fantraxTeam === selectedTeamFilter) || (p.team === selectedTeamFilter)).length;
             const teamCount = fantraxTeams.length;
             
             if (selectedTeamFilter === 'ALL') {
@@ -7217,6 +7230,8 @@
                 updatePlayerCounts();
                 
                 // Show the roster sections
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('playersGrid').classList.remove('hidden');
                 document.getElementById('searchSection').classList.remove('hidden');
                 document.getElementById('statSummary').classList.remove('hidden');
                 updateSummaryStats();
@@ -7265,6 +7280,8 @@
                 applyTeamFilter();
                 
                 // Show the roster sections
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('playersGrid').classList.remove('hidden');
                 document.getElementById('searchSection').classList.remove('hidden');
                 document.getElementById('statSummary').classList.remove('hidden');
                 updateSummaryStats();
