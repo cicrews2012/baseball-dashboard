@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.0 - MLB Data Enrichment (Phase 3)</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.6.1 - Fixed Stats Matching</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.6.0 - MLB Data Enrichment Complete! 🎉 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.6.1 - Fixed Stats Matching (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ fetchPlayerStats now uses cached mlbPlayerId from enrichment</li>
+                            <li>🔧 Converts "Last, First" to "First Last" when searching MLB API</li>
+                            <li>⚾ Edward Florentino now shows correct stats (not wrong player)</li>
+                            <li>🎯 All Fantrax players match correctly with MLB database</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.6.0 - MLB Data Enrichment Complete! 🎉</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔍 Auto-enriches Fantrax players with MLB API data (age, team, status)</li>
                             <li>⚾ Shows actual MLB team badge (e.g., "Detroit Tigers")</li>
@@ -8535,43 +8545,59 @@
 
         async function fetchPlayerStats(player) {
             try {
-                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(player.name)}`;
-                console.log('Fetching stats for:', player.name);
-                const searchRes = await fetch(searchUrl);
-                const searchData = await searchRes.json();
-
-                if (!searchData.people || searchData.people.length === 0) {
-                    const nameParts = player.name.split(' ');
-                    if (nameParts.length > 1) {
-                        const lastName = nameParts[nameParts.length - 1];
-                        const firstName = nameParts[0];
-                        const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}`;
-                        const altSearchRes = await fetch(altSearchUrl);
-                        const altSearchData = await altSearchRes.json();
-                        
-                        if (altSearchData.people && altSearchData.people.length > 0) {
-                            const bestMatch = altSearchData.people.find(p => {
-                                const fullName = p.fullName.toLowerCase();
-                                const searchName = player.name.toLowerCase();
-                                return fullName === searchName || fullName.includes(searchName) || searchName.includes(fullName);
-                            });
-                            if (bestMatch) {
-                                searchData.people = [bestMatch];
-                            }
+                let playerId = player.mlbPlayerId; // Use ID from enrichment if available
+                
+                // If we don't have the MLB ID yet, search by name
+                if (!playerId) {
+                    // Convert "Last, First" format to "First Last" if needed
+                    let searchName = player.name;
+                    if (player.name.includes(',')) {
+                        const parts = player.name.split(',').map(s => s.trim());
+                        if (parts.length === 2) {
+                            searchName = `${parts[1]} ${parts[0]}`; // "First Last"
                         }
                     }
                     
-                    if (!searchData.people || searchData.people.length === 0) {
-                        player.stats = { 
-                            error: `"${player.name}" not found in MLB database. May be a recent draft pick or international player not yet in the system.`,
-                            showSearchLink: true
-                        };
-                        player.statsLoaded = true;
-                        return;
-                    }
-                }
+                    const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}`;
+                    console.log('Fetching stats for:', player.name);
+                    const searchRes = await fetch(searchUrl);
+                    const searchData = await searchRes.json();
 
-                const playerId = searchData.people[0].id;
+                    if (!searchData.people || searchData.people.length === 0) {
+                        const nameParts = searchName.split(' ');
+                        if (nameParts.length > 1) {
+                            const lastName = nameParts[nameParts.length - 1];
+                            const firstName = nameParts[0];
+                            const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}`;
+                            const altSearchRes = await fetch(altSearchUrl);
+                            const altSearchData = await altSearchRes.json();
+                            
+                            if (altSearchData.people && altSearchData.people.length > 0) {
+                                const bestMatch = altSearchData.people.find(p => {
+                                    const fullName = p.fullName.toLowerCase();
+                                    const compareName = searchName.toLowerCase();
+                                    return fullName === compareName || fullName.includes(compareName) || compareName.includes(fullName);
+                                });
+                                if (bestMatch) {
+                                    searchData.people = [bestMatch];
+                                }
+                            }
+                        }
+                        
+                        if (!searchData.people || searchData.people.length === 0) {
+                            player.stats = { 
+                                error: `"${player.name}" not found in MLB database. May be a recent draft pick or international player not yet in the system.`,
+                                showSearchLink: true
+                            };
+                            player.statsLoaded = true;
+                            return;
+                        }
+                    }
+
+                    playerId = searchData.people[0].id;
+                    player.mlbPlayerId = playerId; // Cache for future use
+                }
+                
                 const currentYear = new Date().getFullYear();
 
                 // Fetch comprehensive stats
