@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.3 - Fixed 3 Issues</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.4 - Fixed Position Filter</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.3 - Fixed 3 Issues (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.4 - Fixed Position Filter (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>✅ Fixed: Position filter now applies when switching teams</li>
+                            <li>🔧 Changed handleTeamFilterChange to call applyFilters() instead of applyTeamFilter()</li>
+                            <li>📊 Now respects all active filters (position, status, team, quick filters)</li>
+                            <li>🎯 Example: Select "C" position → switch teams → still shows only catchers</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.3 - Fixed 3 Issues</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔍 Added logging to debug incorrect stats (e.g., Jarlin Susana showing hitting stats)</li>
                             <li>✅ Fixed: Sorting/filtering now respects team selection (won't lose your team filter)</li>
@@ -7175,8 +7185,8 @@
             selectedTeamFilter = teamName;
             localStorage.setItem(`${selectedFantraxLeague}_selectedTeam`, teamName);
             
-            // Re-render players with filter
-            applyTeamFilter();
+            // Re-apply all filters (position, status, team, etc.)
+            applyFilters();
         }
         
         function applyTeamFilter() {
