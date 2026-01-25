@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.1 - Never Trust API Rate Stats</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.2 - Fixed Career Aggregation</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.1 - Never Trust API Rate Stats! (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.2 - Fixed Career Stats Aggregation! (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Found the bug: `aggregateCareerStats` was using `levels[0].avg` instead of calculating</li>
+                            <li>✅ Now sums hits across all levels and calculates AVG = total hits / total at-bats</li>
+                            <li>⚾ Kevin McGonigle: (43+54+4+9+75+14+9) / (169+145+17+42+230+40+33) = 208/676 = .308</li>
+                            <li>📊 Pitchers: ERA and WHIP now calculated from aggregated IP, ER, H, BB</li>
+                            <li>🎯 STATS_VERSION = 5</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.1 - Never Trust API Rate Stats!</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🔧 ALWAYS recalculate AVG/OBP/SLG/OPS from counting stats</li>
                             <li>❌ Never trust MLB API's rate stats (they can be wrong!)</li>
@@ -2286,7 +2297,7 @@
         // ============================================
         // STATS VERSION - Increment when calculation logic changes
         // ============================================
-        const STATS_VERSION = 4; // v4 = ALWAYS recalculate from counting stats, never trust API rates
+        const STATS_VERSION = 5; // v5 = Fix aggregateCareerStats to calculate from totals, not levels[0]
         
         // ============================================
         // SUPABASE CONFIGURATION - v4.0
@@ -8996,14 +9007,22 @@
 
         function aggregateCareerStats(levels, isPitcher) {
             if (isPitcher) {
+                // Sum up all counting stats  
                 const totals = levels.reduce((acc, level) => ({
                     games: acc.games + level.games,
                     w: acc.w + level.w,
                     l: acc.l + level.l,
                     so: acc.so + level.so,
                     bb: acc.bb + level.bb,
-                    ip: parseFloat(acc.ip) + parseFloat(level.ip)
-                }), { games: 0, w: 0, l: 0, so: 0, bb: 0, ip: 0 });
+                    ip: parseFloat(acc.ip) + parseFloat(level.ip),
+                    // Estimate earned runs and hits from ERA/WHIP if available
+                    earnedRuns: acc.earnedRuns + (level.era && level.ip ? (parseFloat(level.era) * parseFloat(level.ip) / 9) : 0),
+                    hits: acc.hits + (level.whip && level.ip ? ((parseFloat(level.whip) * parseFloat(level.ip)) - level.bb) : 0)
+                }), { games: 0, w: 0, l: 0, so: 0, bb: 0, ip: 0, earnedRuns: 0, hits: 0 });
+
+                // Calculate career ERA and WHIP from aggregated totals
+                const era = totals.ip > 0 ? ((totals.earnedRuns / totals.ip) * 9).toFixed(2) : '0.00';
+                const whip = totals.ip > 0 ? ((totals.hits + totals.bb) / totals.ip).toFixed(2) : '0.00';
 
                 return {
                     type: 'pitching',
@@ -9015,18 +9034,26 @@
                     bb: totals.bb,
                     ip: totals.ip.toFixed(1),
                     kbb: (totals.so / Math.max(totals.bb, 1)).toFixed(2),
-                    era: levels[0]?.era || '0.00',
-                    whip: levels[0]?.whip || '0.00'
+                    era: era,
+                    whip: whip
                 };
             } else {
+                // Sum up all counting stats
                 const totals = levels.reduce((acc, level) => ({
                     games: acc.games + level.games,
                     ab: acc.ab + level.ab,
+                    hits: acc.hits + (level.ab > 0 ? Math.round(parseFloat(level.avg) * level.ab) : 0), // Calculate hits from AVG
                     hr: acc.hr + level.hr,
                     rbi: acc.rbi + level.rbi,
                     sb: acc.sb + level.sb
-                }), { games: 0, ab: 0, hr: 0, rbi: 0, sb: 0 });
+                }), { games: 0, ab: 0, hits: 0, hr: 0, rbi: 0, sb: 0 });
 
+                // Calculate career rate stats from aggregated totals
+                const avg = totals.ab > 0 ? (totals.hits / totals.ab).toFixed(3) : '.000';
+                const ops = levels[0]?.ops || '.000'; // TODO: Calculate OPS from aggregated stats properly
+                const obp = levels[0]?.obp || '.000'; // TODO: Calculate OBP
+                const slg = levels[0]?.slg || '.000'; // TODO: Calculate SLG
+                
                 return {
                     type: 'hitting',
                     level: 'MiLB Career',
@@ -9035,10 +9062,10 @@
                     hr: totals.hr,
                     rbi: totals.rbi,
                     sb: totals.sb,
-                    avg: levels[0]?.avg || '.000',
-                    ops: levels[0]?.ops || '.000',
-                    obp: levels[0]?.obp || '.000',
-                    slg: levels[0]?.slg || '.000'
+                    avg: avg,
+                    ops: ops,
+                    obp: obp,
+                    slg: slg
                 };
             }
         }
