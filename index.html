@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.4 - Fixed Position Filter</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.7.5 - Fixed MLB Team Badge</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.4 - Fixed Position Filter (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.7.5 - Fixed MLB Team Badge (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Found issue: MLB search API wasn't returning currentTeam data</li>
+                            <li>✅ Added `&hydrate=currentTeam` to search API calls</li>
+                            <li>⚾ Now player cards show both MLB team (e.g., "DET") AND fantasy owner</li>
+                            <li>🔍 Example: Kevin McGonigle shows "DET" + "CCrews2012@aol.com"</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.7.4 - Fixed Position Filter</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>✅ Fixed: Position filter now applies when switching teams</li>
                             <li>🔧 Changed handleTeamFilterChange to call applyFilters() instead of applyTeamFilter()</li>
@@ -7505,7 +7515,7 @@
                     }
                 }
                 
-                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}`;
+                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}&hydrate=currentTeam`;
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
                 
@@ -7514,7 +7524,7 @@
                     const nameParts = searchName.split(' ');
                     if (nameParts.length > 1) {
                         const lastName = nameParts[nameParts.length - 1];
-                        const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}`;
+                        const altSearchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(lastName)}&hydrate=currentTeam`;
                         const altSearchRes = await fetch(altSearchUrl);
                         const altSearchData = await altSearchRes.json();
                         
