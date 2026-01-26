@@ -10446,8 +10446,11 @@
         function findOwner(prospectName, prospectAge, prospectTeam) {
             // Try to find this prospect in loaded rosters
             if (!players || players.length === 0) {
+                console.log(`⚠️ findOwner(${prospectName}): No players loaded`);
                 return null;
             }
+            
+            console.log(`🔍 findOwner: Looking for "${prospectName}", age ${prospectAge}, team ${prospectTeam}`);
             
             // Normalize team names for comparison
             const normalizeTeam = (team) => {
@@ -10477,6 +10480,7 @@
             
             // Try exact name match first
             let matches = players.filter(p => p.name === prospectName);
+            console.log(`  Step 1 - Exact name "${prospectName}": ${matches.length} matches`);
             
             // If multiple or no matches, try name + age
             if (matches.length !== 1 && prospectAge) {
@@ -10484,6 +10488,7 @@
                     p.name === prospectName && 
                     Math.abs(p.age - parseFloat(prospectAge)) <= 1 // Allow 1 year variance
                 );
+                console.log(`  Step 2 - Name + age (±1): ${matches.length} matches`);
             }
             
             // If still multiple or no matches, try name + age + team
@@ -10494,12 +10499,15 @@
                     const teamMatch = !p.mlbTeam || normalizeTeam(p.mlbTeam) === prospectTeamNorm;
                     return nameMatch && ageMatch && teamMatch;
                 });
+                console.log(`  Step 3 - Name + age + team: ${matches.length} matches`);
             }
             
             if (matches.length === 1) {
+                console.log(`  ✅ Found owner: ${matches[0].fantraxTeam}`);
                 return matches[0].fantraxTeam;
             }
             
+            console.log(`  ❌ No unique match found (${matches.length} matches)`);
             return null;
         }
         
