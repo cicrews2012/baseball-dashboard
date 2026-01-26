@@ -8435,7 +8435,7 @@
             if (!team1Select || !team2Select) return;
             
             // Get unique team names from loaded roster
-            const teams = [...new Set(loadedPlayers.map(p => p.fantraxTeam))].sort();
+            const teams = [...new Set(players.map(p => p.fantraxTeam))].sort();
             
             // Populate both dropdowns
             team1Select.innerHTML = '<option value="">Select Team 1...</option>';
@@ -8458,7 +8458,7 @@
             console.log(`📋 Loading roster for Team ${teamNum}: ${teamName}`);
             
             // Get all players from this team
-            const roster = loadedPlayers.filter(p => p.fantraxTeam === teamName);
+            const roster = players.filter(p => p.fantraxTeam === teamName);
             
             if (teamNum === 1) {
                 tradeTeam1 = teamName;
@@ -8544,7 +8544,7 @@
                 team1List.innerHTML = '<p style="color: #64748b; font-style: italic; padding: 10px;">No players added yet</p>';
             } else {
                 team1List.innerHTML = tradeTeam1Sends.map(playerName => {
-                    const player = loadedPlayers.find(p => p.name === playerName);
+                    const player = players.find(p => p.name === playerName);
                     return `
                         <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
@@ -8565,7 +8565,7 @@
                 team2List.innerHTML = '<p style="color: #64748b; font-style: italic; padding: 10px;">No players added yet</p>';
             } else {
                 team2List.innerHTML = tradeTeam2Sends.map(playerName => {
-                    const player = loadedPlayers.find(p => p.name === playerName);
+                    const player = players.find(p => p.name === playerName);
                     return `
                         <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
