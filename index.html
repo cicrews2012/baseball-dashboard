@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.9.0 - Historical Prospects (2020-2026)</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.9.1 - Fixed Player Search</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1901,7 +1901,19 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.9.0 - Historical Prospects (2020-2026) (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.9.1 - Fixed Player Search (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Fixed: MLB API returning wrong players for common names</li>
+                            <li>🎯 Walker Jenkins now finds correct prospect (not Walker Buehler)</li>
+                            <li>🎯 Druw Jones now finds correct prospect</li>
+                            <li>🔍 When multiple matches: prefer exact name match first</li>
+                            <li>👶 When no exact match: prefer youngest player (prospects)</li>
+                            <li>📊 Added debug logging for multiple match scenarios</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.9.0 - Historical Prospects (2020-2026)</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>📊 Moved prospect data from hardcoded → GitHub JSON files</li>
                             <li>🕐 Added 7 years of historical FanGraphs rankings (2020-2026)</li>
@@ -5629,6 +5641,26 @@
                             };
                             player.statsLoaded = true;
                             return;
+                        }
+                    }
+
+                    // If multiple matches, prefer the YOUNGEST player (more likely to be prospect)
+                    // and prefer exact name match
+                    if (searchData.people.length > 1) {
+                        console.log(`⚠️ Multiple matches for "${searchName}":`, searchData.people.map(p => `${p.fullName} (age ${p.currentAge})`));
+                        
+                        // First try exact name match
+                        const exactMatch = searchData.people.find(p => 
+                            p.fullName.toLowerCase() === searchName.toLowerCase()
+                        );
+                        
+                        if (exactMatch) {
+                            console.log(`✅ Using exact name match: ${exactMatch.fullName}`);
+                            searchData.people = [exactMatch];
+                        } else {
+                            // Otherwise pick youngest player
+                            searchData.people.sort((a, b) => (a.currentAge || 99) - (b.currentAge || 99));
+                            console.log(`✅ Using youngest match: ${searchData.people[0].fullName} (age ${searchData.people[0].currentAge})`);
                         }
                     }
 
