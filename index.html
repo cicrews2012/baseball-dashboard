@@ -5669,13 +5669,15 @@
                         );
                         
                         if (exactMatch) {
-                            console.log(`✅ Using exact name match: ${exactMatch.fullName}`);
+                            console.log(`✅ Using exact name match: ${exactMatch.fullName} (age ${exactMatch.currentAge})`);
                             searchData.people = [exactMatch];
                         } else {
                             // Otherwise pick youngest player
                             searchData.people.sort((a, b) => (a.currentAge || 99) - (b.currentAge || 99));
                             console.log(`✅ Using youngest match: ${searchData.people[0].fullName} (age ${searchData.people[0].currentAge})`);
                         }
+                    } else if (searchData.people.length === 1) {
+                        console.log(`✅ Single match found: ${searchData.people[0].fullName} (age ${searchData.people[0].currentAge})`);
                     }
 
                     playerId = searchData.people[0].id;
