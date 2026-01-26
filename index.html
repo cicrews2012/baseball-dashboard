@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.8.3 - Ownership Detection</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.8.4 - Fixed Top 100 Cards</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.8.3 - Ownership Detection (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.8.4 - Fixed Top 100 Expandable Cards (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Fixed: Top 100 tab still had old "View Stats" buttons instead of expandable cards</li>
+                            <li>🎴 Top 100 prospects now use same expandable card format as Young & Elite</li>
+                            <li>👁️ Owner badges now display in Top 100 (green badge shows fantasy team)</li>
+                            <li>📊 Click prospect header to expand and see full stats inline</li>
+                            <li>✅ Feature parity across ALL prospect sections now complete</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.8.3 - Ownership Detection</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🎯 Top Prospects now show which fantasy team owns them</li>
                             <li>🔍 Player Lookup now shows owner badge if player is on loaded roster</li>
@@ -9976,58 +9987,43 @@
                     });
                 }
                 
-                filteredProspects.forEach(prospect => {
-                    const isOwned = players.some(p => p.name === prospect.name);
+                filteredProspects.forEach((prospect, index) => {
                     const isOnWatchlist = watchlistPlayers.some(p => p.name === prospect.name);
                     const watchlistPlayer = watchlistPlayers.find(p => p.name === prospect.name);
                     const tierColor = getTierColor(prospect.tier);
                     const positionColor = getPositionColor(prospect.pos);
+                    const cardId = `top100-${index}`;
+                    
+                    // Check if owned in loaded league
+                    const owner = findOwner(prospect.name, prospect.age, prospect.team);
                     
                     html += `
-                        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; transition: all 0.3s;" 
+                        <div class="player-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);" 
                              onmouseover="this.style.borderColor='#60a5fa'" 
                              onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                                <div>
-                                    <div style="font-size: 1.5rem; font-weight: bold; color: white; margin-bottom: 5px;">
-                                        #${prospect.rank} ${prospect.name}
-                                    </div>
-                                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                                        <span style="background: ${positionColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                                            ${prospect.pos}
-                                        </span>
-                                        <span style="background: rgba(59, 130, 246, 0.3); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                                            ${prospect.team}
-                                        </span>
-                                        <span style="background: ${tierColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                                            ${prospect.tier}
-                                        </span>
-                                        <span style="background: rgba(168, 85, 247, 0.3); color: #c084fc; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">
-                                            ${prospect.age} yrs
-                                        </span>
-                                        <span style="background: rgba(251, 191, 36, 0.3); color: #fcd34d; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem;">
-                                            ETA: ${prospect.eta}
-                                        </span>
-                                        ${isOwned ? '<span style="background: rgba(34, 197, 94, 0.3); color: #4ade80; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">✓ ON ROSTER</span>' : ''}
-                                        ${isOnWatchlist ? '<span style="background: rgba(96, 165, 250, 0.3); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">👁️ ON WATCHLIST</span>' : ''}
-                                    </div>
+                            <div class="player-header" onclick="toggleProspectCard('${cardId}', '${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
+                                <div class="player-name">#${prospect.rank} ${prospect.name}</div>
+                                <div class="player-badges">
+                                    <span class="badge badge-position" style="background: ${positionColor};">${prospect.pos}</span>
+                                    <span class="badge badge-team" style="background: rgba(59, 130, 246, 0.3); color: #60a5fa;">${prospect.team}</span>
+                                    <span class="badge" style="background: ${tierColor}; color: white;">${prospect.tier}</span>
+                                    <span class="badge badge-age">${prospect.age} yrs</span>
+                                    <span class="badge" style="background: rgba(251, 191, 36, 0.3); color: #fcd34d;">ETA: ${prospect.eta}</span>
+                                    ${owner ? `<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border-color: rgba(34, 197, 94, 0.5);">${owner}</span>` : ''}
+                                    ${isOnWatchlist ? '<span class="badge" style="background: rgba(96, 165, 250, 0.3); color: #60a5fa;">👁️ WATCHLIST</span>' : ''}
                                 </div>
                             </div>
-                            <div style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.5; margin-bottom: 15px;">
-                                ${prospect.notes}
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.name.replace(/'/g, "\\'")}')">
-                                    📊 View Stats
-                                </button>
-                                ${isOnWatchlist ? 
-                                    `<button class="prospect-action-btn" onclick="removeFromWatchlist(${watchlistPlayer.id})" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">
-                                        🗑️ Remove from Watchlist
-                                    </button>` :
-                                    `<button class="prospect-action-btn" onclick="addProspectToWatchlist('${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
-                                        👁️ Add to Watchlist
-                                    </button>`
-                                }
+                            <div class="player-details" id="${cardId}">
+                                <div style="color: #cbd5e1; font-size: 0.875rem; margin-bottom: 15px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                                    ${prospect.notes}
+                                </div>
+                                <div id="${cardId}-content"></div>
+                                <div style="margin-top: 15px; display: flex; gap: 8px;">
+                                    ${isOnWatchlist ? 
+                                        `<button class="prospect-action-btn" onclick="event.stopPropagation(); removeFromWatchlist(${watchlistPlayer.id})" style="flex: 1; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">🗑️ Remove from Watchlist</button>` :
+                                        `<button class="prospect-action-btn" onclick="event.stopPropagation(); addProspectToWatchlist('${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')" style="flex: 1;">👁️ Add to Watchlist</button>`
+                                    }
+                                </div>
                             </div>
                         </div>
                     `;
