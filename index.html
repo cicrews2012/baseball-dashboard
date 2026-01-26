@@ -7022,18 +7022,33 @@
         const loadedProspects = new Map(); // Cache loaded prospect stats
         
         async function toggleProspectCard(cardId, name, position, team) {
+            console.log(`🔍 toggleProspectCard called: cardId="${cardId}", name="${name}", position="${position}", team="${team}"`);
+            
             const details = document.getElementById(cardId);
             const content = document.getElementById(`${cardId}-content`);
             
+            if (!details) {
+                console.error(`❌ Element not found: ${cardId}`);
+                return;
+            }
+            
+            if (!content) {
+                console.error(`❌ Content element not found: ${cardId}-content`);
+                return;
+            }
+            
             if (details.classList.contains('expanded')) {
+                console.log(`📦 Collapsing card: ${cardId}`);
                 details.classList.remove('expanded');
                 return;
             }
             
+            console.log(`📦 Expanding card: ${cardId}`);
             details.classList.add('expanded');
             
             // Check if already loaded
             if (!loadedProspects.has(cardId)) {
+                console.log(`📊 Loading stats for: ${name}`);
                 content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
                 
                 // Create temporary player object
@@ -7050,6 +7065,9 @@
                 // Fetch stats
                 await fetchPlayerStatsWithDemo(tempPlayer);
                 loadedProspects.set(cardId, tempPlayer);
+                console.log(`✅ Stats loaded for: ${name}`);
+            } else {
+                console.log(`📦 Using cached stats for: ${name}`);
             }
             
             // Render stats
@@ -7664,9 +7682,6 @@
             // Load data from Supabase/storage
             await loadPlayerNotesFromStorage();
             await loadWatchlist();
-            
-            // Load cached prospects for current year
-            loadCachedProspects();
             
             // Update prospect timestamp display
             updateRefreshTimestamp();
