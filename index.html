@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.8.4 - Fixed Top 100 Cards</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.8.5 - Fixed Ownership Matching</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1896,7 +1896,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.8.4 - Fixed Top 100 Expandable Cards (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.8.5 - Fixed Ownership Matching (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Fixed: Owner badges showed 0 matches for all prospects</li>
+                            <li>🔧 Root cause: FanGraphs uses "First Last", Fantrax uses "Last, First"</li>
+                            <li>✅ Added name normalization to handle both formats</li>
+                            <li>🎯 "Ryan Waldschmidt" now matches "Waldschmidt, Ryan"</li>
+                            <li>📊 Owner badges should now display correctly for rostered prospects</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.8.4 - Fixed Top 100 Expandable Cards</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Fixed: Top 100 tab still had old "View Stats" buttons instead of expandable cards</li>
                             <li>🎴 Top 100 prospects now use same expandable card format as Young & Elite</li>
@@ -10452,6 +10463,22 @@
             
             console.log(`🔍 findOwner: Looking for "${prospectName}", age ${prospectAge}, team ${prospectTeam}`);
             
+            // Normalize name to handle both "First Last" and "Last, First" formats
+            const normalizeName = (name) => {
+                if (!name) return '';
+                name = name.trim();
+                
+                // If it contains a comma, it's "Last, First" format - convert to "First Last"
+                if (name.includes(',')) {
+                    const parts = name.split(',').map(p => p.trim());
+                    return `${parts[1]} ${parts[0]}`.toLowerCase();
+                }
+                // Otherwise it's already "First Last"
+                return name.toLowerCase();
+            };
+            
+            const prospectNameNorm = normalizeName(prospectName);
+            
             // Normalize team names for comparison
             const normalizeTeam = (team) => {
                 if (!team) return '';
@@ -10478,14 +10505,14 @@
             
             const prospectTeamNorm = normalizeTeam(prospectTeam);
             
-            // Try exact name match first
-            let matches = players.filter(p => p.name === prospectName);
-            console.log(`  Step 1 - Exact name "${prospectName}": ${matches.length} matches`);
+            // Try exact name match first (normalized)
+            let matches = players.filter(p => normalizeName(p.name) === prospectNameNorm);
+            console.log(`  Step 1 - Normalized name "${prospectNameNorm}": ${matches.length} matches`);
             
             // If multiple or no matches, try name + age
             if (matches.length !== 1 && prospectAge) {
                 matches = players.filter(p => 
-                    p.name === prospectName && 
+                    normalizeName(p.name) === prospectNameNorm && 
                     Math.abs(p.age - parseFloat(prospectAge)) <= 1 // Allow 1 year variance
                 );
                 console.log(`  Step 2 - Name + age (±1): ${matches.length} matches`);
@@ -10494,7 +10521,7 @@
             // If still multiple or no matches, try name + age + team
             if (matches.length !== 1 && prospectTeamNorm) {
                 matches = players.filter(p => {
-                    const nameMatch = p.name === prospectName;
+                    const nameMatch = normalizeName(p.name) === prospectNameNorm;
                     const ageMatch = !prospectAge || Math.abs(p.age - parseFloat(prospectAge)) <= 1;
                     const teamMatch = !p.mlbTeam || normalizeTeam(p.mlbTeam) === prospectTeamNorm;
                     return nameMatch && ageMatch && teamMatch;
@@ -10507,7 +10534,12 @@
                 return matches[0].fantraxTeam;
             }
             
-            console.log(`  ❌ No unique match found (${matches.length} matches)`);
+            if (matches.length > 1) {
+                console.log(`  ⚠️ Multiple matches found (${matches.length}), using first: ${matches[0].fantraxTeam}`);
+                return matches[0].fantraxTeam;
+            }
+            
+            console.log(`  ❌ No match found`);
             return null;
         }
         
