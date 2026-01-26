@@ -8084,13 +8084,16 @@
             });
         }
         
-        // Autocomplete for trade receive input
+        // Autocomplete for trade receive input (OLD - only runs if element exists)
         document.addEventListener('input', function(e) {
             if (e.target.id === 'tradeReceiveInput') {
+                const autocomplete = document.getElementById('tradeReceiveAutocomplete');
+                if (!autocomplete) return; // Element doesn't exist in new UI
+                
                 const query = e.target.value.trim();
                 
                 if (query.length < 2) {
-                    document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
+                    autocomplete.style.display = 'none';
                     return;
                 }
                 
@@ -8102,6 +8105,9 @@
         });
         
         async function fetchTradeReceiveAutocomplete(query) {
+            const autocomplete = document.getElementById('tradeReceiveAutocomplete');
+            if (!autocomplete) return; // Element doesn't exist in new UI
+            
             if (demoMode) {
                 // Use mock data in demo mode
                 const results = Object.values(mockPlayers).filter(p => 
@@ -8121,7 +8127,7 @@
                     tradeReceiveAutocompleteResults = data.people.slice(0, 10);
                     displayTradeReceiveAutocomplete(tradeReceiveAutocompleteResults);
                 } else {
-                    document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
+                    autocomplete.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Autocomplete error:', error);
@@ -8130,6 +8136,7 @@
         
         function displayTradeReceiveAutocomplete(results) {
             const dropdown = document.getElementById('tradeReceiveAutocomplete');
+            if (!dropdown) return; // Element doesn't exist in new UI
             
             if (results.length === 0) {
                 dropdown.style.display = 'none';
@@ -8151,8 +8158,11 @@
         }
         
         function selectTradeReceivePlayer(playerName, playerId) {
-            document.getElementById('tradeReceiveInput').value = '';
-            document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
+            const input = document.getElementById('tradeReceiveInput');
+            const dropdown = document.getElementById('tradeReceiveAutocomplete');
+            
+            if (input) input.value = '';
+            if (dropdown) dropdown.style.display = 'none';
             addTradePlayer('receive', playerName, playerId);
         }
         
@@ -8160,7 +8170,7 @@
         document.addEventListener('keydown', function(e) {
             if (e.target.id === 'tradeReceiveInput') {
                 const dropdown = document.getElementById('tradeReceiveAutocomplete');
-                if (dropdown.style.display === 'none') return;
+                if (!dropdown || dropdown.style.display === 'none') return;
                 
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
@@ -8182,12 +8192,8 @@
             }
         });
         
-        // Click outside to close
-        document.addEventListener('click', function(e) {
-            if (e.target.id !== 'tradeReceiveInput') {
-                document.getElementById('tradeReceiveAutocomplete').style.display = 'none';
-            }
-        });
+        // ========== OLD TRADE ANALYZER CODE (Legacy) ==========
+        // Note: Some functions kept for backwards compatibility
         
         function addTradePlayer(side, playerName, playerId) {
             if (!playerName) return;
