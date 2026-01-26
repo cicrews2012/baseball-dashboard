@@ -5692,6 +5692,19 @@
                 const mlbData = await mlbRes.json();
 
                 const playerInfo = mlbData.people[0];
+                
+                // LOG DETAILED PLAYER INFO TO DEBUG
+                console.log(`🔍 MLB API returned player:`, {
+                    name: playerInfo.fullName,
+                    id: playerInfo.id,
+                    birthDate: playerInfo.birthDate,
+                    currentAge: playerInfo.currentAge,
+                    currentTeam: playerInfo.currentTeam?.name || 'No team',
+                    primaryPosition: playerInfo.primaryPosition?.abbreviation,
+                    mlbDebutDate: playerInfo.mlbDebutDate,
+                    active: playerInfo.active
+                });
+                
                 player.mlbOrg = playerInfo.currentTeam?.name || 'Free Agent';
 
                 const isPitcher = playerInfo.primaryPosition?.abbreviation === 'P' || 
