@@ -1,0 +1,3427 @@
+{
+  "source": "FanGraphs The Board",
+  "year": 2026,
+  "lastUpdated": "2026-01-26T11:54:58.139Z",
+  "prospects": [
+    {
+      "rank": 1,
+      "name": "Jesús Made",
+      "team": "MIL",
+      "pos": "SS",
+      "tier": "Med",
+      "age": 18.7,
+      "eta": "2027",
+      "notes": "FV 65 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 2,
+      "name": "Trey Yesavage",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 22.5,
+      "eta": "2026",
+      "notes": "FV 60 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 3,
+      "name": "Colt Emerson",
+      "team": "SEA",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 20.5,
+      "eta": "2026",
+      "notes": "FV 55 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 4,
+      "name": "Josue De Paula",
+      "team": "LAD",
+      "pos": "RF",
+      "tier": "High",
+      "age": 20.7,
+      "eta": "2027",
+      "notes": "FV 55 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 5,
+      "name": "Chase DeLauter",
+      "team": "CLE",
+      "pos": "RF",
+      "tier": "Med",
+      "age": 24.3,
+      "eta": "2026",
+      "notes": "FV 55 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 6,
+      "name": "Alfredo Duno",
+      "team": "CIN",
+      "pos": "C",
+      "tier": "High",
+      "age": 20.0,
+      "eta": "2028",
+      "notes": "FV 55 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 7,
+      "name": "Ryan Waldschmidt",
+      "team": "ARI",
+      "pos": "LF",
+      "tier": "Med",
+      "age": 23.3,
+      "eta": "2026",
+      "notes": "FV 50 | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 8,
+      "name": "Caleb Bonemer",
+      "team": "CHW",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 20.3,
+      "eta": "2029",
+      "notes": "FV 50 | Med Risk | Level: A+ | ETA: 2029"
+    },
+    {
+      "rank": 9,
+      "name": "Luis Peña",
+      "team": "MIL",
+      "pos": "SS",
+      "tier": "High",
+      "age": 19.2,
+      "eta": "2028",
+      "notes": "FV 55 | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 10,
+      "name": "Ryan Sloan",
+      "team": "SEA",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 20.0,
+      "eta": "2028",
+      "notes": "FV 55 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 11,
+      "name": "Arjun Nimmala",
+      "team": "TOR",
+      "pos": "SS",
+      "tier": "High",
+      "age": 20.3,
+      "eta": "2028",
+      "notes": "FV 50 | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 12,
+      "name": "Sal Stewart",
+      "team": "CIN",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 22.1,
+      "eta": "2026",
+      "notes": "FV 50 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 13,
+      "name": "Ralphy Velazquez",
+      "team": "CLE",
+      "pos": "1B",
+      "tier": "High",
+      "age": 20.6,
+      "eta": "2027",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 14,
+      "name": "Tommy Troy",
+      "team": "ARI",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 24.0,
+      "eta": "2026",
+      "notes": "FV 50 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 15,
+      "name": "Zyhir Hope",
+      "team": "LAD",
+      "pos": "RF",
+      "tier": "High",
+      "age": 21.0,
+      "eta": "2028",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2028"
+    },
+    {
+      "rank": 16,
+      "name": "Noah Schultz",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.5,
+      "eta": "2026",
+      "notes": "FV 50 | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 17,
+      "name": "Jake Bloss",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.6,
+      "eta": "2026",
+      "notes": "FV 50 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 18,
+      "name": "Kade Anderson",
+      "team": "SEA",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 21.5,
+      "eta": "2026",
+      "notes": "FV 50 | Med Risk | Level:  | ETA: 2026"
+    },
+    {
+      "rank": 19,
+      "name": "Jeferson Quero",
+      "team": "MIL",
+      "pos": "C",
+      "tier": "High",
+      "age": 23.3,
+      "eta": "2026",
+      "notes": "FV 50 | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 20,
+      "name": "Rhett Lowder",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 23.9,
+      "eta": "2026",
+      "notes": "FV 50 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 21,
+      "name": "Hagen Smith",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 22.4,
+      "eta": "2027",
+      "notes": "FV 50 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 22,
+      "name": "Angel Genao",
+      "team": "CLE",
+      "pos": "SS",
+      "tier": "High",
+      "age": 21.7,
+      "eta": "2027",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 23,
+      "name": "Eduardo Quintero",
+      "team": "LAD",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 20.3,
+      "eta": "2028",
+      "notes": "FV 50 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 24,
+      "name": "Jansel Luis",
+      "team": "ARI",
+      "pos": "3B",
+      "tier": "High",
+      "age": 20.9,
+      "eta": "2027",
+      "notes": "FV 45+ | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 25,
+      "name": "Emil Morales",
+      "team": "LAD",
+      "pos": "SS",
+      "tier": "High",
+      "age": 19.3,
+      "eta": "2030",
+      "notes": "FV 50 | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 26,
+      "name": "Brandon Clarke",
+      "team": "STL",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.8,
+      "eta": "2028",
+      "notes": "FV 50 | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 27,
+      "name": "Travis Bazzana",
+      "team": "CLE",
+      "pos": "2B",
+      "tier": "Low",
+      "age": 23.4,
+      "eta": "2026",
+      "notes": "FV 50 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 28,
+      "name": "Logan Henderson",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 23.9,
+      "eta": "2026",
+      "notes": "FV 50 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 29,
+      "name": "Christian Oppor",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "High",
+      "age": 21.5,
+      "eta": "2027",
+      "notes": "FV 50 | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 30,
+      "name": "Jonny Farmelo",
+      "team": "SEA",
+      "pos": "CF",
+      "tier": "High",
+      "age": 21.4,
+      "eta": "2028",
+      "notes": "FV 50 | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 31,
+      "name": "JoJo Parker",
+      "team": "TOR",
+      "pos": "3B",
+      "tier": "High",
+      "age": 19.4,
+      "eta": "2030",
+      "notes": "FV 45+ | High Risk | Level:  | ETA: 2030"
+    },
+    {
+      "rank": 32,
+      "name": "JD Dix",
+      "team": "ARI",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 20.3,
+      "eta": "2029",
+      "notes": "FV 45+ | Med Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 33,
+      "name": "Steele Hall",
+      "team": "CIN",
+      "pos": "SS",
+      "tier": "High",
+      "age": 18.5,
+      "eta": "2030",
+      "notes": "FV 45+ | High Risk | Level:  | ETA: 2030"
+    },
+    {
+      "rank": 34,
+      "name": "Braden Montgomery",
+      "team": "CHW",
+      "pos": "RF",
+      "tier": "High",
+      "age": 22.8,
+      "eta": "2027",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 35,
+      "name": "River Ryan",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 27.4,
+      "eta": "2026",
+      "notes": "FV 50 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 36,
+      "name": "Parker Messick",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 25.2,
+      "eta": "2026",
+      "notes": "FV 50 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 37,
+      "name": "Lazaro Montes",
+      "team": "SEA",
+      "pos": "RF",
+      "tier": "High",
+      "age": 21.2,
+      "eta": "2027",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 38,
+      "name": "Bishop Letson",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "High",
+      "age": 21.3,
+      "eta": "2029",
+      "notes": "FV 45+ | High Risk | Level: AA | ETA: 2029"
+    },
+    {
+      "rank": 39,
+      "name": "Demetrio Crisantes",
+      "team": "ARI",
+      "pos": "2B",
+      "tier": "Low",
+      "age": 21.4,
+      "eta": "2028",
+      "notes": "FV 45+ | Low Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 40,
+      "name": "Ricky Tiedemann",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "High",
+      "age": 23.4,
+      "eta": "2026",
+      "notes": "FV 45 | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 41,
+      "name": "Héctor Rodríguez",
+      "team": "CIN",
+      "pos": "RF",
+      "tier": "Med",
+      "age": 21.9,
+      "eta": "2026",
+      "notes": "FV 45 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 42,
+      "name": "Tanner McDougal",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.8,
+      "eta": "2026",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 43,
+      "name": "Michael Arroyo",
+      "team": "SEA",
+      "pos": "2B",
+      "tier": "High",
+      "age": 21.2,
+      "eta": "2027",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 44,
+      "name": "Khal Stephen",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 23.1,
+      "eta": "2026",
+      "notes": "FV 50 | Low Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 45,
+      "name": "Andrew Fischer",
+      "team": "MIL",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 21.7,
+      "eta": "2027",
+      "notes": "FV 45+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 46,
+      "name": "Yilber Díaz",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 25.4,
+      "eta": "2026",
+      "notes": "FV 45+ | High Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 47,
+      "name": "Mike Sirota",
+      "team": "LAD",
+      "pos": "CF",
+      "tier": "High",
+      "age": 22.6,
+      "eta": "2027",
+      "notes": "FV 45+ | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 48,
+      "name": "Johnny King",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.5,
+      "eta": "2029",
+      "notes": "FV 45 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 49,
+      "name": "Jose Franco",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 25.2,
+      "eta": "2026",
+      "notes": "FV 45 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 50,
+      "name": "Jurrangelo Cijntje",
+      "team": "SEA",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.6,
+      "eta": "2027",
+      "notes": "FV 50 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 51,
+      "name": "Billy Carlson",
+      "team": "CHW",
+      "pos": "SS",
+      "tier": "High",
+      "age": 19.5,
+      "eta": "2030",
+      "notes": "FV 45+ | High Risk | Level:  | ETA: 2030"
+    },
+    {
+      "rank": 52,
+      "name": "Christian Zazueta",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 21.3,
+      "eta": "2027",
+      "notes": "FV 45+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 53,
+      "name": "Braylon Doughty",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 20.1,
+      "eta": "2029",
+      "notes": "FV 45+ | Med Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 54,
+      "name": "Josh Adamczewski",
+      "team": "MIL",
+      "pos": "LF",
+      "tier": "Med",
+      "age": 20.7,
+      "eta": "2028",
+      "notes": "FV 45 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 55,
+      "name": "Kayson Cunningham",
+      "team": "ARI",
+      "pos": "2B",
+      "tier": "Low",
+      "age": 19.6,
+      "eta": "2030",
+      "notes": "FV 45 | Low Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 56,
+      "name": "Cam Collier",
+      "team": "CIN",
+      "pos": "1B",
+      "tier": "High",
+      "age": 21.2,
+      "eta": "2027",
+      "notes": "FV 45 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 57,
+      "name": "Victor Arias",
+      "team": "TOR",
+      "pos": "CF",
+      "tier": "High",
+      "age": 22.4,
+      "eta": "2026",
+      "notes": "FV 40+ | High Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 58,
+      "name": "Felnin Celesten",
+      "team": "SEA",
+      "pos": "SS",
+      "tier": "High",
+      "age": 20.3,
+      "eta": "2029",
+      "notes": "FV 50 | High Risk | Level: A+ | ETA: 2029"
+    },
+    {
+      "rank": 59,
+      "name": "Gabriel Rodriguez",
+      "team": "CLE",
+      "pos": "SS",
+      "tier": "High",
+      "age": 18.7,
+      "eta": "2029",
+      "notes": "FV 45+ | High Risk | Level: CPX | ETA: 2029"
+    },
+    {
+      "rank": 60,
+      "name": "Cooper Pratt",
+      "team": "MIL",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 21.4,
+      "eta": "2027",
+      "notes": "FV 45 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 61,
+      "name": "Daniel Eagen",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 23.2,
+      "eta": "2027",
+      "notes": "FV 45 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 62,
+      "name": "Jedixson Paez",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 22.0,
+      "eta": "2026",
+      "notes": "FV 45 | Med Risk | Level: A+ | ETA: 2026"
+    },
+    {
+      "rank": 63,
+      "name": "Alex Freeland",
+      "team": "LAD",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 24.4,
+      "eta": "2026",
+      "notes": "FV 45 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 64,
+      "name": "Juan Sanchez",
+      "team": "TOR",
+      "pos": "3B",
+      "tier": "High",
+      "age": 18.3,
+      "eta": "2031",
+      "notes": "FV 40+ | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 65,
+      "name": "Zach Maxwell",
+      "team": "CIN",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 25.0,
+      "eta": "2026",
+      "notes": "FV 40+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 66,
+      "name": "Robert Arias",
+      "team": "CLE",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 19.4,
+      "eta": "2030",
+      "notes": "FV 45+ | Med Risk | Level: CPX | ETA: 2030"
+    },
+    {
+      "rank": 67,
+      "name": "Luis Lara",
+      "team": "MIL",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 21.2,
+      "eta": "2027",
+      "notes": "FV 45 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 68,
+      "name": "Luke Stevenson",
+      "team": "SEA",
+      "pos": "C",
+      "tier": "Med",
+      "age": 21.5,
+      "eta": "2028",
+      "notes": "FV 45 | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 69,
+      "name": "LuJames Groover",
+      "team": "ARI",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 23.8,
+      "eta": "2026",
+      "notes": "FV 45 | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 70,
+      "name": "James Tibbs III",
+      "team": "LAD",
+      "pos": "RF",
+      "tier": "Low",
+      "age": 23.3,
+      "eta": "2027",
+      "notes": "FV 45 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 71,
+      "name": "Gage Stanifer",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 22.2,
+      "eta": "2027",
+      "notes": "FV 40+ | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 72,
+      "name": "Jaden Fauske",
+      "team": "CHW",
+      "pos": "LF",
+      "tier": "High",
+      "age": 19.2,
+      "eta": "2030",
+      "notes": "FV 40+ | High Risk | Level:  | ETA: 2030"
+    },
+    {
+      "rank": 73,
+      "name": "Chase Petty",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.8,
+      "eta": "2026",
+      "notes": "FV 40+ | High Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 74,
+      "name": "Robert Gasser",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 26.6,
+      "eta": "2026",
+      "notes": "FV 45 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 75,
+      "name": "Cristian Mena",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 23.1,
+      "eta": "2026",
+      "notes": "FV 45 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 76,
+      "name": "Charles Davalan",
+      "team": "LAD",
+      "pos": "LF",
+      "tier": "Med",
+      "age": 22.1,
+      "eta": "2028",
+      "notes": "FV 45 | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 77,
+      "name": "Cooper Ingle",
+      "team": "CLE",
+      "pos": "C",
+      "tier": "Med",
+      "age": 23.9,
+      "eta": "2027",
+      "notes": "FV 45 | Med Risk | Level: AAA | ETA: 2027"
+    },
+    {
+      "rank": 78,
+      "name": "Juan Caricote",
+      "team": "TOR",
+      "pos": "C",
+      "tier": "High",
+      "age": 17.2,
+      "eta": "2032",
+      "notes": "FV 40+ | High Risk | Level:  | ETA: 2032"
+    },
+    {
+      "rank": 79,
+      "name": "Yorger Bautista",
+      "team": "SEA",
+      "pos": "CF",
+      "tier": "High",
+      "age": 18.3,
+      "eta": "2031",
+      "notes": "FV 40+ | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 80,
+      "name": "Sam Antonacci",
+      "team": "CHW",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 23.0,
+      "eta": "2026",
+      "notes": "FV 40+ | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 81,
+      "name": "Carlos Jorge",
+      "team": "CIN",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 22.3,
+      "eta": "2027",
+      "notes": "FV 40+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 82,
+      "name": "J.D. Thompson",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 22.3,
+      "eta": "2028",
+      "notes": "FV 45 | Med Risk | Level:  | ETA: 2028"
+    },
+    {
+      "rank": 83,
+      "name": "Kohl Drake",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 25.5,
+      "eta": "2026",
+      "notes": "FV 45 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 84,
+      "name": "Adam Serwinowski",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 21.6,
+      "eta": "2027",
+      "notes": "FV 45 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 85,
+      "name": "Kahlil Watson",
+      "team": "CLE",
+      "pos": "CF",
+      "tier": "High",
+      "age": 22.8,
+      "eta": "2026",
+      "notes": "FV 45 | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 86,
+      "name": "Nick Becker",
+      "team": "SEA",
+      "pos": "SS",
+      "tier": "High",
+      "age": 19.1,
+      "eta": "2031",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2031"
+    },
+    {
+      "rank": 87,
+      "name": "Aldrin Batista",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 22.7,
+      "eta": "2027",
+      "notes": "FV 40+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 88,
+      "name": "Tyson Lewis",
+      "team": "CIN",
+      "pos": "SS",
+      "tier": "High",
+      "age": 20.0,
+      "eta": "2029",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 89,
+      "name": "Yohendrick Pinango",
+      "team": "TOR",
+      "pos": "LF",
+      "tier": "Low",
+      "age": 23.7,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 90,
+      "name": "Jace LaViolette",
+      "team": "CLE",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 22.1,
+      "eta": "2028",
+      "notes": "FV 45 | Med Risk | Level:  | ETA: 2028"
+    },
+    {
+      "rank": 91,
+      "name": "Josh Knoth",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "High",
+      "age": 20.4,
+      "eta": "2028",
+      "notes": "FV 45 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 92,
+      "name": "Marlon Nieves",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "High",
+      "age": 20.6,
+      "eta": "2029",
+      "notes": "FV 45 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 93,
+      "name": "Tai Peete",
+      "team": "SEA",
+      "pos": "CF",
+      "tier": "High",
+      "age": 20.4,
+      "eta": "2028",
+      "notes": "FV 40+ | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 94,
+      "name": "Ashton Izzi",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.2,
+      "eta": "2027",
+      "notes": "FV 40+ | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 95,
+      "name": "Hansel Jimenez",
+      "team": "CIN",
+      "pos": "3B",
+      "tier": "High",
+      "age": 19.1,
+      "eta": "2030",
+      "notes": "FV 40+ | High Risk | Level: CPX | ETA: 2030"
+    },
+    {
+      "rank": 96,
+      "name": "Angel Bastardo",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.6,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 97,
+      "name": "Kyle Lodise",
+      "team": "CHW",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 22.3,
+      "eta": "2029",
+      "notes": "FV 40 | Low Risk | Level: A+ | ETA: 2029"
+    },
+    {
+      "rank": 98,
+      "name": "Matt Wilkinson",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 23.1,
+      "eta": "2027",
+      "notes": "FV 45 | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 99,
+      "name": "Jackson Ferris",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 22.0,
+      "eta": "2027",
+      "notes": "FV 45 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 100,
+      "name": "Brady Ebel",
+      "team": "MIL",
+      "pos": "SS",
+      "tier": "Med",
+      "age": 18.5,
+      "eta": "2030",
+      "notes": "FV 40+ | Med Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 101,
+      "name": "David Hagaman",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.8,
+      "eta": "2027",
+      "notes": "FV 40+ | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 102,
+      "name": "Liberts Aponte",
+      "team": "CIN",
+      "pos": "SS",
+      "tier": "High",
+      "age": 18.2,
+      "eta": "2031",
+      "notes": "FV 40+ | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 103,
+      "name": "Silvano Hechavarria",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 22.8,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 104,
+      "name": "Teddy McGraw",
+      "team": "SEA",
+      "pos": "MIRP",
+      "tier": "High",
+      "age": 24.2,
+      "eta": "2027",
+      "notes": "FV 40 | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 105,
+      "name": "Mason Adams",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 25.9,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 106,
+      "name": "Caden Favors",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.4,
+      "eta": "2028",
+      "notes": "FV 45 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 107,
+      "name": "Blake Burke",
+      "team": "MIL",
+      "pos": "1B",
+      "tier": "Med",
+      "age": 22.6,
+      "eta": "2026",
+      "notes": "FV 40+ | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 108,
+      "name": "Patrick Forbes",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 21.5,
+      "eta": "2027",
+      "notes": "FV 40+ | Med Risk | Level:  | ETA: 2027"
+    },
+    {
+      "rank": 109,
+      "name": "Aaron Watson",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.0,
+      "eta": "2031",
+      "notes": "FV 40+ | High Risk | Level:  | ETA: 2031"
+    },
+    {
+      "rank": 110,
+      "name": "Zach Ehrhard",
+      "team": "LAD",
+      "pos": "RF",
+      "tier": "Med",
+      "age": 23.0,
+      "eta": "2028",
+      "notes": "FV 40+ | Med Risk | Level: AA | ETA: 2028"
+    },
+    {
+      "rank": 111,
+      "name": "Sean Keys",
+      "team": "TOR",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 22.6,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 112,
+      "name": "Griffin Hugus",
+      "team": "SEA",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 21.9,
+      "eta": "2029",
+      "notes": "FV 40 | Med Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 113,
+      "name": "Ky Bush",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 26.2,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 114,
+      "name": "Juneiker Caceres",
+      "team": "CLE",
+      "pos": "RF",
+      "tier": "High",
+      "age": 18.4,
+      "eta": "2030",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 115,
+      "name": "Tyson Hardin",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.2,
+      "eta": "2028",
+      "notes": "FV 40+ | Med Risk | Level: AA | ETA: 2028"
+    },
+    {
+      "rank": 116,
+      "name": "Brandyn Garcia",
+      "team": "ARI",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 25.6,
+      "eta": "2026",
+      "notes": "FV 40+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 117,
+      "name": "Mason Morris",
+      "team": "CIN",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 22.4,
+      "eta": "2029",
+      "notes": "FV 40+ | Med Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 118,
+      "name": "Kendall George",
+      "team": "LAD",
+      "pos": "CF",
+      "tier": "Low",
+      "age": 21.2,
+      "eta": "2028",
+      "notes": "FV 40+ | Low Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 119,
+      "name": "Adrian Pinto",
+      "team": "TOR",
+      "pos": "2B",
+      "tier": "High",
+      "age": 23.3,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 120,
+      "name": "Korbyn Dickerson",
+      "team": "SEA",
+      "pos": "CF",
+      "tier": "High",
+      "age": 22.2,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 121,
+      "name": "Juan Carela",
+      "team": "CHW",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 24.1,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: CPX | ETA: 2026"
+    },
+    {
+      "rank": 122,
+      "name": "Jaison Chourio",
+      "team": "CLE",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 20.7,
+      "eta": "2027",
+      "notes": "FV 40+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 123,
+      "name": "Braylon Payne",
+      "team": "MIL",
+      "pos": "CF",
+      "tier": "High",
+      "age": 19.4,
+      "eta": "2029",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 124,
+      "name": "Dean Livingston",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.4,
+      "eta": "2029",
+      "notes": "FV 40+ | High Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 125,
+      "name": "Zachary Root",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 22.0,
+      "eta": "2027",
+      "notes": "FV 40+ | Low Risk | Level:  | ETA: 2027"
+    },
+    {
+      "rank": 126,
+      "name": "Josh Kasevich",
+      "team": "TOR",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 25.0,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2027"
+    },
+    {
+      "rank": 127,
+      "name": "William Bergolla",
+      "team": "CHW",
+      "pos": "SS",
+      "tier": "Med",
+      "age": 21.3,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 128,
+      "name": "Edwin Arroyo",
+      "team": "CIN",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 22.4,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 129,
+      "name": "Robinson Ortiz",
+      "team": "SEA",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 26.0,
+      "eta": "2026",
+      "notes": "FV 35+ | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 130,
+      "name": "Dauri Fernandez",
+      "team": "CLE",
+      "pos": "SS",
+      "tier": "Med",
+      "age": 18.9,
+      "eta": "2030",
+      "notes": "FV 40+ | Med Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 131,
+      "name": "Coleman Crow",
+      "team": "MIL",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 25.1,
+      "eta": "2026",
+      "notes": "FV 40+ | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 132,
+      "name": "Junior Ciprian",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "High",
+      "age": 20.6,
+      "eta": "2029",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 133,
+      "name": "Luis Carias",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "High",
+      "age": 21.3,
+      "eta": "2028",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 134,
+      "name": "Adam Macko",
+      "team": "TOR",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 25.1,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 135,
+      "name": "Jeral Perez",
+      "team": "CHW",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 21.2,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 136,
+      "name": "Leo Balcazar",
+      "team": "CIN",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 21.6,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 137,
+      "name": "Mason Peters",
+      "team": "SEA",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 22.1,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level:  | ETA: 2027"
+    },
+    {
+      "rank": 138,
+      "name": "Daniel Espino",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 25.0,
+      "eta": "2026",
+      "notes": "FV 40+ | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 139,
+      "name": "Craig Yoho",
+      "team": "MIL",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 26.2,
+      "eta": "2026",
+      "notes": "FV 40+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 140,
+      "name": "Hunter Cranton",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 25.2,
+      "eta": "2026",
+      "notes": "FV 40+ | High Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 141,
+      "name": "Oliver Gonzalez",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.2,
+      "eta": "2030",
+      "notes": "FV 40+ | High Risk | Level: DSL | ETA: 2030"
+    },
+    {
+      "rank": 142,
+      "name": "Blaine Bullard",
+      "team": "TOR",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 19.4,
+      "eta": "2029",
+      "notes": "FV 40 | Med Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 143,
+      "name": "Tanner Murray",
+      "team": "CHW",
+      "pos": "UTIL",
+      "tier": "Low",
+      "age": 26.4,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 144,
+      "name": "Jirvin Morillo",
+      "team": "CIN",
+      "pos": "C",
+      "tier": "Med",
+      "age": 19.0,
+      "eta": "2030",
+      "notes": "FV 40 | Med Risk | Level: CPX | ETA: 2030"
+    },
+    {
+      "rank": 145,
+      "name": "Marcelo Perez",
+      "team": "SEA",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 26.2,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 146,
+      "name": "Joey Oakie",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 19.7,
+      "eta": "2029",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 147,
+      "name": "Brett Wichrowski",
+      "team": "MIL",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 23.4,
+      "eta": "2027",
+      "notes": "FV 40+ | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 148,
+      "name": "RJ Schreck",
+      "team": "TOR",
+      "pos": "RF",
+      "tier": "Med",
+      "age": 25.5,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2027"
+    },
+    {
+      "rank": 149,
+      "name": "Adriel Radney",
+      "team": "ARI",
+      "pos": "RF",
+      "tier": "High",
+      "age": 18.6,
+      "eta": "2030",
+      "notes": "FV 40 | High Risk | Level: DSL | ETA: 2030"
+    },
+    {
+      "rank": 150,
+      "name": "Zach Franklin",
+      "team": "CHW",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 27.2,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 151,
+      "name": "Arnaldo Lantigua",
+      "team": "CIN",
+      "pos": "LF",
+      "tier": "High",
+      "age": 20.1,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 152,
+      "name": "Joendry Vargas",
+      "team": "LAD",
+      "pos": "SS",
+      "tier": "High",
+      "age": 20.2,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 153,
+      "name": "Christian Little",
+      "team": "SEA",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 22.5,
+      "eta": "2028",
+      "notes": "FV 35+ | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 154,
+      "name": "Bryce Meccage",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.8,
+      "eta": "2029",
+      "notes": "FV 40+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 155,
+      "name": "George Valera",
+      "team": "CLE",
+      "pos": "RF",
+      "tier": "High",
+      "age": 25.2,
+      "eta": "2026",
+      "notes": "FV 40 | High Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 156,
+      "name": "Brandon Barriera",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "High",
+      "age": 21.9,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 157,
+      "name": "Mitch Bratt",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 22.5,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 158,
+      "name": "Duncan Davitt",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 26.3,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 159,
+      "name": "Luke Holman",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 23.0,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 160,
+      "name": "Kellon Lindsey",
+      "team": "LAD",
+      "pos": "CF",
+      "tier": "High",
+      "age": 20.3,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 161,
+      "name": "Michael Morales",
+      "team": "SEA",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 23.4,
+      "eta": "2026",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 162,
+      "name": "Alfonsin Rosario",
+      "team": "CLE",
+      "pos": "RF",
+      "tier": "High",
+      "age": 21.6,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: AA | ETA: 2028"
+    },
+    {
+      "rank": 163,
+      "name": "Marco Dinges",
+      "team": "MIL",
+      "pos": "C",
+      "tier": "High",
+      "age": 22.4,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A+ | ETA: 2029"
+    },
+    {
+      "rank": 164,
+      "name": "Tim Piasentin",
+      "team": "TOR",
+      "pos": "3B",
+      "tier": "High",
+      "age": 18.8,
+      "eta": "2031",
+      "notes": "FV 40 | High Risk | Level:  | ETA: 2031"
+    },
+    {
+      "rank": 165,
+      "name": "Slade Caldwell",
+      "team": "ARI",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 19.6,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 166,
+      "name": "Tyler Schweitzer",
+      "team": "CHW",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 25.3,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 167,
+      "name": "Julian Aguiar",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 24.6,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 168,
+      "name": "Ryan Ward",
+      "team": "LAD",
+      "pos": "LF",
+      "tier": "Low",
+      "age": 27.9,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 169,
+      "name": "Blas Castaño",
+      "team": "SEA",
+      "pos": "MIRP",
+      "tier": "Low",
+      "age": 27.4,
+      "eta": "2026",
+      "notes": "FV 35+ | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 170,
+      "name": "Austin Peterson",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 26.3,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 171,
+      "name": "Frank Cairone",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "High",
+      "age": 18.3,
+      "eta": "2031",
+      "notes": "FV 40 | High Risk | Level:  | ETA: 2031"
+    },
+    {
+      "rank": 172,
+      "name": "Grant Rogers",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 24.7,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 173,
+      "name": "Yassel Soler",
+      "team": "ARI",
+      "pos": "3B",
+      "tier": "High",
+      "age": 20.0,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 174,
+      "name": "Samuel Zavala",
+      "team": "CHW",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 21.5,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2026"
+    },
+    {
+      "rank": 175,
+      "name": "Sheng-En Lin",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 20.4,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 176,
+      "name": "Landyn Vidourek",
+      "team": "LAD",
+      "pos": "RF",
+      "tier": "High",
+      "age": 22.2,
+      "eta": "2030",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 177,
+      "name": "Brock Rodden",
+      "team": "SEA",
+      "pos": "2B",
+      "tier": "Low",
+      "age": 25.7,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 178,
+      "name": "Josh Hartle",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 22.8,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 179,
+      "name": "Jaron DeBerry",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 23.4,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 180,
+      "name": "Spencer Miles",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 25.5,
+      "eta": "2026",
+      "notes": "FV 40 | High Risk | Level: CPX | ETA: 2026"
+    },
+    {
+      "rank": 181,
+      "name": "Brian Curley",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "Low",
+      "age": 22.6,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level:  | ETA: 2027"
+    },
+    {
+      "rank": 182,
+      "name": "JeanPierre Ortiz",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "High",
+      "age": 21.9,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 183,
+      "name": "Ching-Hsien Ko",
+      "team": "LAD",
+      "pos": "RF",
+      "tier": "High",
+      "age": 19.4,
+      "eta": "2030",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 184,
+      "name": "Luis Suisbel",
+      "team": "SEA",
+      "pos": "3B",
+      "tier": "High",
+      "age": 22.7,
+      "eta": "2028",
+      "notes": "FV 35+ | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 185,
+      "name": "Blake Larson",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.9,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 186,
+      "name": "Petey Halpin",
+      "team": "CLE",
+      "pos": "CF",
+      "tier": "Low",
+      "age": 23.6,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 187,
+      "name": "Brock Wilken",
+      "team": "MIL",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 23.6,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 188,
+      "name": "Edward Duran",
+      "team": "TOR",
+      "pos": "C",
+      "tier": "Med",
+      "age": 21.6,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 189,
+      "name": "Daury Vasquez",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.8,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 190,
+      "name": "Iker Redona",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 18.1,
+      "eta": "2030",
+      "notes": "FV 40 | Low Risk | Level: DSL | ETA: 2030"
+    },
+    {
+      "rank": 191,
+      "name": "Chase Harlan",
+      "team": "LAD",
+      "pos": "3B",
+      "tier": "High",
+      "age": 19.5,
+      "eta": "2030",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 192,
+      "name": "Tyler Cleveland",
+      "team": "SEA",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 26.4,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 193,
+      "name": "Alexander Alberto",
+      "team": "CHW",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 24.2,
+      "eta": "2027",
+      "notes": "FV 35+ | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 194,
+      "name": "Jacob Cozart",
+      "team": "CLE",
+      "pos": "C",
+      "tier": "Low",
+      "age": 23.0,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 195,
+      "name": "Carlos Rodriguez",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 24.1,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 196,
+      "name": "Franklin Rojas",
+      "team": "TOR",
+      "pos": "C",
+      "tier": "High",
+      "age": 18.8,
+      "eta": "2030",
+      "notes": "FV 40 | High Risk | Level: DSL | ETA: 2030"
+    },
+    {
+      "rank": 197,
+      "name": "Mason Marriott",
+      "team": "ARI",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 23.4,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 198,
+      "name": "Nick Sando",
+      "team": "CIN",
+      "pos": "SIRP",
+      "tier": "Low",
+      "age": 24.7,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 199,
+      "name": "Brooks Auger",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.2,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 200,
+      "name": "Charlie Pagliarini",
+      "team": "SEA",
+      "pos": "2B",
+      "tier": "High",
+      "age": 25.1,
+      "eta": "2028",
+      "notes": "FV 35+ | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 201,
+      "name": "George Wolkow",
+      "team": "CHW",
+      "pos": "RF",
+      "tier": "High",
+      "age": 20.0,
+      "eta": "2028",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 202,
+      "name": "Jose Devers",
+      "team": "CLE",
+      "pos": "SS",
+      "tier": "Med",
+      "age": 22.7,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 203,
+      "name": "Luke Adams",
+      "team": "MIL",
+      "pos": "1B",
+      "tier": "Med",
+      "age": 21.7,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2028"
+    },
+    {
+      "rank": 204,
+      "name": "Jake Cook",
+      "team": "TOR",
+      "pos": "CF",
+      "tier": "High",
+      "age": 22.5,
+      "eta": "2030",
+      "notes": "FV 40 | High Risk | Level:  | ETA: 2030"
+    },
+    {
+      "rank": 205,
+      "name": "Kristian Robinson",
+      "team": "ARI",
+      "pos": "RF",
+      "tier": "High",
+      "age": 25.1,
+      "eta": "2026",
+      "notes": "FV 40 | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 206,
+      "name": "Drew Petska",
+      "team": "CIN",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 21.7,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: A | ETA: 2027"
+    },
+    {
+      "rank": 207,
+      "name": "Reyli Mariano",
+      "team": "LAD",
+      "pos": "2B",
+      "tier": "High",
+      "age": 19.2,
+      "eta": "2030",
+      "notes": "FV 40 | High Risk | Level: DSL | ETA: 2030"
+    },
+    {
+      "rank": 208,
+      "name": "Landon Hodge",
+      "team": "CHW",
+      "pos": "C",
+      "tier": "High",
+      "age": 18.9,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 209,
+      "name": "Sterling Patick",
+      "team": "LAD",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 20.6,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 210,
+      "name": "Peyton Pallette",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 24.7,
+      "eta": "2026",
+      "notes": "FV 40 | High Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 211,
+      "name": "Daniel Dickinson",
+      "team": "MIL",
+      "pos": "2B",
+      "tier": "High",
+      "age": 22.1,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 212,
+      "name": "Cutter Coffey",
+      "team": "TOR",
+      "pos": "3B",
+      "tier": "High",
+      "age": 21.7,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 213,
+      "name": "Cristofer Torin",
+      "team": "ARI",
+      "pos": "2B",
+      "tier": "Low",
+      "age": 20.6,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 214,
+      "name": "Anyer Laureano",
+      "team": "CIN",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 23.1,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 215,
+      "name": "Mathias LaCombe",
+      "team": "CHW",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.6,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 216,
+      "name": "Kyle Hurt",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Low",
+      "age": 27.6,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 217,
+      "name": "Franco Aleman",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 25.6,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 218,
+      "name": "Kenny Fenelon",
+      "team": "MIL",
+      "pos": "CF",
+      "tier": "High",
+      "age": 18.3,
+      "eta": "2031",
+      "notes": "FV 40 | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 219,
+      "name": "Brandon Valenzuela",
+      "team": "TOR",
+      "pos": "C",
+      "tier": "Med",
+      "age": 25.3,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 220,
+      "name": "Druw Jones",
+      "team": "ARI",
+      "pos": "CF",
+      "tier": "High",
+      "age": 22.1,
+      "eta": "2027",
+      "notes": "FV 40 | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 221,
+      "name": "Jairo Iriarte",
+      "team": "CHW",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 24.1,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 222,
+      "name": "Tyler Callihan",
+      "team": "CIN",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 25.6,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 223,
+      "name": "Patrick Copen",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 23.9,
+      "eta": "2027",
+      "notes": "FV 40 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 224,
+      "name": "Yorman Gómez",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.2,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 225,
+      "name": "Brailyn Antunez",
+      "team": "MIL",
+      "pos": "CF",
+      "tier": "High",
+      "age": 18.1,
+      "eta": "2031",
+      "notes": "FV 40 | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 226,
+      "name": "Micah Bucknam",
+      "team": "TOR",
+      "pos": "MIRP",
+      "tier": "High",
+      "age": 22.4,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level:  | ETA: 2028"
+    },
+    {
+      "rank": 227,
+      "name": "Carlos Virahonda",
+      "team": "ARI",
+      "pos": "C",
+      "tier": "Med",
+      "age": 20.1,
+      "eta": "2029",
+      "notes": "FV 40 | Med Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 228,
+      "name": "Javier Mogollon",
+      "team": "CHW",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 20.2,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 229,
+      "name": "Ryjeteri Merite",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "High",
+      "age": 20.1,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: DSL | ETA: 2029"
+    },
+    {
+      "rank": 230,
+      "name": "José Rodríguez",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 24.5,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 231,
+      "name": "Jogly Garcia",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 22.4,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 232,
+      "name": "Tate Kuehner",
+      "team": "MIL",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 25.0,
+      "eta": "2027",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2027"
+    },
+    {
+      "rank": 233,
+      "name": "T.J. Brock",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 26.4,
+      "eta": "2026",
+      "notes": "FV 40 | High Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 234,
+      "name": "Andrew Hoffmann",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 26.0,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 235,
+      "name": "Riley Gowens",
+      "team": "CHW",
+      "pos": "MIRP",
+      "tier": "Low",
+      "age": 26.3,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 236,
+      "name": "Kevin Abel",
+      "team": "CIN",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 26.9,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 237,
+      "name": "Noah Miller",
+      "team": "LAD",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 23.2,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 238,
+      "name": "Juan Brito",
+      "team": "CLE",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 24.3,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 239,
+      "name": "Connor Cooke",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 26.2,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 240,
+      "name": "Hayden Durke",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.7,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 241,
+      "name": "Jacob Morrison",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 22.4,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level:  | ETA: 2027"
+    },
+    {
+      "rank": 242,
+      "name": "Ben Peoples",
+      "team": "CHW",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 24.7,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 243,
+      "name": "Jay Allen II",
+      "team": "CIN",
+      "pos": "CF",
+      "tier": "High",
+      "age": 23.2,
+      "eta": "2026",
+      "notes": "FV 35+ | High Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 244,
+      "name": "Cam Leiter",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.0,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 245,
+      "name": "Dean Curley",
+      "team": "CLE",
+      "pos": "3B",
+      "tier": "High",
+      "age": 21.8,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 246,
+      "name": "Chay Yeager",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 23.4,
+      "eta": "2027",
+      "notes": "FV 40 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 247,
+      "name": "Yordin Chalas",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 22.0,
+      "eta": "2027",
+      "notes": "FV 40 | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 248,
+      "name": "Melvin Hernandez",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 19.5,
+      "eta": "2028",
+      "notes": "FV 35+ | Low Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 249,
+      "name": "Tyler Davis",
+      "team": "CHW",
+      "pos": "SIRP",
+      "tier": "Low",
+      "age": 27.3,
+      "eta": "2026",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 250,
+      "name": "Victor Acosta",
+      "team": "CIN",
+      "pos": "SS",
+      "tier": "Low",
+      "age": 21.6,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 251,
+      "name": "Hyun-Seok Jang",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 21.8,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 252,
+      "name": "Andrew Walters",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 25.1,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 253,
+      "name": "Javen Coleman",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 24.1,
+      "eta": "2027",
+      "notes": "FV 40 | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 254,
+      "name": "Sandro Santana",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 20.9,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 255,
+      "name": "Ethan Dorchies",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.2,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 256,
+      "name": "Jacob Gonzalez",
+      "team": "CHW",
+      "pos": "UTIL",
+      "tier": "Low",
+      "age": 23.6,
+      "eta": "2026",
+      "notes": "FV 35+ | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 257,
+      "name": "Kyle Henley",
+      "team": "CIN",
+      "pos": "CF",
+      "tier": "High",
+      "age": 21.1,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 258,
+      "name": "Brady Smith",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 21.0,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 259,
+      "name": "Gavin Conticello",
+      "team": "ARI",
+      "pos": "RF",
+      "tier": "Med",
+      "age": 22.6,
+      "eta": "2026",
+      "notes": "FV 40 | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 260,
+      "name": "Doug Nikhazy",
+      "team": "CLE",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 26.4,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 261,
+      "name": "Handelfry Encarnacion",
+      "team": "MIL",
+      "pos": "CF",
+      "tier": "High",
+      "age": 18.6,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 262,
+      "name": "Yondrei Rojas",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 23.2,
+      "eta": "2026",
+      "notes": "FV 35+ | High Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 263,
+      "name": "Gage Ziehl",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 22.7,
+      "eta": "2028",
+      "notes": "FV 35+ | Low Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 264,
+      "name": "Yerlin Confidan",
+      "team": "CIN",
+      "pos": "RF",
+      "tier": "High",
+      "age": 23.1,
+      "eta": "2027",
+      "notes": "FV 35+ | High Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 265,
+      "name": "Yu-Min Lin",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 22.5,
+      "eta": "2026",
+      "notes": "FV 40 | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 266,
+      "name": "Eduardo Rojas",
+      "team": "LAD",
+      "pos": "C",
+      "tier": "High",
+      "age": 18.9,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: DSL | ETA: 2030"
+    },
+    {
+      "rank": 267,
+      "name": "Nick Mitchell",
+      "team": "CLE",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 22.4,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 268,
+      "name": "Tyler Black",
+      "team": "MIL",
+      "pos": "1B",
+      "tier": "Med",
+      "age": 25.5,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 269,
+      "name": "Fernando Perez",
+      "team": "TOR",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 21.9,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 270,
+      "name": "Shane Murphy",
+      "team": "CHW",
+      "pos": "MIRP",
+      "tier": "Low",
+      "age": 25.0,
+      "eta": "2026",
+      "notes": "FV 35+ | Low Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 271,
+      "name": "Adolfo Sanchez",
+      "team": "CIN",
+      "pos": "RF",
+      "tier": "High",
+      "age": 19.3,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: CPX | ETA: 2030"
+    },
+    {
+      "rank": 272,
+      "name": "Alberto Barriga",
+      "team": "ARI",
+      "pos": "C",
+      "tier": "High",
+      "age": 21.2,
+      "eta": "2028",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 273,
+      "name": "Elijah Hainline",
+      "team": "LAD",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 23.1,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2028"
+    },
+    {
+      "rank": 274,
+      "name": "Aaron Walton",
+      "team": "CLE",
+      "pos": "CF",
+      "tier": "Med",
+      "age": 21.7,
+      "eta": "2029",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 275,
+      "name": "Eric Bitonti",
+      "team": "MIL",
+      "pos": "1B",
+      "tier": "High",
+      "age": 20.2,
+      "eta": "2028",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 276,
+      "name": "Dahian Santos",
+      "team": "TOR",
+      "pos": "MIRP",
+      "tier": "High",
+      "age": 22.9,
+      "eta": "2026",
+      "notes": "FV 35+ | High Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 277,
+      "name": "Grant Umberger",
+      "team": "CHW",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.3,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 278,
+      "name": "Alfredo Alcantara",
+      "team": "CIN",
+      "pos": "2B",
+      "tier": "High",
+      "age": 20.2,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 279,
+      "name": "Christian Cerda",
+      "team": "ARI",
+      "pos": "C",
+      "tier": "Low",
+      "age": 23.1,
+      "eta": "2027",
+      "notes": "FV 40 | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 280,
+      "name": "Aidan West",
+      "team": "LAD",
+      "pos": "2B",
+      "tier": "Med",
+      "age": 18.9,
+      "eta": "2031",
+      "notes": "FV 35+ | Med Risk | Level:  | ETA: 2031"
+    },
+    {
+      "rank": 281,
+      "name": "Will Hynes",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "High",
+      "age": 18.5,
+      "eta": "2031",
+      "notes": "FV 35+ | High Risk | Level:  | ETA: 2031"
+    },
+    {
+      "rank": 282,
+      "name": "José Anderson",
+      "team": "MIL",
+      "pos": "RF",
+      "tier": "High",
+      "age": 19.1,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 283,
+      "name": "Charles McAdoo",
+      "team": "TOR",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 23.9,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 284,
+      "name": "Carson Jacobs",
+      "team": "CHW",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 24.4,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 285,
+      "name": "Simon Miller",
+      "team": "CIN",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 25.4,
+      "eta": "2027",
+      "notes": "FV 35+ | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 286,
+      "name": "Chung-Hsiang Huang",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 20.2,
+      "eta": "2028",
+      "notes": "FV 40 | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 287,
+      "name": "Paul Gervase",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 25.7,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 288,
+      "name": "Aidan Major",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 22.7,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level:  | ETA: 2027"
+    },
+    {
+      "rank": 289,
+      "name": "Alexander Frias",
+      "team": "MIL",
+      "pos": "RF",
+      "tier": "High",
+      "age": 17.9,
+      "eta": "2031",
+      "notes": "FV 35+ | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 290,
+      "name": "Kai Peterson",
+      "team": "TOR",
+      "pos": "SIRP",
+      "tier": "Low",
+      "age": 23.4,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 291,
+      "name": "Deivi Villafana",
+      "team": "CIN",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 22.7,
+      "eta": "2028",
+      "notes": "FV 35+ | High Risk | Level: CPX | ETA: 2028"
+    },
+    {
+      "rank": 292,
+      "name": "Caden Grice",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "High",
+      "age": 23.6,
+      "eta": "2027",
+      "notes": "FV 40 | High Risk | Level: A | ETA: 2027"
+    },
+    {
+      "rank": 293,
+      "name": "Garrett McDaniels",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 26.1,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 294,
+      "name": "Dylan DeLucia",
+      "team": "CLE",
+      "pos": "MIRP",
+      "tier": "Low",
+      "age": 25.5,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 295,
+      "name": "Yerlin Rodriguez",
+      "team": "MIL",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.8,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2026"
+    },
+    {
+      "rank": 296,
+      "name": "Sam Shaw",
+      "team": "TOR",
+      "pos": "LF",
+      "tier": "Med",
+      "age": 19.9,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 297,
+      "name": "Ty Floyd",
+      "team": "CIN",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.4,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 298,
+      "name": "Jacob Steinmetz",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "High",
+      "age": 22.5,
+      "eta": "2029",
+      "notes": "FV 40 | High Risk | Level: A+ | ETA: 2029"
+    },
+    {
+      "rank": 299,
+      "name": "Ronan Kopp",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.5,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 300,
+      "name": "Steven Pérez",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 24.7,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 301,
+      "name": "Ryan Birchard",
+      "team": "MIL",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 22.5,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 302,
+      "name": "Elaineiker Coronado",
+      "team": "TOR",
+      "pos": "2B",
+      "tier": "High",
+      "age": 18.3,
+      "eta": "2031",
+      "notes": "FV 35+ | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 303,
+      "name": "Carson Hobbs",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Low",
+      "age": 23.9,
+      "eta": "2026",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 304,
+      "name": "Jackson Humphries",
+      "team": "CLE",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 21.5,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 305,
+      "name": "Eduardo Garcia",
+      "team": "MIL",
+      "pos": "SS",
+      "tier": "Med",
+      "age": 23.5,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 306,
+      "name": "Elian De La Cruz",
+      "team": "ARI",
+      "pos": "RF",
+      "tier": "High",
+      "age": 18.3,
+      "eta": "2031",
+      "notes": "FV 35+ | High Risk | Level: DSL | ETA: 2031"
+    },
+    {
+      "rank": 307,
+      "name": "Jakob Wright",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 22.6,
+      "eta": "2027",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2027"
+    },
+    {
+      "rank": 308,
+      "name": "Kendeglys Virguez",
+      "team": "CLE",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 21.7,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2027"
+    },
+    {
+      "rank": 309,
+      "name": "Matthew Wood",
+      "team": "MIL",
+      "pos": "C",
+      "tier": "High",
+      "age": 24.9,
+      "eta": "2027",
+      "notes": "FV 35+ | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 310,
+      "name": "Jose Fernandez",
+      "team": "ARI",
+      "pos": "SS",
+      "tier": "High",
+      "age": 22.3,
+      "eta": "2027",
+      "notes": "FV 35+ | High Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 311,
+      "name": "Reynaldo Yean",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 22.0,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2027"
+    },
+    {
+      "rank": 312,
+      "name": "Nolan Schubart",
+      "team": "CLE",
+      "pos": "LF",
+      "tier": "High",
+      "age": 21.7,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 313,
+      "name": "Filippo Di Turi",
+      "team": "MIL",
+      "pos": "SS",
+      "tier": "Med",
+      "age": 20.2,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 314,
+      "name": "Blake Walston",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.6,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: MLB | ETA: 2026"
+    },
+    {
+      "rank": 315,
+      "name": "Aidan Foeller",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.8,
+      "eta": "2029",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2029"
+    },
+    {
+      "rank": 316,
+      "name": "Chase Mobley",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.6,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 317,
+      "name": "Joshua Flores",
+      "team": "MIL",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 18.6,
+      "eta": "2031",
+      "notes": "FV 35+ | High Risk | Level:  | ETA: 2031"
+    },
+    {
+      "rank": 318,
+      "name": "Spencer Giesting",
+      "team": "ARI",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 24.5,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 319,
+      "name": "Logan Wagner",
+      "team": "LAD",
+      "pos": "3B",
+      "tier": "Med",
+      "age": 21.9,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 320,
+      "name": "Alexander Garcia",
+      "team": "CLE",
+      "pos": "SP",
+      "tier": "High",
+      "age": 19.5,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: DSL | ETA: 2029"
+    },
+    {
+      "rank": 321,
+      "name": "Sean Episcope",
+      "team": "MIL",
+      "pos": "MIRP",
+      "tier": "Med",
+      "age": 21.9,
+      "eta": "2029",
+      "notes": "FV 35+ | Med Risk | Level:  | ETA: 2029"
+    },
+    {
+      "rank": 322,
+      "name": "Dylan Ray",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 24.7,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 323,
+      "name": "Samuel Munoz",
+      "team": "LAD",
+      "pos": "LF",
+      "tier": "Med",
+      "age": 21.3,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2028"
+    },
+    {
+      "rank": 324,
+      "name": "Jack Hostetler",
+      "team": "MIL",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 22.5,
+      "eta": "2029",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 325,
+      "name": "Joe Elbis",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 23.3,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 326,
+      "name": "Peter Heubeck",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Low",
+      "age": 23.5,
+      "eta": "2026",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 327,
+      "name": "K.C. Hunt",
+      "team": "MIL",
+      "pos": "SP",
+      "tier": "Med",
+      "age": 25.5,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 328,
+      "name": "Sawyer Hawks",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 22.6,
+      "eta": "2027",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2027"
+    },
+    {
+      "rank": 329,
+      "name": "Jared Karros",
+      "team": "LAD",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 25.2,
+      "eta": "2027",
+      "notes": "FV 35+ | Low Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 330,
+      "name": "Jose Cabrera",
+      "team": "ARI",
+      "pos": "MIRP",
+      "tier": "High",
+      "age": 23.6,
+      "eta": "2028",
+      "notes": "FV 35+ | High Risk | Level: AA | ETA: 2028"
+    },
+    {
+      "rank": 331,
+      "name": "Isaac Ayon",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 23.6,
+      "eta": "2028",
+      "notes": "FV 35+ | Med Risk | Level: A | ETA: 2028"
+    },
+    {
+      "rank": 332,
+      "name": "Landon Sims",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 25.0,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2026"
+    },
+    {
+      "rank": 333,
+      "name": "Dylan Tate",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 21.7,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2029"
+    },
+    {
+      "rank": 334,
+      "name": "Kyle Amendt",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 25.8,
+      "eta": "2026",
+      "notes": "FV 35+ | Med Risk | Level: AAA | ETA: 2026"
+    },
+    {
+      "rank": 335,
+      "name": "Wyatt Crowell",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 24.3,
+      "eta": "2027",
+      "notes": "FV 35+ | Med Risk | Level: AA | ETA: 2027"
+    },
+    {
+      "rank": 336,
+      "name": "Gian Zapata",
+      "team": "ARI",
+      "pos": "RF",
+      "tier": "High",
+      "age": 20.4,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: CPX | ETA: 2030"
+    },
+    {
+      "rank": 337,
+      "name": "Logan Tabeling",
+      "team": "LAD",
+      "pos": "SIRP",
+      "tier": "Med",
+      "age": 24.4,
+      "eta": "2029",
+      "notes": "FV 35+ | Med Risk | Level: A+ | ETA: 2029"
+    },
+    {
+      "rank": 338,
+      "name": "Ivan Luciano",
+      "team": "ARI",
+      "pos": "C",
+      "tier": "High",
+      "age": 19.2,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: A | ETA: 2030"
+    },
+    {
+      "rank": 339,
+      "name": "Tytus Cissell",
+      "team": "ARI",
+      "pos": "SS",
+      "tier": "High",
+      "age": 19.8,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: CPX | ETA: 2030"
+    },
+    {
+      "rank": 340,
+      "name": "Pedro Blanco",
+      "team": "ARI",
+      "pos": "1B",
+      "tier": "High",
+      "age": 18.7,
+      "eta": "2030",
+      "notes": "FV 35+ | High Risk | Level: CPX | ETA: 2030"
+    },
+    {
+      "rank": 341,
+      "name": "Walvin Mena",
+      "team": "ARI",
+      "pos": "SIRP",
+      "tier": "High",
+      "age": 20.3,
+      "eta": "2029",
+      "notes": "FV 35+ | High Risk | Level: CPX | ETA: 2029"
+    },
+    {
+      "rank": 342,
+      "name": "Samuel Gonzalez",
+      "team": "ARI",
+      "pos": "SP",
+      "tier": "Low",
+      "age": 21.0,
+      "eta": "2029",
+      "notes": "FV 35+ | Low Risk | Level: DSL | ETA: 2029"
+    }
+  ]
+}
