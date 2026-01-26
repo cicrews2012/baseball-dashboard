@@ -1222,7 +1222,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.9.1 - Fixed Player Search</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.9.2 - Stricter Name Matching</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1901,7 +1901,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.9.1 - Fixed Player Search (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.9.2 - Stricter Name Matching (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Fixed: Fallback search accepting partial name matches</li>
+                            <li>🎯 "Walker Jenkins" no longer matches other "Walker" players</li>
+                            <li>✅ Fallback search now requires EXACT full name match</li>
+                            <li>📝 Better error message for prospects not yet in MLB system</li>
+                            <li>🔍 Shows Google/Baseball-Reference links for un-debuted prospects</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.9.1 - Fixed Player Search</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Fixed: MLB API returning wrong players for common names</li>
                             <li>🎯 Walker Jenkins now finds correct prospect (not Walker Buehler)</li>
@@ -5623,20 +5634,23 @@
                             const altSearchData = await altSearchRes.json();
                             
                             if (altSearchData.people && altSearchData.people.length > 0) {
+                                // ONLY accept EXACT full name match (no partials)
                                 const bestMatch = altSearchData.people.find(p => {
                                     const fullName = p.fullName.toLowerCase();
                                     const compareName = searchName.toLowerCase();
-                                    return fullName === compareName || fullName.includes(compareName) || compareName.includes(fullName);
+                                    return fullName === compareName; // Exact match only
                                 });
                                 if (bestMatch) {
                                     searchData.people = [bestMatch];
+                                } else {
+                                    console.log(`⚠️ Last name search for "${lastName}" found players, but no exact match for "${searchName}"`);
                                 }
                             }
                         }
                         
                         if (!searchData.people || searchData.people.length === 0) {
                             player.stats = { 
-                                error: `"${player.name}" not found in MLB database. May be a recent draft pick or international player not yet in the system.`,
+                                error: `"${player.name}" not found in MLB database. This player may be a prospect who hasn't debuted yet, a recent draft pick, or an international signee not yet in the system.`,
                                 showSearchLink: true
                             };
                             player.statsLoaded = true;
