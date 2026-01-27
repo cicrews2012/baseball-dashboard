@@ -8607,44 +8607,84 @@
             }
             
             try {
-                // Fetch Team Salaries tab (gid=0 is usually the first sheet)
+                // Fetch Team Salaries tab - try gid=0 first
                 const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=0`;
+                console.log('📥 Fetching from:', csvUrl);
+                
                 const response = await fetch(csvUrl);
                 const csvText = await response.text();
+                
+                console.log('📄 CSV Preview (first 500 chars):', csvText.substring(0, 500));
                 
                 // Parse CSV
                 const lines = csvText.split('\n');
                 const teams = [];
                 
-                // Skip header rows (rows 1-2), start from row 3
-                for (let i = 2; i < lines.length; i++) {
+                console.log('📋 Total lines in CSV:', lines.length);
+                console.log('📋 First 5 lines:', lines.slice(0, 5));
+                
+                // Find header row (should have "Team" and "Remaining Salary Cap Space")
+                let headerRowIndex = -1;
+                for (let i = 0; i < Math.min(10, lines.length); i++) {
+                    if (lines[i].toLowerCase().includes('team') && lines[i].toLowerCase().includes('remaining')) {
+                        headerRowIndex = i;
+                        console.log(`✅ Found header at row ${i}:`, lines[i]);
+                        break;
+                    }
+                }
+                
+                if (headerRowIndex === -1) {
+                    throw new Error('Could not find Team Salaries header row. Wrong tab?');
+                }
+                
+                // Parse data rows (start after header)
+                for (let i = headerRowIndex + 1; i < lines.length; i++) {
                     const line = lines[i].trim();
-                    if (!line || line.startsWith('Salary Cap') || line.startsWith('*')) continue;
+                    if (!line) continue;
                     
-                    // Parse CSV line (handle commas in numbers)
-                    const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                    if (!values || values.length < 3) continue;
+                    // Stop at footer rows
+                    if (line.toLowerCase().includes('salary cap') || 
+                        line.startsWith('*') || 
+                        line.toLowerCase().includes('updated:')) {
+                        console.log('📍 Stopped at footer row:', line.substring(0, 50));
+                        break;
+                    }
                     
-                    const team = values[0]?.replace(/"/g, '').trim();
-                    if (!team || team === 'Team') continue;
+                    // Split by comma (simple approach - works if no commas in team names)
+                    const cells = line.split(',').map(c => c.trim());
                     
-                    // Parse numbers (remove commas and quotes)
+                    const teamName = cells[0]?.replace(/"/g, '').trim();
+                    
+                    // Validate it's a real team (3-letter code)
+                    if (!teamName || teamName.length !== 3) continue;
+                    
+                    // Parse numbers (remove commas, dollar signs, quotes)
                     const parseNum = (val) => {
                         if (!val) return 0;
                         const cleaned = val.replace(/[$,"]/g, '').trim();
                         return cleaned ? parseInt(cleaned) : 0;
                     };
                     
-                    teams.push({
-                        team: team,
-                        capSpace: parseNum(values[1]),
-                        payroll2026: parseNum(values[2]),
-                        payroll2027: parseNum(values[3]),
-                        payroll2028: parseNum(values[4]),
-                        payroll2029: parseNum(values[5]),
-                        payroll2030: parseNum(values[6]),
-                        payroll2031: parseNum(values[7])
-                    });
+                    const teamData = {
+                        team: teamName,
+                        capSpace: parseNum(cells[1]),
+                        payroll2026: parseNum(cells[2]),
+                        payroll2027: parseNum(cells[3]),
+                        payroll2028: parseNum(cells[4]),
+                        payroll2029: parseNum(cells[5]),
+                        payroll2030: parseNum(cells[6]),
+                        payroll2031: parseNum(cells[7])
+                    };
+                    
+                    console.log(`✅ Parsed team ${teamName}:`, teamData);
+                    teams.push(teamData);
+                    
+                    // Safety: stop after 30 teams
+                    if (teams.length >= 30) break;
+                }
+                
+                if (teams.length === 0) {
+                    throw new Error('No team data found. Check CSV format.');
                 }
                 
                 leagueFinancesData = teams;
@@ -8667,7 +8707,7 @@
             } catch (error) {
                 console.error('❌ Error loading finances:', error);
                 if (statusEl) {
-                    statusEl.innerHTML = '📊 Status: <span style="color: #ef4444;">Error - Check Sheet Permissions</span>';
+                    statusEl.innerHTML = '📊 Status: <span style="color: #ef4444;">Error - ' + error.message + '</span>';
                 }
             }
         }
