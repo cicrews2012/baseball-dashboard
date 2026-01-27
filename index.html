@@ -8650,15 +8650,27 @@
                 // Parse team rows
                 for (let i = dataStartIndex; i < rows.length; i++) {
                     const row = rows[i];
-                    if (!row.c) continue;
+                    if (!row.c) continue; // Skip empty rows
                     
                     const cells = row.c;
                     const teamName = cells[0]?.v;
                     
-                    // Stop at footer or invalid rows
-                    if (!teamName || typeof teamName !== 'string' || teamName.length !== 3) {
-                        console.log(`📍 Stopped at row ${i}`);
+                    // Skip truly empty rows
+                    if (!teamName) continue;
+                    
+                    // Stop at footer rows (Salary Cap, notes, etc.)
+                    if (typeof teamName === 'string' && 
+                        (teamName.toLowerCase().includes('salary cap') || 
+                         teamName.startsWith('*') || 
+                         teamName.toLowerCase().includes('updated'))) {
+                        console.log(`📍 Stopped at footer row: ${teamName}`);
                         break;
+                    }
+                    
+                    // Only accept valid 3-letter team codes
+                    if (typeof teamName !== 'string' || teamName.length !== 3) {
+                        console.log(`⚠️ Skipping invalid team name at row ${i}: "${teamName}"`);
+                        continue; // Skip but don't stop
                     }
                     
                     const teamData = {
@@ -8675,7 +8687,10 @@
                     console.log(`✅ Parsed team ${teamName}:`, teamData);
                     teams.push(teamData);
                     
-                    if (teams.length >= 30) break;
+                    if (teams.length >= 30) {
+                        console.log('✅ Reached 30 teams, stopping');
+                        break;
+                    }
                 }
                 
                 if (teams.length === 0) {
