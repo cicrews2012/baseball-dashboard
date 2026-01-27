@@ -8667,8 +8667,11 @@
                         break;
                     }
                     
-                    // Only accept valid 3-letter team codes
-                    if (typeof teamName !== 'string' || teamName.length !== 3) {
+                    // Accept valid team codes (2-3 letters, all uppercase)
+                    if (typeof teamName !== 'string' || 
+                        teamName.length < 2 || 
+                        teamName.length > 3 || 
+                        !/^[A-Z]{2,3}$/.test(teamName)) {
                         console.log(`⚠️ Skipping invalid team name at row ${i}: "${teamName}"`);
                         continue; // Skip but don't stop
                     }
@@ -8696,6 +8699,9 @@
                 if (teams.length === 0) {
                     throw new Error('No team data found');
                 }
+                
+                // Sort teams alphabetically
+                teams.sort((a, b) => a.team.localeCompare(b.team));
                 
                 leagueFinancesData = teams;
                 leagueFinancesLastUpdate = new Date();
