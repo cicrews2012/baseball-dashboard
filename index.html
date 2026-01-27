@@ -1448,6 +1448,13 @@
             <div class="research-section">
                 <h2 style="margin-bottom: 20px;">🔬 Research Any Player</h2>
                 <p style="color: #94a3b8; margin-bottom: 20px;">Look up any player in the MLB database - perfect for waiver wire research and trade targets</p>
+                
+                <!-- Debug Button -->
+                <button onclick="console.log('🐛 DEBUG STATE:', {playersCount: players?.length, contractsCount: playerContractsData ? Object.keys(playerContractsData).length : 0, samplePlayerName: players?.[0]?.name, samplePlayerContract: players?.[0]?.contract, contractsExample: playerContractsData ? Object.keys(playerContractsData).slice(0, 3) : []})" 
+                        style="margin-bottom: 10px; padding: 5px 10px; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.5); color: #a855f7; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">
+                    🐛 Debug Contracts
+                </button>
+                
                 <div class="research-input-row">
                     <input type="text" class="research-input" id="researchInput" 
                            placeholder="Enter player name (e.g., Paul Skenes, Jackson Holliday)"
@@ -4886,13 +4893,25 @@
             await fetchPlayerStatsWithDemo(researchPlayer);
             
             // Check if this player exists in roster and attach contract data
+            console.log(`🔍 Checking for ${researchPlayer.name} in roster...`);
+            console.log(`  Players loaded: ${players ? players.length : 0}`);
+            console.log(`  Contracts loaded: ${playerContractsData ? Object.keys(playerContractsData).length : 0}`);
+            
             if (players && players.length > 0) {
                 const rosterPlayer = players.find(p => 
                     p.name.toLowerCase() === researchPlayer.name.toLowerCase()
                 );
-                if (rosterPlayer && rosterPlayer.contract) {
-                    researchPlayer.contract = rosterPlayer.contract;
-                    console.log(`💰 Attached contract data for ${researchPlayer.name}`);
+                console.log(`  Roster player found: ${rosterPlayer ? 'YES' : 'NO'}`);
+                if (rosterPlayer) {
+                    console.log(`  Has contract: ${rosterPlayer.contract ? 'YES' : 'NO'}`);
+                    if (rosterPlayer.contract) {
+                        researchPlayer.contract = rosterPlayer.contract;
+                        console.log(`💰 Attached contract data for ${researchPlayer.name}`);
+                    } else {
+                        console.log(`⚠️ ${researchPlayer.name} in roster but no contract data`);
+                    }
+                } else {
+                    console.log(`⚠️ ${researchPlayer.name} not found in roster`);
                 }
             }
             
