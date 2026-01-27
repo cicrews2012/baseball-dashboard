@@ -1235,7 +1235,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.2 - Contract Name Matching Fix</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.3 - Strict Name Verification</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -2034,7 +2034,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.2 - Contract Name Matching Fix 🔧 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.3 - Strict Name Verification ⚠️ (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 CRITICAL FIX: Cached MLB IDs were using partial name matches</li>
+                            <li>✅ Now requires EXACT name match for cached ID verification</li>
+                            <li>🔍 Prevents wrong players from showing (e.g., "A.J. Ewing" instead of "Lake Bachar")</li>
+                            <li>🗑️ Bad cached IDs will be automatically re-searched and corrected</li>
+                            <li>⚡ May see slower initial load as bad cache entries are fixed</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.1.2 - Contract Name Matching Fix 🔧</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 CRITICAL FIX: Contract merging was failing due to name format mismatch</li>
                             <li>✅ Now handles "Last, First" (roster) vs "First Last" (contracts)</li>
@@ -5915,10 +5926,8 @@
                                 ? `${player.name.split(',')[1].trim()} ${player.name.split(',')[0].trim()}`.toLowerCase()
                                 : player.name.toLowerCase();
                             
-                            // Check if names match (allow for slight variations)
-                            const namesMatch = cachedName === searchName || 
-                                               cachedName.includes(searchName) || 
-                                               searchName.includes(cachedName);
+                            // STRICT: Only accept EXACT name match (no partial matches!)
+                            const namesMatch = cachedName === searchName;
                             
                             if (!namesMatch) {
                                 console.warn(`⚠️ Cached ID ${playerId} name mismatch: "${cachedName}" vs "${searchName}" - re-searching`);
