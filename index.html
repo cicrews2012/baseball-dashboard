@@ -1235,7 +1235,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.0.0 - PWA Release</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.10.2 - Validate Cached IDs</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1263,6 +1263,7 @@
                 <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
                 <button class="tab-btn" onclick="switchTab('composition')">📊 Roster Breakdown</button>
                 <button class="tab-btn" onclick="switchTab('capplanning')">💰 Cap Planning</button>
+                <button class="tab-btn" onclick="switchTab('finances')">💵 League Finances</button>
                 <button class="tab-btn" onclick="switchTab('trade')">🔄 Trade Analyzer</button>
                 <button class="tab-btn" onclick="switchTab('rules')">📖 League Rules</button>
                 
@@ -1645,6 +1646,85 @@
             </div>
         </div>
 
+        <div class="tab-content" id="financesTab">
+            <div class="research-section">
+                <h2 style="margin-bottom: 10px;">💵 League Financial Dashboard</h2>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Real-time salary cap and contract data for all MBL teams, synced from Google Sheets</p>
+                
+                <!-- Sync Status -->
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span id="financesStatus" style="color: #94a3b8;">📊 Status: <span style="color: #fcd34d;">Loading...</span></span>
+                            <span id="financesLastUpdate" style="color: #64748b; margin-left: 20px; font-size: 0.875rem;"></span>
+                        </div>
+                        <button class="upload-btn" onclick="loadLeagueFinances(true)" style="padding: 8px 20px;">
+                            🔄 Refresh Data
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+                    <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                        <div style="color: #22c55e; font-size: 0.875rem; margin-bottom: 5px;">💰 Salary Cap</div>
+                        <div style="font-size: 1.75rem; font-weight: 600;">$244M</div>
+                    </div>
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                        <div style="color: #60a5fa; font-size: 0.875rem; margin-bottom: 5px;">📊 Avg Payroll</div>
+                        <div id="avgPayroll" style="font-size: 1.75rem; font-weight: 600;">-</div>
+                    </div>
+                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                        <div style="color: #a855f7; font-size: 0.875rem; margin-bottom: 5px;">🏆 Most Cap Space</div>
+                        <div id="mostCapSpace" style="font-size: 1.75rem; font-weight: 600;">-</div>
+                    </div>
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                        <div style="color: #ef4444; font-size: 0.875rem; margin-bottom: 5px;">💸 Highest Payroll</div>
+                        <div id="highestPayroll" style="font-size: 1.75rem; font-weight: 600;">-</div>
+                    </div>
+                </div>
+                
+                <!-- Controls -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px;">
+                        <select id="financesSortBy" class="filter-select" style="width: 200px;" onchange="renderFinancesTable()">
+                            <option value="capSpace">Sort by Cap Space</option>
+                            <option value="payroll">Sort by Payroll</option>
+                            <option value="team">Sort by Team</option>
+                            <option value="2027">Sort by 2027 Commitments</option>
+                            <option value="2028">Sort by 2028 Commitments</option>
+                        </select>
+                        <input type="text" id="financesSearch" class="filter-select" placeholder="🔍 Search teams..." style="width: 250px;" oninput="renderFinancesTable()">
+                    </div>
+                </div>
+                
+                <!-- Teams Table -->
+                <div id="financesTableContainer" style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: rgba(59, 130, 246, 0.2); border-bottom: 2px solid rgba(59, 130, 246, 0.3);">
+                                <th style="padding: 15px; text-align: left; color: #60a5fa; font-weight: 600;">Team</th>
+                                <th style="padding: 15px; text-align: right; color: #22c55e; font-weight: 600;">Cap Space</th>
+                                <th style="padding: 15px; text-align: right; color: #ef4444; font-weight: 600;">2026 Payroll</th>
+                                <th style="padding: 15px; text-align: right; color: #94a3b8; font-weight: 600;">2027</th>
+                                <th style="padding: 15px; text-align: right; color: #94a3b8; font-weight: 600;">2028</th>
+                                <th style="padding: 15px; text-align: right; color: #94a3b8; font-weight: 600;">2029</th>
+                                <th style="padding: 15px; text-align: center; color: #a855f7; font-weight: 600;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financesTableBody">
+                            <tr>
+                                <td colspan="7" style="padding: 40px; text-align: center; color: #64748b;">
+                                    <div style="font-size: 3rem; margin-bottom: 10px;">📊</div>
+                                    <p>Loading financial data...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div class="tab-content" id="compositionTab">
             <div class="research-section">
                 <h2 style="margin-bottom: 10px;">📊 Roster Composition Dashboard</h2>
@@ -1947,21 +2027,7 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.0.0 - PWA Release 🎉 (Current)
-                    </h4>
-                    <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
-                        <li>📱 Full Progressive Web App support!</li>
-                        <li>⚡ Install to home screen like a native app</li>
-                        <li>💾 Independent cache - separate from Safari</li>
-                        <li>🔄 Offline support - works without connection</li>
-                        <li>🎨 Full-screen app experience (no browser UI)</li>
-                        <li>📊 More reliable data persistence</li>
-                        <li>🚀 Better performance and stability</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.10.2 - Validate Cached MLB IDs</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.10.2 - Validate Cached MLB IDs (Current)</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 MAJOR FIX: Cached MLB IDs were never validated</li>
                             <li>✅ Now verifies cached ID matches player name before using</li>
@@ -4669,6 +4735,7 @@
             document.getElementById('watchlistTab').classList.remove('active');
             document.getElementById('prospectsTab').classList.remove('active');
             document.getElementById('tradeTab').classList.remove('active');
+            document.getElementById('financesTab').classList.remove('active');
             document.getElementById('compositionTab').classList.remove('active');
             document.getElementById('capPlanningTab').classList.remove('active');
             document.getElementById('rulesTab').classList.remove('active');
@@ -4697,6 +4764,12 @@
             } else if (tabName === 'trade') {
                 document.getElementById('tradeTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[4].classList.add('active');
+            } else if (tabName === 'finances') {
+                document.getElementById('financesTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[4].classList.add('active'); // This is now the 5th button (index 4)
+                if (!leagueFinancesData) {
+                    loadLeagueFinances(); // Load data when tab is first opened
+                }
             } else if (tabName === 'composition') {
                 document.getElementById('compositionTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[5].classList.add('active');
@@ -8507,6 +8580,173 @@
             `;
             
             document.getElementById('tradeAnalysisResults').innerHTML = html;
+        }
+        
+        // ========== LEAGUE FINANCES (Google Sheets Integration) ==========
+        
+        const GOOGLE_SHEETS_ID = '1hwLRMHkXWsfOyEx1OwC4S7nlN9KpD7rAl86Ftr1FYwY';
+        const SALARY_CAP = 244000000;
+        
+        let leagueFinancesData = null;
+        let leagueFinancesLastUpdate = null;
+        
+        // Fetch team salaries from Google Sheets
+        async function loadLeagueFinances(forceRefresh = false) {
+            console.log('💵 Loading league finances from Google Sheets...');
+            
+            const statusEl = document.getElementById('financesStatus');
+            if (statusEl) {
+                statusEl.innerHTML = '📊 Status: <span style="color: #fcd34d;">Loading...</span>';
+            }
+            
+            // Check cache first (unless force refresh)
+            if (!forceRefresh && leagueFinancesData) {
+                console.log('✅ Using cached finances data');
+                renderFinancesTable();
+                return;
+            }
+            
+            try {
+                // Fetch Team Salaries tab (gid=0 is usually the first sheet)
+                const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=0`;
+                const response = await fetch(csvUrl);
+                const csvText = await response.text();
+                
+                // Parse CSV
+                const lines = csvText.split('\n');
+                const teams = [];
+                
+                // Skip header rows (rows 1-2), start from row 3
+                for (let i = 2; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line || line.startsWith('Salary Cap') || line.startsWith('*')) continue;
+                    
+                    // Parse CSV line (handle commas in numbers)
+                    const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    if (!values || values.length < 3) continue;
+                    
+                    const team = values[0]?.replace(/"/g, '').trim();
+                    if (!team || team === 'Team') continue;
+                    
+                    // Parse numbers (remove commas and quotes)
+                    const parseNum = (val) => {
+                        if (!val) return 0;
+                        const cleaned = val.replace(/[$,"]/g, '').trim();
+                        return cleaned ? parseInt(cleaned) : 0;
+                    };
+                    
+                    teams.push({
+                        team: team,
+                        capSpace: parseNum(values[1]),
+                        payroll2026: parseNum(values[2]),
+                        payroll2027: parseNum(values[3]),
+                        payroll2028: parseNum(values[4]),
+                        payroll2029: parseNum(values[5]),
+                        payroll2030: parseNum(values[6]),
+                        payroll2031: parseNum(values[7])
+                    });
+                }
+                
+                leagueFinancesData = teams;
+                leagueFinancesLastUpdate = new Date();
+                
+                console.log(`✅ Loaded finances for ${teams.length} teams`);
+                
+                if (statusEl) {
+                    statusEl.innerHTML = '📊 Status: <span style="color: #22c55e;">Loaded</span>';
+                }
+                
+                const updateEl = document.getElementById('financesLastUpdate');
+                if (updateEl) {
+                    updateEl.textContent = `Last updated: ${leagueFinancesLastUpdate.toLocaleTimeString()}`;
+                }
+                
+                renderFinancesTable();
+                updateFinancesSummary();
+                
+            } catch (error) {
+                console.error('❌ Error loading finances:', error);
+                if (statusEl) {
+                    statusEl.innerHTML = '📊 Status: <span style="color: #ef4444;">Error - Check Sheet Permissions</span>';
+                }
+            }
+        }
+        
+        // Update summary cards
+        function updateFinancesSummary() {
+            if (!leagueFinancesData) return;
+            
+            const avgPayroll = leagueFinancesData.reduce((sum, t) => sum + t.payroll2026, 0) / leagueFinancesData.length;
+            const mostCapTeam = [...leagueFinancesData].sort((a, b) => b.capSpace - a.capSpace)[0];
+            const highestPayrollTeam = [...leagueFinancesData].sort((a, b) => b.payroll2026 - a.payroll2026)[0];
+            
+            document.getElementById('avgPayroll').textContent = formatCurrency(avgPayroll);
+            document.getElementById('mostCapSpace').textContent = mostCapTeam.team;
+            document.getElementById('highestPayroll').textContent = highestPayrollTeam.team;
+        }
+        
+        // Render finances table
+        function renderFinancesTable() {
+            if (!leagueFinancesData) return;
+            
+            const tbody = document.getElementById('financesTableBody');
+            const sortBy = document.getElementById('financesSortBy')?.value || 'capSpace';
+            const searchTerm = document.getElementById('financesSearch')?.value.toLowerCase() || '';
+            
+            // Filter teams
+            let filteredTeams = leagueFinancesData.filter(t => 
+                t.team.toLowerCase().includes(searchTerm)
+            );
+            
+            // Sort teams
+            filteredTeams.sort((a, b) => {
+                switch(sortBy) {
+                    case 'capSpace': return b.capSpace - a.capSpace;
+                    case 'payroll': return b.payroll2026 - a.payroll2026;
+                    case 'team': return a.team.localeCompare(b.team);
+                    case '2027': return b.payroll2027 - a.payroll2027;
+                    case '2028': return b.payroll2028 - a.payroll2028;
+                    default: return 0;
+                }
+            });
+            
+            // Render rows
+            tbody.innerHTML = filteredTeams.map(team => `
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                    <td style="padding: 15px; font-weight: 600;">${team.team}</td>
+                    <td style="padding: 15px; text-align: right; color: ${team.capSpace > 50000000 ? '#22c55e' : team.capSpace < 10000000 ? '#ef4444' : '#fcd34d'};">
+                        ${formatCurrency(team.capSpace)}
+                    </td>
+                    <td style="padding: 15px; text-align: right; color: ${team.payroll2026 > 200000000 ? '#ef4444' : '#cbd5e1'};">
+                        ${formatCurrency(team.payroll2026)}
+                    </td>
+                    <td style="padding: 15px; text-align: right; color: #94a3b8;">
+                        ${team.payroll2027 ? formatCurrency(team.payroll2027) : '-'}
+                    </td>
+                    <td style="padding: 15px; text-align: right; color: #94a3b8;">
+                        ${team.payroll2028 ? formatCurrency(team.payroll2028) : '-'}
+                    </td>
+                    <td style="padding: 15px; text-align: right; color: #94a3b8;">
+                        ${team.payroll2029 ? formatCurrency(team.payroll2029) : '-'}
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <button onclick="viewTeamDetails('${team.team}')" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #60a5fa; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.875rem;">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // View team details (placeholder for now)
+        function viewTeamDetails(teamName) {
+            alert(`Team details for ${teamName} coming soon!\n\nThis will show:\n- Full roster with salaries\n- Contract details\n- Future commitments\n- Arbitration eligible players`);
+        }
+        
+        // Helper function to format currency
+        function formatCurrency(amount) {
+            if (!amount) return '$0';
+            return '$' + (amount / 1000000).toFixed(1) + 'M';
         }
         
         // ========== NEW TRADE ANALYZER (Team-to-Team) ==========
