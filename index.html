@@ -8607,12 +8607,34 @@
             }
             
             try {
-                // Fetch Team Salaries tab - try gid=0 first
-                const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=0`;
-                console.log('📥 Fetching from:', csvUrl);
+                // Try to find the Team Salaries tab by trying different gids
+                // gid=0 might be Master tab, so let's try a few
+                let csvText = null;
+                let foundTab = false;
                 
-                const response = await fetch(csvUrl);
-                const csvText = await response.text();
+                for (let gid of [0, 1, 2, 3]) {
+                    const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=${gid}`;
+                    console.log(`📥 Trying gid=${gid}:`, csvUrl);
+                    
+                    const response = await fetch(csvUrl);
+                    const text = await response.text();
+                    
+                    // Check if this looks like Team Salaries tab
+                    const firstLine = text.split('\n')[0].toLowerCase();
+                    console.log(`   First line (gid=${gid}):`, firstLine.substring(0, 100));
+                    
+                    if (firstLine.includes('remaining salary cap space') || 
+                        (firstLine.includes('team') && firstLine.includes('commitments'))) {
+                        console.log(`✅ Found Team Salaries tab at gid=${gid}`);
+                        csvText = text;
+                        foundTab = true;
+                        break;
+                    }
+                }
+                
+                if (!foundTab || !csvText) {
+                    throw new Error('Could not find Team Salaries tab in first 4 sheets');
+                }
                 
                 console.log('📄 CSV Preview (first 500 chars):', csvText.substring(0, 500));
                 
@@ -8623,22 +8645,23 @@
                 console.log('📋 Total lines in CSV:', lines.length);
                 console.log('📋 First 5 lines:', lines.slice(0, 5));
                 
-                // Find header row (should have "Team" and "Remaining Salary Cap Space")
-                let headerRowIndex = -1;
+                // Find header row - should have "Team" in first column
+                let dataStartRow = -1;
                 for (let i = 0; i < Math.min(10, lines.length); i++) {
-                    if (lines[i].toLowerCase().includes('team') && lines[i].toLowerCase().includes('remaining')) {
-                        headerRowIndex = i;
-                        console.log(`✅ Found header at row ${i}:`, lines[i]);
+                    const line = lines[i].toLowerCase();
+                    if (line.startsWith('team,') || line.startsWith(',team,')) {
+                        dataStartRow = i + 1; // Data starts on next row
+                        console.log(`✅ Found header at row ${i}, data starts at row ${dataStartRow}`);
                         break;
                     }
                 }
                 
-                if (headerRowIndex === -1) {
-                    throw new Error('Could not find Team Salaries header row. Wrong tab?');
+                if (dataStartRow === -1) {
+                    throw new Error('Could not find Team header row');
                 }
                 
-                // Parse data rows (start after header)
-                for (let i = headerRowIndex + 1; i < lines.length; i++) {
+                // Parse data rows
+                for (let i = dataStartRow; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
                     
@@ -8650,18 +8673,18 @@
                         break;
                     }
                     
-                    // Split by comma (simple approach - works if no commas in team names)
-                    const cells = line.split(',').map(c => c.trim());
+                    // Split by comma
+                    const cells = line.split(',').map(c => c.replace(/"/g, '').trim());
                     
-                    const teamName = cells[0]?.replace(/"/g, '').trim();
+                    const teamName = cells[0];
                     
                     // Validate it's a real team (3-letter code)
-                    if (!teamName || teamName.length !== 3) continue;
+                    if (!teamName || teamName.length !== 3 || teamName === 'Team') continue;
                     
-                    // Parse numbers (remove commas, dollar signs, quotes)
+                    // Parse numbers (remove commas, dollar signs)
                     const parseNum = (val) => {
                         if (!val) return 0;
-                        const cleaned = val.replace(/[$,"]/g, '').trim();
+                        const cleaned = val.replace(/[$,]/g, '').trim();
                         return cleaned ? parseInt(cleaned) : 0;
                     };
                     
