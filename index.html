@@ -8590,7 +8590,7 @@
         let leagueFinancesData = null;
         let leagueFinancesLastUpdate = null;
         
-        // Fetch team salaries from Google Sheets
+        // Fetch team salaries from Google Sheets (using JSON API)
         async function loadLeagueFinances(forceRefresh = false) {
             console.log('💵 Loading league finances from Google Sheets...');
             
@@ -8607,107 +8607,79 @@
             }
             
             try {
-                // Try to find the Team Salaries tab by trying different gids
-                // gid=0 might be Master tab, so let's try a few
-                let csvText = null;
-                let foundTab = false;
+                // Use Google Sheets JSON API - reference by tab name!
+                const sheetName = 'Team Salaries';
+                const range = 'A1:H35'; // Get header + 30 teams + footer
+                const jsonUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${range}`;
                 
-                for (let gid of [0, 1, 2, 3]) {
-                    const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/export?format=csv&gid=${gid}`;
-                    console.log(`📥 Trying gid=${gid}:`, csvUrl);
-                    
-                    const response = await fetch(csvUrl);
-                    const text = await response.text();
-                    
-                    // Check if this looks like Team Salaries tab
-                    const firstLine = text.split('\n')[0].toLowerCase();
-                    console.log(`   First line (gid=${gid}):`, firstLine.substring(0, 100));
-                    
-                    if (firstLine.includes('remaining salary cap space') || 
-                        (firstLine.includes('team') && firstLine.includes('commitments'))) {
-                        console.log(`✅ Found Team Salaries tab at gid=${gid}`);
-                        csvText = text;
-                        foundTab = true;
-                        break;
-                    }
+                console.log('📥 Fetching from JSON API:', jsonUrl);
+                
+                const response = await fetch(jsonUrl);
+                const text = await response.text();
+                
+                // Google returns JSONP, need to extract JSON
+                const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const data = JSON.parse(jsonText);
+                
+                console.log('📊 Parsed JSON data:', data);
+                
+                if (!data.table || !data.table.rows) {
+                    throw new Error('Invalid data structure from Google Sheets');
                 }
                 
-                if (!foundTab || !csvText) {
-                    throw new Error('Could not find Team Salaries tab in first 4 sheets');
-                }
-                
-                console.log('📄 CSV Preview (first 500 chars):', csvText.substring(0, 500));
-                
-                // Parse CSV
-                const lines = csvText.split('\n');
+                const rows = data.table.rows;
                 const teams = [];
                 
-                console.log('📋 Total lines in CSV:', lines.length);
-                console.log('📋 First 5 lines:', lines.slice(0, 5));
+                console.log(`📋 Total rows: ${rows.length}`);
                 
-                // Find header row - should have "Team" in first column
-                let dataStartRow = -1;
-                for (let i = 0; i < Math.min(10, lines.length); i++) {
-                    const line = lines[i].toLowerCase();
-                    if (line.startsWith('team,') || line.startsWith(',team,')) {
-                        dataStartRow = i + 1; // Data starts on next row
-                        console.log(`✅ Found header at row ${i}, data starts at row ${dataStartRow}`);
+                // Find where data starts (skip header rows)
+                let dataStartIndex = -1;
+                for (let i = 0; i < rows.length; i++) {
+                    const firstCell = rows[i].c[0]?.v;
+                    if (firstCell && typeof firstCell === 'string' && firstCell.length === 3 && firstCell !== 'Team') {
+                        dataStartIndex = i;
+                        console.log(`✅ Data starts at row ${i} with team: ${firstCell}`);
                         break;
                     }
                 }
                 
-                if (dataStartRow === -1) {
-                    throw new Error('Could not find Team header row');
+                if (dataStartIndex === -1) {
+                    throw new Error('Could not find team data rows');
                 }
                 
-                // Parse data rows
-                for (let i = dataStartRow; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
+                // Parse team rows
+                for (let i = dataStartIndex; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (!row.c) continue;
                     
-                    // Stop at footer rows
-                    if (line.toLowerCase().includes('salary cap') || 
-                        line.startsWith('*') || 
-                        line.toLowerCase().includes('updated:')) {
-                        console.log('📍 Stopped at footer row:', line.substring(0, 50));
+                    const cells = row.c;
+                    const teamName = cells[0]?.v;
+                    
+                    // Stop at footer or invalid rows
+                    if (!teamName || typeof teamName !== 'string' || teamName.length !== 3) {
+                        console.log(`📍 Stopped at row ${i}`);
                         break;
                     }
-                    
-                    // Split by comma
-                    const cells = line.split(',').map(c => c.replace(/"/g, '').trim());
-                    
-                    const teamName = cells[0];
-                    
-                    // Validate it's a real team (3-letter code)
-                    if (!teamName || teamName.length !== 3 || teamName === 'Team') continue;
-                    
-                    // Parse numbers (remove commas, dollar signs)
-                    const parseNum = (val) => {
-                        if (!val) return 0;
-                        const cleaned = val.replace(/[$,]/g, '').trim();
-                        return cleaned ? parseInt(cleaned) : 0;
-                    };
                     
                     const teamData = {
                         team: teamName,
-                        capSpace: parseNum(cells[1]),
-                        payroll2026: parseNum(cells[2]),
-                        payroll2027: parseNum(cells[3]),
-                        payroll2028: parseNum(cells[4]),
-                        payroll2029: parseNum(cells[5]),
-                        payroll2030: parseNum(cells[6]),
-                        payroll2031: parseNum(cells[7])
+                        capSpace: cells[1]?.v || 0,
+                        payroll2026: cells[2]?.v || 0,
+                        payroll2027: cells[3]?.v || 0,
+                        payroll2028: cells[4]?.v || 0,
+                        payroll2029: cells[5]?.v || 0,
+                        payroll2030: cells[6]?.v || 0,
+                        payroll2031: cells[7]?.v || 0
                     };
                     
                     console.log(`✅ Parsed team ${teamName}:`, teamData);
                     teams.push(teamData);
                     
-                    // Safety: stop after 30 teams
                     if (teams.length >= 30) break;
                 }
                 
                 if (teams.length === 0) {
-                    throw new Error('No team data found. Check CSV format.');
+                    throw new Error('No team data found');
                 }
                 
                 leagueFinancesData = teams;
