@@ -1235,7 +1235,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.1 - Player Contracts (Unified)</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.2 - Contract Name Matching Fix</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -2034,7 +2034,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.1 - Player Contracts (Unified) ✅ (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.2 - Contract Name Matching Fix 🔧 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 CRITICAL FIX: Contract merging was failing due to name format mismatch</li>
+                            <li>✅ Now handles "Last, First" (roster) vs "First Last" (contracts)</li>
+                            <li>🔍 Enhanced debugging - shows merge count and sample data</li>
+                            <li>💰 Contracts now actually appear on player cards!</li>
+                            <li>🎯 Name normalization ensures consistent matching</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.1.1 - Player Contracts (Unified) ✅</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🎯 Unified player card display across all tabs</li>
                             <li>💰 Contracts now show in Player Lookup tab</li>
@@ -4898,11 +4909,24 @@
             console.log(`  Contracts loaded: ${playerContractsData ? Object.keys(playerContractsData).length : 0}`);
             
             if (players && players.length > 0) {
-                const rosterPlayer = players.find(p => 
-                    p.name.toLowerCase() === researchPlayer.name.toLowerCase()
-                );
+                // Normalize name for matching (handle "Last, First" vs "First Last")
+                const normalizeName = (name) => {
+                    if (!name) return '';
+                    name = name.trim();
+                    // If "Last, First" format, convert to "First Last"
+                    if (name.includes(',')) {
+                        const parts = name.split(',').map(p => p.trim());
+                        name = `${parts[1]} ${parts[0]}`;
+                    }
+                    return name.toLowerCase();
+                };
+                
+                const searchName = normalizeName(researchPlayer.name);
+                const rosterPlayer = players.find(p => normalizeName(p.name) === searchName);
+                
                 console.log(`  Roster player found: ${rosterPlayer ? 'YES' : 'NO'}`);
                 if (rosterPlayer) {
+                    console.log(`  Roster name: "${rosterPlayer.name}"`);
                     console.log(`  Has contract: ${rosterPlayer.contract ? 'YES' : 'NO'}`);
                     if (rosterPlayer.contract) {
                         researchPlayer.contract = rosterPlayer.contract;
@@ -8772,10 +8796,34 @@
             }
             
             console.log('🔗 Merging player contracts with roster...');
+            
+            // Helper to normalize names for matching
+            const normalizeName = (name) => {
+                if (!name) return '';
+                name = name.trim();
+                
+                // If "Last, First" format, convert to "First Last"
+                if (name.includes(',')) {
+                    const parts = name.split(',').map(p => p.trim());
+                    name = `${parts[1]} ${parts[0]}`;
+                }
+                
+                return name.toLowerCase();
+            };
+            
+            // Create a map of normalized names to contract data
+            const contractsByNormalizedName = {};
+            for (const [contractName, contractData] of Object.entries(playerContractsData)) {
+                const normalizedName = normalizeName(contractName);
+                contractsByNormalizedName[normalizedName] = contractData;
+            }
+            
             let matchCount = 0;
             
             for (const player of players) {
-                const contract = playerContractsData[player.name];
+                const normalizedPlayerName = normalizeName(player.name);
+                const contract = contractsByNormalizedName[normalizedPlayerName];
+                
                 if (contract) {
                     player.contract = contract;
                     matchCount++;
