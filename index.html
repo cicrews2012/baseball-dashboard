@@ -1235,7 +1235,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.0 - Player Contracts</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.1 - Player Contracts (Unified)</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -2027,7 +2027,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.0 - Player Contracts Integration 💰 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.1 - Player Contracts (Unified) ✅ (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🎯 Unified player card display across all tabs</li>
+                            <li>💰 Contracts now show in Player Lookup tab</li>
+                            <li>🔄 Auto-merge contracts when roster loaded/refreshed</li>
+                            <li>✅ Consistent experience: Roster, Lookup, Finances all show same data</li>
+                            <li>🐛 Fixed: Player Lookup pulls contract from roster if available</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.1.0 - Player Contracts Integration 💰</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>💵 New League Finances dashboard with all 30 teams</li>
                             <li>📊 Real-time Google Sheets sync - always up-to-date</li>
@@ -4366,6 +4377,11 @@
                 // Update players array
                 players = rosterPlayers;
                 
+                // Merge contract data if available
+                if (playerContractsData) {
+                    mergePlayerContracts();
+                }
+                
                 // Populate team selector
                 populateTeamSelector(league);
                 
@@ -4425,6 +4441,11 @@
                 console.log(`✅ Loaded ${rosterPlayers.length} players from cache`);
                 
                 players = rosterPlayers;
+                
+                // Merge contract data if available
+                if (playerContractsData) {
+                    mergePlayerContracts();
+                }
                 
                 // Extract unique teams
                 fantraxTeams = [...new Set(rosterPlayers.map(p => p.fantraxTeam || p.team))];
@@ -4863,6 +4884,17 @@
             };
 
             await fetchPlayerStatsWithDemo(researchPlayer);
+            
+            // Check if this player exists in roster and attach contract data
+            if (players && players.length > 0) {
+                const rosterPlayer = players.find(p => 
+                    p.name.toLowerCase() === researchPlayer.name.toLowerCase()
+                );
+                if (rosterPlayer && rosterPlayer.contract) {
+                    researchPlayer.contract = rosterPlayer.contract;
+                    console.log(`💰 Attached contract data for ${researchPlayer.name}`);
+                }
+            }
             
             if (researchPlayer.stats && researchPlayer.stats.error) {
                 resultsDiv.innerHTML = `
