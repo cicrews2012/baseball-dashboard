@@ -4768,7 +4768,14 @@
                 document.getElementById('financesTab').classList.add('active');
                 document.querySelectorAll('.tab-btn')[4].classList.add('active'); // This is now the 5th button (index 4)
                 if (!leagueFinancesData) {
-                    loadLeagueFinances(); // Load data when tab is first opened
+                    loadLeagueFinances(); // Load team finances
+                }
+                if (!playerContractsData) {
+                    loadPlayerContracts().then(() => {
+                        if (players && players.length > 0) {
+                            mergePlayerContracts(); // Merge with roster if loaded
+                        }
+                    });
                 }
             } else if (tabName === 'composition') {
                 document.getElementById('compositionTab').classList.add('active');
@@ -5010,6 +5017,9 @@
             }
             
             // Notes and Tags section
+            // Contract details (if available)
+            html += getPlayerContractHTML(player);
+            
             html += `
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
                     <h4 style="color: #a855f7; margin-bottom: 10px;">📝 Notes & Tags</h4>
@@ -8589,6 +8599,166 @@
         
         let leagueFinancesData = null;
         let leagueFinancesLastUpdate = null;
+        let playerContractsData = null; // Player-by-player contracts
+        
+        // Fetch player contracts from Master tab
+        async function loadPlayerContracts(forceRefresh = false) {
+            console.log('💰 Loading player contracts from Google Sheets...');
+            
+            // Check cache first
+            if (!forceRefresh && playerContractsData) {
+                console.log('✅ Using cached player contracts');
+                return playerContractsData;
+            }
+            
+            try {
+                const sheetName = 'Master';
+                const range = 'A1:L2000'; // Get enough rows for all players
+                const jsonUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${range}`;
+                
+                console.log('📥 Fetching player contracts from Master tab...');
+                
+                const response = await fetch(jsonUrl);
+                const text = await response.text();
+                const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const data = JSON.parse(jsonText);
+                
+                if (!data.table || !data.table.rows) {
+                    throw new Error('Invalid data structure from Master tab');
+                }
+                
+                const rows = data.table.rows;
+                const contracts = {};
+                
+                console.log(`📋 Processing ${rows.length} rows from Master tab`);
+                
+                // Find header row to identify column positions
+                let headerRow = -1;
+                for (let i = 0; i < Math.min(5, rows.length); i++) {
+                    const firstCell = rows[i].c[1]?.v; // Column B should be "Player"
+                    if (firstCell && typeof firstCell === 'string' && firstCell.toLowerCase() === 'player') {
+                        headerRow = i;
+                        console.log(`✅ Found header at row ${i}`);
+                        break;
+                    }
+                }
+                
+                if (headerRow === -1) {
+                    throw new Error('Could not find header row in Master tab');
+                }
+                
+                // Parse player rows (start after header)
+                let playerCount = 0;
+                for (let i = headerRow + 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (!row.c) continue;
+                    
+                    const cells = row.c;
+                    const playerName = cells[1]?.v; // Column B: Player
+                    const team = cells[4]?.v; // Column E: Team
+                    
+                    if (!playerName || !team) continue; // Skip empty rows
+                    
+                    // Get salary data (columns G-L: 2026-2031)
+                    const contract = {
+                        name: playerName,
+                        team: team,
+                        position: cells[5]?.v || '', // Column F: Position
+                        salary2026: cells[6]?.v || 0, // Column G: 2026
+                        salary2027: cells[7]?.v || '', // Column H: 2027
+                        salary2028: cells[8]?.v || '', // Column I: 2028
+                        salary2029: cells[9]?.v || '', // Column J: 2029
+                        salary2030: cells[10]?.v || '', // Column K: 2030
+                        salary2031: cells[11]?.v || ''  // Column L: 2031
+                    };
+                    
+                    contracts[playerName] = contract;
+                    playerCount++;
+                    
+                    if (playerCount % 100 === 0) {
+                        console.log(`   Processed ${playerCount} players...`);
+                    }
+                }
+                
+                playerContractsData = contracts;
+                console.log(`✅ Loaded contracts for ${playerCount} players`);
+                
+                return contracts;
+                
+            } catch (error) {
+                console.error('❌ Error loading player contracts:', error);
+                return null;
+            }
+        }
+        
+        // Merge contracts into roster players
+        function mergePlayerContracts() {
+            if (!playerContractsData || !players || players.length === 0) {
+                console.log('⚠️ Cannot merge contracts - data not ready');
+                return;
+            }
+            
+            console.log('🔗 Merging player contracts with roster...');
+            let matchCount = 0;
+            
+            for (const player of players) {
+                const contract = playerContractsData[player.name];
+                if (contract) {
+                    player.contract = contract;
+                    matchCount++;
+                }
+            }
+            
+            console.log(`✅ Merged contracts for ${matchCount}/${players.length} players`);
+        }
+        
+        // Format salary value (handles numbers, "ARB1", "TC", "FA", etc.)
+        function formatSalaryValue(value) {
+            if (!value) return '-';
+            if (typeof value === 'number') {
+                return '$' + (value / 1000000).toFixed(1) + 'M';
+            }
+            // Return service status as-is (ARB1, TC, FA, etc.)
+            return value;
+        }
+        
+        // Generate contract HTML for player cards
+        function getPlayerContractHTML(player) {
+            if (!player.contract) return '';
+            
+            const c = player.contract;
+            return `
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4 style="color: #22c55e; margin-bottom: 10px;">💰 Contract Details</h4>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 8px;">
+                        <div style="text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.75rem;">2026</div>
+                            <div style="font-weight: 600;">${formatSalaryValue(c.salary2026)}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.75rem;">2027</div>
+                            <div style="font-weight: 600;">${formatSalaryValue(c.salary2027)}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.75rem;">2028</div>
+                            <div style="font-weight: 600;">${formatSalaryValue(c.salary2028)}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.75rem;">2029</div>
+                            <div style="font-weight: 600;">${formatSalaryValue(c.salary2029)}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.75rem;">2030</div>
+                            <div style="font-weight: 600;">${formatSalaryValue(c.salary2030)}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #94a3b8; font-size: 0.75rem;">2031</div>
+                            <div style="font-weight: 600;">${formatSalaryValue(c.salary2031)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
         
         // Fetch team salaries from Google Sheets (using JSON API)
         async function loadLeagueFinances(forceRefresh = false) {
