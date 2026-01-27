@@ -6,7 +6,20 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Prospect Scouting Dashboard</title>
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Dynasty league fantasy baseball management dashboard with prospect scouting, roster analysis, and trade tools">
+    <title>Baseball Dashboard - Dynasty League Manager</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
     
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1222,7 +1235,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v4.10.2 - Validate Cached IDs</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.0.0 - PWA Release</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1934,7 +1947,21 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v4.10.2 - Validate Cached MLB IDs (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.0.0 - PWA Release 🎉 (Current)
+                    </h4>
+                    <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                        <li>📱 Full Progressive Web App support!</li>
+                        <li>⚡ Install to home screen like a native app</li>
+                        <li>💾 Independent cache - separate from Safari</li>
+                        <li>🔄 Offline support - works without connection</li>
+                        <li>🎨 Full-screen app experience (no browser UI)</li>
+                        <li>📊 More reliable data persistence</li>
+                        <li>🚀 Better performance and stability</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #60a5fa; margin-bottom: 8px;">v4.10.2 - Validate Cached MLB IDs</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 MAJOR FIX: Cached MLB IDs were never validated</li>
                             <li>✅ Now verifies cached ID matches player name before using</li>
@@ -8761,6 +8788,19 @@
                 closeDropPenalty();
             }
         });
+        
+        // ========== PWA SERVICE WORKER REGISTRATION ==========
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('✅ PWA: Service Worker registered successfully');
+                    })
+                    .catch(error => {
+                        console.log('⚠️ PWA: Service Worker registration failed:', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
