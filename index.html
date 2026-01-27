@@ -1235,7 +1235,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.4 - Stable Player IDs</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.5 - Safe ID Handling</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -2034,7 +2034,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.4 - Stable Player IDs 🎯 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.5 - Safe ID Handling 🛡️ (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 CRITICAL FIX: JavaScript syntax errors when clicking player cards</li>
+                            <li>✅ Fantrax IDs sanitized for safe use in HTML attributes</li>
+                            <li>🔧 Special characters in IDs no longer break onclick handlers</li>
+                            <li>🎯 Player cards now clickable regardless of ID format</li>
+                            <li>🛡️ Robust handling of hyphens, quotes, spaces in IDs</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.1.4 - Stable Player IDs 🎯</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 CRITICAL FIX: Clicking roster players showed wrong player data</li>
                             <li>✅ Now uses Fantrax ID as stable player identifier</li>
@@ -2827,6 +2838,13 @@
         // ============================================
         let players = [];
         let selectedForComparison = new Set();
+        
+        // Sanitize player ID for safe use in HTML id attributes
+        function getSafeId(playerId) {
+            // Convert Fantrax ID to safe string for HTML attributes
+            // Replace any non-alphanumeric characters with underscore
+            return String(playerId).replace(/[^a-zA-Z0-9]/g, '_');
+        }
         let autocompleteTimeout;
         let selectedAutocompleteIndex = -1;
         let autocompleteResults = [];
@@ -5781,8 +5799,8 @@
             ` : '';
 
             card.innerHTML = `
-                <div class="player-header" onclick="toggleCard(${player.id})">
-                    <input type="checkbox" class="compare-checkbox" onclick="event.stopPropagation(); toggleCompare(${player.id})" 
+                <div class="player-header" data-player-id="${player.id}" onclick="toggleCard('${getSafeId(player.id)}')">
+                    <input type="checkbox" class="compare-checkbox" data-player-id="${player.id}" onclick="event.stopPropagation(); toggleCompare('${player.id}')" 
                            ${selectedForComparison.has(player.id) ? 'checked' : ''}>
                     <div class="player-name">${player.name}</div>
                     <div class="player-badges">
@@ -5806,8 +5824,8 @@
                     </div>
                     ${flagsHTML}
                 </div>
-                <div class="player-details" id="details-${player.id}">
-                    <div id="content-${player.id}"></div>
+                <div class="player-details" id="details-${getSafeId(player.id)}">
+                    <div id="content-${getSafeId(player.id)}"></div>
                 </div>
             `;
             return card;
@@ -5873,7 +5891,7 @@
         function createComparisonCard(player) {
             const div = document.createElement('div');
             div.className = 'player-card';
-            div.innerHTML = document.getElementById(`content-${player.id}`).innerHTML;
+            div.innerHTML = document.getElementById(`content-${getSafeId(player.id)}`).innerHTML;
             div.insertAdjacentHTML('afterbegin', `
                 <div style="padding: 20px; background: rgba(59, 130, 246, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
                     <h3 style="font-size: 1.5rem; margin-bottom: 10px;">${player.name}</h3>
@@ -5883,10 +5901,17 @@
             return div;
         }
 
-        async function toggleCard(id) {
-            const details = document.getElementById(`details-${id}`);
-            const content = document.getElementById(`content-${id}`);
-            const player = players.find(p => p.id === id);
+        async function toggleCard(safeId) {
+            const details = document.getElementById(`details-${safeId}`);
+            const content = document.getElementById(`content-${safeId}`);
+            
+            // Find player by matching safe ID
+            const player = players.find(p => getSafeId(p.id) === safeId);
+            
+            if (!player) {
+                console.error(`Player not found for safe ID: ${safeId}`);
+                return;
+            }
 
             if (details.classList.contains('expanded')) {
                 details.classList.remove('expanded');
@@ -5908,10 +5933,10 @@
                 content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading comprehensive player data...</p></div>';
                 await fetchPlayerStats(player);
                 player.statsVersion = STATS_VERSION; // Mark with current version
-                updatePlayerCard(id);
+                updatePlayerCard(safeId);
             } else {
                 // Stats already loaded and current, just re-render the content
-                updatePlayerCard(id);
+                updatePlayerCard(safeId);
             }
         }
 
@@ -6503,9 +6528,14 @@
             }
         }
 
-        function updatePlayerCard(id) {
-            const content = document.getElementById(`content-${id}`);
-            const player = players.find(p => p.id === id);
+        function updatePlayerCard(safeId) {
+            const content = document.getElementById(`content-${safeId}`);
+            const player = players.find(p => getSafeId(p.id) === safeId);
+            
+            if (!player) {
+                console.error(`Player not found for safe ID: ${safeId}`);
+                return;
+            }
 
             if (player.stats && player.stats.error) {
                 let errorHTML = `<div class="error-msg">${player.stats.error}`;
