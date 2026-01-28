@@ -5799,8 +5799,8 @@
             ` : '';
 
             card.innerHTML = `
-                <div class="player-header" data-player-id="${player.id}" onclick="toggleCard('${getSafeId(player.id)}')">
-                    <input type="checkbox" class="compare-checkbox" data-player-id="${player.id}" onclick="event.stopPropagation(); toggleCompare('${player.id}')" 
+                <div class="player-header" data-player-id="${player.id}" onclick="toggleCard('${getSafeId(player.id).replace(/'/g, "\\'")}')">
+                    <input type="checkbox" class="compare-checkbox" data-player-id="${player.id}" onclick="event.stopPropagation(); toggleCompare('${String(player.id).replace(/'/g, "\\'")}')"> 
                            ${selectedForComparison.has(player.id) ? 'checked' : ''}>
                     <div class="player-name">${player.name}</div>
                     <div class="player-badges">
