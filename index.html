@@ -1235,7 +1235,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.5 - Safe ID Handling</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.1.6 - Position Matching</p></p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -2034,7 +2034,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.5 - Safe ID Handling 🛡️ (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.1.6 - Position Matching 🎯 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 CRITICAL FIX: Wrong player shown for duplicate names (e.g., Luis Castillo)</li>
+                            <li>✅ Now matches by POSITION first when multiple players have same name</li>
+                            <li>🎯 Luis Castillo (OF) now correctly distinguished from Luis Castillo (P)</li>
+                            <li>🔧 Fixed spinning cards - missing variable reference</li>
+                            <li>⚡ Smart matching: Position → Exact name → Youngest</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.1.5 - Safe ID Handling 🛡️</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 CRITICAL FIX: JavaScript syntax errors when clicking player cards</li>
                             <li>✅ Fantrax IDs sanitized for safe use in HTML attributes</li>
@@ -6034,21 +6045,37 @@
                         }
                     }
 
-                    // If multiple matches, prefer the YOUNGEST player (more likely to be prospect)
-                    // and prefer exact name match
+                    // If multiple matches, use smart matching
                     if (searchData.people.length > 1) {
-                        console.log(`⚠️ Multiple matches for "${searchName}":`, searchData.people.map(p => `${p.fullName} (age ${p.currentAge})`));
+                        console.log(`⚠️ Multiple matches for "${searchName}":`, searchData.people.map(p => `${p.fullName} (age ${p.currentAge}, pos: ${p.primaryPosition?.abbreviation})`));
                         
-                        // First try exact name match
-                        const exactMatch = searchData.people.find(p => 
-                            p.fullName.toLowerCase() === searchName.toLowerCase()
-                        );
+                        // Strategy: Position match > Team match > Exact name > Youngest
                         
-                        if (exactMatch) {
-                            console.log(`✅ Using exact name match: ${exactMatch.fullName} (age ${exactMatch.currentAge})`);
-                            searchData.people = [exactMatch];
-                        } else {
-                            // Otherwise pick youngest player
+                        // 1. Try position match (if we know the player's position)
+                        if (player.position) {
+                            const posMatch = searchData.people.find(p => 
+                                p.primaryPosition?.abbreviation === player.position ||
+                                p.primaryPosition?.code === player.position
+                            );
+                            if (posMatch) {
+                                console.log(`✅ Using position match: ${posMatch.fullName} (${posMatch.primaryPosition?.abbreviation})`);
+                                searchData.people = [posMatch];
+                            }
+                        }
+                        
+                        // 2. If still multiple, try exact name match
+                        if (searchData.people.length > 1) {
+                            const exactMatch = searchData.people.find(p => 
+                                p.fullName.toLowerCase() === searchName.toLowerCase()
+                            );
+                            if (exactMatch) {
+                                console.log(`✅ Using exact name match: ${exactMatch.fullName} (age ${exactMatch.currentAge})`);
+                                searchData.people = [exactMatch];
+                            }
+                        }
+                        
+                        // 3. If still multiple, pick youngest (likely the prospect)
+                        if (searchData.people.length > 1) {
                             searchData.people.sort((a, b) => (a.currentAge || 99) - (b.currentAge || 99));
                             console.log(`✅ Using youngest match: ${searchData.people[0].fullName} (age ${searchData.people[0].currentAge})`);
                         }
@@ -6555,7 +6582,7 @@
                 return;
             }
 
-            updatePlayerCardContent(`${id}`, player);
+            updatePlayerCardContent(safeId, player);
         }
 
         function renderHitterStats(stats, isSeason) {
