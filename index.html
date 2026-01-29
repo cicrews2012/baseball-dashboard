@@ -5335,25 +5335,15 @@
             try {
                 await navigator.clipboard.writeText(contextMessage);
                 
-                // Show success feedback
-                const btn = event.target;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Copied!';
-                btn.style.background = 'rgba(34, 197, 94, 0.3)';
-                btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.background = 'rgba(168, 85, 247, 0.3)';
-                    btn.style.borderColor = 'rgba(168, 85, 247, 0.5)';
-                }, 2000);
-                
                 // Show instructions
                 showCopyInstructions();
                 
             } catch (error) {
                 console.error('Copy failed:', error);
-                alert('❌ Copy failed. Please try again or copy manually.');
+                alert('❌ Copy failed. Please try again or copy manually.\n\nThe message has been logged to console - you can copy it from there.');
+                console.log('=== COPY THIS MESSAGE ===');
+                console.log(contextMessage);
+                console.log('=== END MESSAGE ===');
             }
         }
         
