@@ -5417,13 +5417,51 @@
                 context += `## My Team: ${myTeamName}\n\n`;
                 context += `**My Roster Size:** ${myPlayers.length} players\n\n`;
                 
-                // Key contracts - only from MY players
+                // COMPLETE ROSTER - alphabetically by position
+                context += `**MY COMPLETE ROSTER:**\n`;
+                context += `(This is the definitive list - if a player is NOT in this list, they are on another team)\n\n`;
+                
+                const playersByPosition = {};
+                myPlayers.forEach(p => {
+                    const pos = p.position || 'Unknown';
+                    if (!playersByPosition[pos]) playersByPosition[pos] = [];
+                    playersByPosition[pos].push(p);
+                });
+                
+                // Sort positions
+                const posOrder = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UT', 'SP', 'RP', 'P'];
+                const sortedPositions = Object.keys(playersByPosition).sort((a, b) => {
+                    const aIdx = posOrder.indexOf(a);
+                    const bIdx = posOrder.indexOf(b);
+                    if (aIdx === -1 && bIdx === -1) return a.localeCompare(b);
+                    if (aIdx === -1) return 1;
+                    if (bIdx === -1) return -1;
+                    return aIdx - bIdx;
+                });
+                
+                sortedPositions.forEach(pos => {
+                    const posList = playersByPosition[pos].sort((a, b) => a.name.localeCompare(b.name));
+                    context += `\n**${pos} (${posList.length}):**\n`;
+                    posList.forEach(p => {
+                        let info = `- ${p.name}`;
+                        if (p.contract?.salary2026) {
+                            info += ` ($${(p.contract.salary2026/1000000).toFixed(1)}M)`;
+                        } else if (p.contract?.serviceStatus) {
+                            info += ` (${p.contract.serviceStatus})`;
+                        }
+                        if (p.age) info += ` [${p.age}]`;
+                        context += info + '\n';
+                    });
+                });
+                context += `\n`;
+                
+                // Summary of top contracts
                 const keyPlayers = myPlayers.filter(p => p.contract && p.contract.salary2026 > 10000000)
                     .sort((a, b) => (b.contract?.salary2026 || 0) - (a.contract?.salary2026 || 0))
                     .slice(0, 10);
                 
                 if (keyPlayers.length > 0) {
-                    context += `**My Top Contracts (2026):**\n`;
+                    context += `**Top 10 Highest Salaries (2026):**\n`;
                     keyPlayers.forEach(p => {
                         const salary = p.contract.salary2026;
                         const years = [];
@@ -5434,24 +5472,6 @@
                     });
                     context += `\n`;
                 }
-                
-                // Position breakdown - only MY players
-                const positionCounts = {};
-                myPlayers.forEach(p => {
-                    const pos = p.position || 'Unknown';
-                    positionCounts[pos] = (positionCounts[pos] || 0) + 1;
-                });
-                
-                context += `**My Roster Composition:**\n`;
-                Object.entries(positionCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .forEach(([pos, count]) => {
-                        context += `- ${pos}: ${count} players\n`;
-                    });
-                context += `\n`;
-                
-                // Add note about league-wide data
-                context += `**Note:** Full league roster data (all 30 teams, ${players.length} total players) is available in my dashboard but not included here to keep the message concise.\n\n`;
             }
             
             // Financial info
