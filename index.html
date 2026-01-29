@@ -5409,16 +5409,21 @@
             
             // Roster info
             if (players && players.length > 0) {
-                context += `## My Team: San Francisco Giants\n\n`;
-                context += `**Roster Size:** ${players.length} players\n\n`;
+                // Filter to only MY team's players
+                const league = LEAGUES[selectedFantraxLeague];
+                const myTeamName = league?.myTeam || "San Francisco Giants";
+                const myPlayers = players.filter(p => p.fantraxTeam === myTeamName);
                 
-                // Key contracts
-                const keyPlayers = players.filter(p => p.contract && p.contract.salary2026 > 10000000)
+                context += `## My Team: ${myTeamName}\n\n`;
+                context += `**My Roster Size:** ${myPlayers.length} players\n\n`;
+                
+                // Key contracts - only from MY players
+                const keyPlayers = myPlayers.filter(p => p.contract && p.contract.salary2026 > 10000000)
                     .sort((a, b) => (b.contract?.salary2026 || 0) - (a.contract?.salary2026 || 0))
                     .slice(0, 10);
                 
                 if (keyPlayers.length > 0) {
-                    context += `**Top Contracts (2026):**\n`;
+                    context += `**My Top Contracts (2026):**\n`;
                     keyPlayers.forEach(p => {
                         const salary = p.contract.salary2026;
                         const years = [];
@@ -5430,20 +5435,23 @@
                     context += `\n`;
                 }
                 
-                // Position breakdown
+                // Position breakdown - only MY players
                 const positionCounts = {};
-                players.forEach(p => {
+                myPlayers.forEach(p => {
                     const pos = p.position || 'Unknown';
                     positionCounts[pos] = (positionCounts[pos] || 0) + 1;
                 });
                 
-                context += `**Roster Composition:**\n`;
+                context += `**My Roster Composition:**\n`;
                 Object.entries(positionCounts)
                     .sort((a, b) => b[1] - a[1])
                     .forEach(([pos, count]) => {
                         context += `- ${pos}: ${count} players\n`;
                     });
                 context += `\n`;
+                
+                // Add note about league-wide data
+                context += `**Note:** Full league roster data (all 30 teams, ${players.length} total players) is available in my dashboard but not included here to keep the message concise.\n\n`;
             }
             
             // Financial info
@@ -5464,24 +5472,31 @@
             }
             
             // Data status
+            const league = LEAGUES[selectedFantraxLeague];
+            const myTeamName = league?.myTeam || "San Francisco Giants";
+            const myPlayers = players ? players.filter(p => p.fantraxTeam === myTeamName) : [];
+            
             context += `## Available Data\n`;
             if (players && players.length > 0) {
-                context += `✅ Full roster loaded (${players.length} players)\n`;
+                context += `✅ **League-wide roster:** ${players.length} total players across all 30 teams\n`;
+                context += `✅ **My roster (${myTeamName}):** ${myPlayers.length} players (shown above)\n`;
             }
             if (playerContractsData && Object.keys(playerContractsData).length > 0) {
-                context += `✅ Player contracts loaded (${Object.keys(playerContractsData).length} contracts)\n`;
+                context += `✅ **Player contracts:** ${Object.keys(playerContractsData).length} contracts league-wide\n`;
             }
             if (leagueFinancesData && leagueFinancesData.length > 0) {
-                context += `✅ League financials loaded (${leagueFinancesData.length} teams)\n`;
+                context += `✅ **League financials:** ${leagueFinancesData.length} teams\n`;
             }
-            context += `✅ MBL Constitution available in project files\n\n`;
+            context += `✅ **MBL Constitution:** Available in project files\n\n`;
+            
+            context += `**Important:** Players mentioned in my question who are NOT in my roster above belong to OTHER teams.\n\n`;
             
             context += `---\n\n`;
             context += `## My Question\n\n`;
             context += `${userQuestion}\n\n`;
             context += `---\n\n`;
             context += `Please help me evaluate this! Feel free to:\n`;
-            context += `- Research any players I mention using web search\n`;
+            context += `- **Research players** I mention using web search (especially if they're not on my roster)\n`;
             context += `- Check MBL rules for legality (reference the constitution)\n`;
             context += `- Suggest creative alternatives I might not have considered\n`;
             context += `- Point out cap space issues or roster problems\n`;
