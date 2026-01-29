@@ -5407,6 +5407,25 @@
             context += `  - Hitting: R, HR, RBI, SB, OBP, SLG\n`;
             context += `  - Pitching: K, QA4, SV+H, ERA, WHIP, K/BB\n\n`;
             
+            // Detect other teams mentioned in the question
+            const mlbTeams = [
+                'Diamondbacks', 'Braves', 'Orioles', 'Red Sox', 'Cubs', 'White Sox', 'Reds', 'Guardians', 'Indians',
+                'Rockies', 'Tigers', 'Astros', 'Royals', 'Angels', 'Dodgers', 'Marlins', 'Brewers', 'Twins',
+                'Mets', 'Yankees', 'Athletics', 'Phillies', 'Pirates', 'Padres', 'Giants', 'Mariners', 'Cardinals',
+                'Rays', 'Rangers', 'Blue Jays', 'Nationals', 'Arizona', 'Atlanta', 'Baltimore', 'Boston', 'Chicago',
+                'Cincinnati', 'Cleveland', 'Colorado', 'Detroit', 'Houston', 'Kansas City', 'Los Angeles', 'Miami',
+                'Milwaukee', 'Minnesota', 'New York', 'Oakland', 'Philadelphia', 'Pittsburgh', 'San Diego', 
+                'San Francisco', 'Seattle', 'St. Louis', 'Tampa Bay', 'Texas', 'Toronto', 'Washington'
+            ];
+            
+            const mentionedTeams = [];
+            const questionLower = userQuestion.toLowerCase();
+            mlbTeams.forEach(team => {
+                if (questionLower.includes(team.toLowerCase())) {
+                    mentionedTeams.push(team);
+                }
+            });
+            
             // Roster info
             if (players && players.length > 0) {
                 // Filter to only MY team's players
@@ -5471,6 +5490,72 @@
                         context += `- ${p.name} (${p.position}): $${(salary/1000000).toFixed(1)}M${yearsStr}\n`;
                     });
                     context += `\n`;
+                }
+                
+                // ADD OTHER TEAMS' ROSTERS IF MENTIONED
+                if (mentionedTeams.length > 0) {
+                    // Get unique team names from all players
+                    const allTeamNames = [...new Set(players.map(p => p.fantraxTeam))].filter(t => t && t !== myTeamName);
+                    
+                    // Find teams that match mentioned teams
+                    const teamsToInclude = allTeamNames.filter(teamName => {
+                        return mentionedTeams.some(mentioned => 
+                            teamName.toLowerCase().includes(mentioned.toLowerCase())
+                        );
+                    });
+                    
+                    if (teamsToInclude.length > 0) {
+                        context += `---\n\n`;
+                        context += `## Other Teams' Rosters (Mentioned in Question)\n\n`;
+                        
+                        teamsToInclude.forEach(otherTeam => {
+                            const otherPlayers = players.filter(p => p.fantraxTeam === otherTeam);
+                            
+                            context += `### ${otherTeam} Roster (${otherPlayers.length} players)\n\n`;
+                            
+                            const otherPlayersByPosition = {};
+                            otherPlayers.forEach(p => {
+                                const pos = p.position || 'Unknown';
+                                if (!otherPlayersByPosition[pos]) otherPlayersByPosition[pos] = [];
+                                otherPlayersByPosition[pos].push(p);
+                            });
+                            
+                            const posOrder = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UT', 'SP', 'RP', 'P'];
+                            const sortedPositions = Object.keys(otherPlayersByPosition).sort((a, b) => {
+                                const aIdx = posOrder.indexOf(a);
+                                const bIdx = posOrder.indexOf(b);
+                                if (aIdx === -1 && bIdx === -1) return a.localeCompare(b);
+                                if (aIdx === -1) return 1;
+                                if (bIdx === -1) return -1;
+                                return aIdx - bIdx;
+                            });
+                            
+                            sortedPositions.forEach(pos => {
+                                const posList = otherPlayersByPosition[pos].sort((a, b) => a.name.localeCompare(b.name));
+                                context += `**${pos} (${posList.length}):** `;
+                                context += posList.map(p => {
+                                    let info = p.name;
+                                    if (p.contract?.salary2026) {
+                                        info += ` ($${(p.contract.salary2026/1000000).toFixed(1)}M)`;
+                                    } else if (p.contract?.serviceStatus) {
+                                        info += ` (${p.contract.serviceStatus})`;
+                                    }
+                                    if (p.age) info += ` [${p.age}]`;
+                                    return info;
+                                }).join(', ');
+                                context += '\n';
+                            });
+                            context += `\n`;
+                            
+                            // Financial info for other team
+                            if (leagueFinancesData) {
+                                const otherTeamFinances = leagueFinancesData.find(t => t.teamName === otherTeam);
+                                if (otherTeamFinances) {
+                                    context += `**${otherTeam} Cap Space:** 2026: $${(otherTeamFinances.capSpace2026/1000000).toFixed(1)}M, 2027: $${(otherTeamFinances.capSpace2027/1000000).toFixed(1)}M\n\n`;
+                                }
+                            }
+                        });
+                    }
                 }
             }
             
