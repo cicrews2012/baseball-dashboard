@@ -1672,19 +1672,27 @@
                     <div style="display: flex; gap: 10px; align-items: flex-end;">
                         <textarea 
                             id="assistantInput" 
-                            placeholder="Ask about trades, prospects, strategy... (Press Enter to send, Shift+Enter for new line)"
+                            placeholder="Type your question about trades, prospects, strategy..."
                             style="flex: 1; min-height: 80px; max-height: 200px; padding: 15px; background: rgba(255,255,255,0.05); border: 2px solid rgba(168, 85, 247, 0.5); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem; resize: vertical; line-height: 1.5;"
-                            onkeydown="handleAssistantInputKeydown(event)"
                         ></textarea>
                         <button 
-                            onclick="sendAssistantMessage()" 
+                            onclick="copyContextForClaude()" 
                             class="upload-btn" 
                             style="background: rgba(168, 85, 247, 0.3); border-color: rgba(168, 85, 247, 0.5); padding: 15px 30px; height: fit-content; white-space: nowrap; font-size: 1rem;">
-                            Send 📤
+                            📋 Copy Context
                         </button>
                     </div>
-                    <div style="margin-top: 10px; font-size: 0.75rem; color: #64748b;">
-                        💬 This is a real conversation with Claude that persists across sessions
+                    <div style="margin-top: 12px; padding: 12px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px;">
+                        <div style="font-size: 0.875rem; color: #60a5fa; font-weight: 600; margin-bottom: 6px;">📋 How to Use:</div>
+                        <ol style="font-size: 0.8125rem; color: #94a3b8; margin: 0; padding-left: 20px; line-height: 1.6;">
+                            <li>Type your question in the box above</li>
+                            <li>Click "📋 Copy Context" - this copies your question + all league data</li>
+                            <li>Open your <strong>MBL Assistant GM</strong> Claude Project (create one if needed)</li>
+                            <li>Paste and send - Claude will have full context to advise you!</li>
+                        </ol>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.75rem; color: #64748b;">
+                            💡 Tip: Upload the MBL Constitution PDF to that project for rule checking
+                        </div>
                     </div>
                 </div>
             </div>
@@ -5311,105 +5319,185 @@
             }
         }
         
-        async function sendAssistantMessage() {
+        async function copyContextForClaude() {
             const input = document.getElementById('assistantInput');
-            const message = input.value.trim();
+            const userQuestion = input.value.trim();
             
-            if (!message) return;
+            if (!userQuestion) {
+                alert('⚠️ Please type a question first!');
+                return;
+            }
             
-            // Add user message to chat
-            addMessageToChat('user', message);
-            assistantChatHistory.push({ role: 'user', content: message });
+            // Build the full context message
+            const contextMessage = buildContextMessage(userQuestion);
             
-            // Clear input
-            input.value = '';
-            
-            // Build context for Claude
-            const contextMessage = buildContextMessage(message);
-            
-            // Add "thinking" indicator
-            const thinkingId = addThinkingIndicator();
-            
-            // Here's where we'd call Claude API or use the conversation
-            // For now, let's simulate with a placeholder
-            // In production, this would send to your backend or Claude API
-            
-            // Simulate response (replace with actual Claude integration)
-            setTimeout(() => {
-                removeThinkingIndicator(thinkingId);
-                const response = `I received your message: "${message}"\n\nTo enable full AI responses, you'll need to integrate with Claude's API. For now, I can see:\n\n${getContextSummary()}`;
-                addMessageToChat('assistant', response);
-                assistantChatHistory.push({ role: 'assistant', content: response });
+            // Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(contextMessage);
                 
-                // Save to localStorage
-                saveChatHistory();
-            }, 1500);
+                // Show success feedback
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = 'rgba(34, 197, 94, 0.3)';
+                btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = 'rgba(168, 85, 247, 0.3)';
+                    btn.style.borderColor = 'rgba(168, 85, 247, 0.5)';
+                }, 2000);
+                
+                // Show instructions
+                showCopyInstructions();
+                
+            } catch (error) {
+                console.error('Copy failed:', error);
+                alert('❌ Copy failed. Please try again or copy manually.');
+            }
         }
         
-        function buildContextMessage(userMessage) {
-            let context = `You are the Assistant GM for the San Francisco Giants in the MBL (Multiverse Baseball League).\n\n`;
+        function showCopyInstructions() {
+            // Create overlay with instructions
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;';
             
-            context += `LEAGUE INFO:\n`;
-            context += `- 30 teams, $241M salary cap\n`;
-            context += `- Dynasty league with contracts through 2031\n`;
-            context += `- Scoring: R, HR, RBI, SB, OBP, SLG / K, QA4, SV+H, ERA, WHIP, K/BB\n\n`;
+            overlay.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 2px solid rgba(168, 85, 247, 0.5); border-radius: 16px; padding: 40px; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">✅</div>
+                        <h2 style="color: #a855f7; margin: 0 0 10px 0;">Context Copied!</h2>
+                        <p style="color: #94a3b8; margin: 0;">Your question + all league data is ready to paste</p>
+                    </div>
+                    
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+                        <div style="color: #60a5fa; font-weight: 600; margin-bottom: 12px;">📋 Next Steps:</div>
+                        <ol style="color: #cbd5e1; margin: 0; padding-left: 20px; line-height: 1.8;">
+                            <li><strong>Open Claude</strong> in a new tab (claude.ai)</li>
+                            <li><strong>Go to your "MBL Assistant GM" project</strong><br>
+                                <span style="font-size: 0.875rem; color: #94a3b8;">(Create a new project if you don't have one yet)</span>
+                            </li>
+                            <li><strong>Paste</strong> (Ctrl+V / Cmd+V) and send</li>
+                            <li><strong>Get full AI analysis!</strong> 🎯</li>
+                        </ol>
+                    </div>
+                    
+                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                        <div style="color: #a855f7; font-size: 0.875rem; font-weight: 600; margin-bottom: 8px;">💡 Pro Tip:</div>
+                        <div style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.6;">
+                            Upload the <strong>MBL Constitution PDF</strong> to your project for automatic rule checking and legality verification.
+                        </div>
+                    </div>
+                    
+                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 15px; background: rgba(168, 85, 247, 0.3); border: 2px solid rgba(168, 85, 247, 0.5); border-radius: 8px; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer;">
+                        Got It! 🚀
+                    </button>
+                </div>
+            `;
             
+            document.body.appendChild(overlay);
+            
+            // Close on click outside
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+        }
+        
+        function buildContextMessage(userQuestion) {
+            let context = `# MBL Assistant GM - Trade Analysis Request\n\n`;
+            context += `You are my Assistant GM for the **San Francisco Giants** in the **MBL (Multiverse Baseball League)**.\n\n`;
+            
+            context += `## League Configuration\n`;
+            context += `- **30 teams**, dynasty format\n`;
+            context += `- **Salary Cap:** $241M per team\n`;
+            context += `- **Contract Years:** Through 2031\n`;
+            context += `- **Scoring Categories:**\n`;
+            context += `  - Hitting: R, HR, RBI, SB, OBP, SLG\n`;
+            context += `  - Pitching: K, QA4, SV+H, ERA, WHIP, K/BB\n\n`;
+            
+            // Roster info
             if (players && players.length > 0) {
-                context += `YOUR TEAM (San Francisco Giants):\n`;
-                context += `- Roster: ${players.length} players\n`;
+                context += `## My Team: San Francisco Giants\n\n`;
+                context += `**Roster Size:** ${players.length} players\n\n`;
                 
-                // Add key players
-                const keyPlayers = players.filter(p => p.contract && p.contract.salary2026 > 10000000).slice(0, 5);
+                // Key contracts
+                const keyPlayers = players.filter(p => p.contract && p.contract.salary2026 > 10000000)
+                    .sort((a, b) => (b.contract?.salary2026 || 0) - (a.contract?.salary2026 || 0))
+                    .slice(0, 10);
+                
                 if (keyPlayers.length > 0) {
-                    context += `- Key Contracts:\n`;
+                    context += `**Top Contracts (2026):**\n`;
                     keyPlayers.forEach(p => {
                         const salary = p.contract.salary2026;
-                        context += `  - ${p.name}: $${(salary/1000000).toFixed(1)}M\n`;
+                        const years = [];
+                        if (p.contract.salary2027) years.push('2027');
+                        if (p.contract.salary2028) years.push('2028');
+                        const yearsStr = years.length > 0 ? ` (thru ${years[years.length - 1]})` : '';
+                        context += `- ${p.name} (${p.position}): $${(salary/1000000).toFixed(1)}M${yearsStr}\n`;
                     });
+                    context += `\n`;
                 }
+                
+                // Position breakdown
+                const positionCounts = {};
+                players.forEach(p => {
+                    const pos = p.position || 'Unknown';
+                    positionCounts[pos] = (positionCounts[pos] || 0) + 1;
+                });
+                
+                context += `**Roster Composition:**\n`;
+                Object.entries(positionCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .forEach(([pos, count]) => {
+                        context += `- ${pos}: ${count} players\n`;
+                    });
                 context += `\n`;
             }
             
+            // Financial info
             if (leagueFinancesData) {
                 const myTeam = leagueFinancesData.find(t => t.teamName === 'San Francisco Giants');
                 if (myTeam) {
-                    context += `CAP SPACE:\n`;
+                    context += `## Financial Situation\n\n`;
+                    context += `**Cap Space:**\n`;
                     context += `- 2026: $${(myTeam.capSpace2026/1000000).toFixed(1)}M\n`;
-                    context += `- 2027: $${(myTeam.capSpace2027/1000000).toFixed(1)}M\n\n`;
+                    context += `- 2027: $${(myTeam.capSpace2027/1000000).toFixed(1)}M\n`;
+                    context += `- 2028: $${(myTeam.capSpace2028/1000000).toFixed(1)}M\n\n`;
+                    
+                    context += `**Payroll:**\n`;
+                    context += `- 2026: $${(myTeam.payroll2026/1000000).toFixed(1)}M\n`;
+                    context += `- 2027: $${(myTeam.payroll2027/1000000).toFixed(1)}M\n`;
+                    context += `- 2028: $${(myTeam.payroll2028/1000000).toFixed(1)}M\n\n`;
                 }
             }
             
-            context += `MBL CONSTITUTION: [Attached in project]\n\n`;
-            context += `USER QUESTION: ${userMessage}\n\n`;
-            context += `Please help evaluate this trade question, research prospects as needed using web search, check rule legality, and provide strategic advice.`;
+            // Data status
+            context += `## Available Data\n`;
+            if (players && players.length > 0) {
+                context += `✅ Full roster loaded (${players.length} players)\n`;
+            }
+            if (playerContractsData && Object.keys(playerContractsData).length > 0) {
+                context += `✅ Player contracts loaded (${Object.keys(playerContractsData).length} contracts)\n`;
+            }
+            if (leagueFinancesData && leagueFinancesData.length > 0) {
+                context += `✅ League financials loaded (${leagueFinancesData.length} teams)\n`;
+            }
+            context += `✅ MBL Constitution available in project files\n\n`;
+            
+            context += `---\n\n`;
+            context += `## My Question\n\n`;
+            context += `${userQuestion}\n\n`;
+            context += `---\n\n`;
+            context += `Please help me evaluate this! Feel free to:\n`;
+            context += `- Research any players I mention using web search\n`;
+            context += `- Check MBL rules for legality (reference the constitution)\n`;
+            context += `- Suggest creative alternatives I might not have considered\n`;
+            context += `- Point out cap space issues or roster problems\n`;
+            context += `- Give honest strategic advice\n`;
             
             return context;
-        }
-        
-        function getContextSummary() {
-            let summary = '';
-            
-            if (players && players.length > 0) {
-                summary += `✅ ${players.length} players in roster\n`;
-            } else {
-                summary += `⚠️ No roster loaded\n`;
-            }
-            
-            if (playerContractsData) {
-                summary += `✅ ${Object.keys(playerContractsData).length} player contracts\n`;
-            } else {
-                summary += `⚠️ No contracts loaded\n`;
-            }
-            
-            if (leagueFinancesData) {
-                summary += `✅ ${leagueFinancesData.length} team financials\n`;
-            } else {
-                summary += `⚠️ No financials loaded\n`;
-            }
-            
-            summary += `✅ MBL Constitution available`;
-            
-            return summary;
         }
         
         function addMessageToChat(role, content, shouldSave = true) {
