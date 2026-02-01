@@ -5009,10 +5009,16 @@
                 <div class="org-info-box">
                     <div class="org-name">${player.mlbOrg}</div>
                     ${player.minorLeagueLevel ? `<div class="org-level">Current Level: ${player.minorLeagueLevel}</div>` : ''}
-                    <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' MLB baseball')}" 
-                       target="_blank" class="search-link" style="margin-top: 10px; display: inline-block;">
-                        🔍 Search "${player.name}" Online
-                    </a>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' MLB baseball')}" 
+                           target="_blank" class="search-link" style="display: inline-block; margin-right: 10px;">
+                            🔍 Search Google
+                        </a>
+                        <a href="https://www.baseball-reference.com/search/search.fcgi?search=${encodeURIComponent(player.name)}" 
+                           target="_blank" class="search-link" style="display: inline-block;">
+                            📊 Baseball Reference
+                        </a>
+                    </div>
                 </div>
                 
                 ${player.serviceInfo ? renderServiceTimeTracker(player) : ''}
