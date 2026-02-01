@@ -1273,27 +1273,18 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.3.0 - AI Assistant GM</p></p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.0 - Streamlined</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
                         <span id="supabaseStatus" style="color: #94a3b8;">☁️ Cloud Sync: <span style="color: #fcd34d;">Connecting...</span></span>
                         <span id="rosterStatus" style="color: #94a3b8;">📋 Roster: <span style="color: #ef4444;">Not Loaded</span></span>
-                        <span id="salaryStatus" style="color: #94a3b8;">💰 Salary: <span style="color: #ef4444;">Not Loaded</span></span>
                         <span id="notesStatus" style="color: #94a3b8;">📝 Notes: <span style="color: #ef4444;">0 players</span></span>
                         <span id="watchlistStatus" style="color: #94a3b8;">👁️ Watchlist: <span style="color: #ef4444;">0 players</span></span>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <button id="demoModeBtn" class="refresh-btn" onclick="toggleDemoMode()" title="Enable demo mode to test with mock data">
-                        🧪 Demo Mode: OFF
-                    </button>
-                    <button class="refresh-btn" onclick="exportPlayerNotes()" title="Export notes and watchlist to JSON file">
-                        📥 Export Data
-                    </button>
-                    <button class="refresh-btn" onclick="importPlayerNotes()" title="Import notes and watchlist from JSON file">
-                        📤 Import Data
-                    </button>
+                    <!-- Removed: Demo Mode, Export Data, Import Data buttons -->
                 </div>
             </div>
             <div class="tabs">
@@ -1302,7 +1293,6 @@
                 <button class="tab-btn" onclick="switchTab('composition')">📊 Roster Breakdown</button>
                 <button class="tab-btn" onclick="switchTab('capplanning')">💰 Cap Planning</button>
                 <button class="tab-btn" onclick="switchTab('finances')">💵 League Finances</button>
-                <button class="tab-btn" onclick="switchTab('assistant')">🤖 Assistant GM</button>
                 <button class="tab-btn" onclick="switchTab('rules')">📖 League Rules</button>
                 
                 <!-- MLB Scouting/Research Tabs -->
@@ -1313,14 +1303,7 @@
                 <button class="tab-btn" onclick="switchTab('guide')">📖 Guide</button>
             </div>
             <div class="controls-row">
-                <input type="file" id="fileInput" accept=".csv" style="display: none;">
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                    📁 Upload Roster CSV
-                </button>
-                <input type="file" id="salaryInput" accept=".csv" style="display: none;">
-                <button class="upload-btn" onclick="document.getElementById('salaryInput').click()" style="background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.5);">
-                    💰 Upload Salary Data
-                </button>
+                <!-- Removed CSV upload buttons - data now loads from APIs -->
                 <button class="compare-btn" id="compareBtn" onclick="openComparison()" disabled>
                     📊 Compare Selected (0)
                 </button>
@@ -1360,6 +1343,9 @@
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <button id="refreshRosterBtn" class="upload-btn" onclick="refreshFantraxRoster()" disabled style="background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.5); white-space: nowrap; flex: 1;">
                             🔄 Refresh Roster from Fantrax
+                        </button>
+                        <button id="enrichBtn" class="upload-btn" onclick="manualEnrichPlayers()" disabled style="background: rgba(168, 85, 247, 0.3); border-color: rgba(168, 85, 247, 0.5); white-space: nowrap; flex: 1;">
+                            ✨ Enrich with Contracts
                         </button>
                     </div>
                 </div>
@@ -1613,85 +1599,6 @@
                             <div style="font-size: 3rem;">⚡</div>
                             <h3>Young & Elite Prospects</h3>
                             <p style="color: #94a3b8; margin-top: 10px;">High-FV prospects (55+) under 22 years old - Auto-loading...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-content" id="assistantTab">
-            <div style="display: flex; flex-direction: column; height: calc(100vh - 200px); max-width: 1200px; margin: 0 auto;">
-                
-                <!-- Header -->
-                <div style="background: rgba(168, 85, 247, 0.1); border: 2px solid rgba(168, 85, 247, 0.3); border-radius: 12px 12px 0 0; padding: 20px; border-bottom: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h2 style="margin: 0; color: #a855f7;">🤖 Assistant GM</h2>
-                            <p style="color: #94a3b8; margin: 5px 0 0 0; font-size: 0.875rem;">Your AI co-GM for trades, prospects, and strategy</p>
-                        </div>
-                        <button onclick="clearAssistantChat()" class="refresh-btn" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">
-                            🗑️ Clear Chat
-                        </button>
-                    </div>
-                    
-                    <!-- Context Status -->
-                    <div id="assistantContextStatus" style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; font-size: 0.875rem; color: #cbd5e1;">
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                            <span id="assistantRosterStatus">📋 Roster: <span style="color: #ef4444;">Not Loaded</span></span>
-                            <span id="assistantContractsStatus">💰 Contracts: <span style="color: #ef4444;">Not Loaded</span></span>
-                            <span id="assistantFinancialsStatus">💵 Financials: <span style="color: #ef4444;">Not Loaded</span></span>
-                            <span id="assistantRulesStatus">📖 Rules: <span style="color: #22c55e;">Loaded</span></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Chat Messages Area -->
-                <div id="assistantChatMessages" style="flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 20px; border-left: 2px solid rgba(168, 85, 247, 0.3); border-right: 2px solid rgba(168, 85, 247, 0.3);">
-                    <!-- Messages will be inserted here -->
-                    <div class="assistant-message" style="margin-bottom: 20px; padding: 15px; background: rgba(168, 85, 247, 0.1); border-left: 3px solid #a855f7; border-radius: 6px;">
-                        <div style="font-weight: 600; color: #a855f7; margin-bottom: 8px;">🤖 Assistant GM</div>
-                        <div style="color: #cbd5e1; line-height: 1.6;">
-                            <p style="margin: 0 0 10px 0;">Welcome! I'm your AI Assistant GM for the <strong>San Francisco Giants</strong>.</p>
-                            <p style="margin: 0 0 10px 0;">I can help you with:</p>
-                            <ul style="margin: 10px 0 10px 20px; padding: 0;">
-                                <li>Trade ideas and evaluations</li>
-                                <li>Prospect research and recommendations</li>
-                                <li>Cap space planning and contract analysis</li>
-                                <li>MBL rule interpretations and legality checks</li>
-                                <li>Long-term strategy and competitive windows</li>
-                            </ul>
-                            <p style="margin: 10px 0 0 0; color: #94a3b8; font-size: 0.875rem;">
-                                <em>💡 Tip: Load your roster data first (select league and refresh) for best results.</em>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Input Area -->
-                <div style="background: rgba(0,0,0,0.3); border: 2px solid rgba(168, 85, 247, 0.3); border-radius: 0 0 12px 12px; padding: 20px; border-top: none;">
-                    <div style="display: flex; gap: 10px; align-items: flex-end;">
-                        <textarea 
-                            id="assistantInput" 
-                            placeholder="Type your question about trades, prospects, strategy..."
-                            style="flex: 1; min-height: 80px; max-height: 200px; padding: 15px; background: rgba(255,255,255,0.05); border: 2px solid rgba(168, 85, 247, 0.5); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem; resize: vertical; line-height: 1.5;"
-                        ></textarea>
-                        <button 
-                            onclick="copyContextForClaude()" 
-                            class="upload-btn" 
-                            style="background: rgba(168, 85, 247, 0.3); border-color: rgba(168, 85, 247, 0.5); padding: 15px 30px; height: fit-content; white-space: nowrap; font-size: 1rem;">
-                            📋 Copy Context
-                        </button>
-                    </div>
-                    <div style="margin-top: 12px; padding: 12px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px;">
-                        <div style="font-size: 0.875rem; color: #60a5fa; font-weight: 600; margin-bottom: 6px;">📋 How to Use:</div>
-                        <ol style="font-size: 0.8125rem; color: #94a3b8; margin: 0; padding-left: 20px; line-height: 1.6;">
-                            <li>Type your question in the box above</li>
-                            <li>Click "📋 Copy Context" - this copies your question + all league data</li>
-                            <li>Open your <strong>MBL Assistant GM</strong> Claude Project (create one if needed)</li>
-                            <li>Paste and send - Claude will have full context to advise you!</li>
-                        </ol>
-                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.75rem; color: #64748b;">
-                            💡 Tip: Upload the MBL Constitution PDF to that project for rule checking
                         </div>
                     </div>
                 </div>
@@ -2079,15 +1986,15 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.3.0 - AI Assistant GM 🤖 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.0 - Streamlined Edition 🎯 (Current)</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
-                            <li>🤖 NEW: Conversational AI Assistant GM for trade advice</li>
-                            <li>💬 Free-form chat interface - discuss trades, prospects, strategy</li>
-                            <li>🧠 Auto-loads league context (roster, contracts, financials, rules)</li>
-                            <li>🔍 Can research prospects via web search</li>
-                            <li>📜 Checks MBL rule legality and cap compliance</li>
-                            <li>💾 Conversation history persists across sessions</li>
-                            <li>🎯 Replaced static Trade Analyzer with dynamic AI partner</li>
+                            <li>🗑️ Removed Assistant GM (unsustainable token usage)</li>
+                            <li>🧹 Removed unnecessary UI: salary status, demo mode, import/export buttons</li>
+                            <li>📋 Removed CSV upload options (data loads from APIs)</li>
+                            <li>🎯 Roster Composition now shows only YOUR team</li>
+                            <li>💰 Cap Planning now shows only YOUR team</li>
+                            <li>✨ Manual "Enrich with Contracts" button - no auto-enrichment</li>
+                            <li>⚡ Prevents wasting time loading wrong league or both at once</li>
                         </ul>
                     </div>
                     
@@ -3884,17 +3791,7 @@
             alert('AI Report feature will be available when MLB season starts!\n\nThis will analyze:\n• Last 5-7 games performance\n• Recent trends (hot/cold)\n• Injury updates\n• Trade rumors\n• Call-up potential\n\nStay tuned!');
         }
 
-        // Salary CSV upload handler
-        document.getElementById('salaryInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    parseSalaryCSV(event.target.result);
-                };
-                reader.readAsText(file);
-            }
-        });
+        // Removed: Salary CSV upload handler (input no longer exists)
 
         function parseSalaryCSV(text) {
             const lines = text.split('\n');
@@ -4312,6 +4209,12 @@
                 refreshBtn.disabled = false;
                 teamSelectorContainer.style.display = 'block';
                 
+                // Enable enrich button if contract data is loaded
+                const enrichBtn = document.getElementById('enrichBtn');
+                if (playerContractsData && Object.keys(playerContractsData).length > 0) {
+                    enrichBtn.disabled = false;
+                }
+                
                 // Check if we have cached data
                 const cacheKey = `${leagueKey}_roster_cache`;
                 const cachedRoster = localStorage.getItem(cacheKey);
@@ -4504,10 +4407,7 @@
                 // Update players array
                 players = rosterPlayers;
                 
-                // Merge contract data if available
-                if (playerContractsData) {
-                    mergePlayerContracts();
-                }
+                // Don't auto-merge contracts - user will click button when ready
                 
                 // Populate team selector
                 populateTeamSelector(league);
@@ -4569,10 +4469,7 @@
                 
                 players = rosterPlayers;
                 
-                // Merge contract data if available
-                if (playerContractsData) {
-                    mergePlayerContracts();
-                }
+                // Don't auto-merge - user will trigger manually
                 
                 // Extract unique teams
                 fantraxTeams = [...new Set(rosterPlayers.map(p => p.fantraxTeam || p.team))];
@@ -4904,7 +4801,6 @@
             document.getElementById('researchTab').classList.remove('active');
             document.getElementById('watchlistTab').classList.remove('active');
             document.getElementById('prospectsTab').classList.remove('active');
-            document.getElementById('assistantTab').classList.remove('active');
             document.getElementById('financesTab').classList.remove('active');
             document.getElementById('compositionTab').classList.remove('active');
             document.getElementById('capPlanningTab').classList.remove('active');
@@ -4931,22 +4827,14 @@
                 document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 populateTeamDropdowns();
                 loadTop100Prospects(); // Load prospects when tab is opened
-            } else if (tabName === 'assistant') {
-                document.getElementById('assistantTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[4].classList.add('active');
-                initializeAssistantGM(); // Initialize chat when tab opens
             } else if (tabName === 'finances') {
                 document.getElementById('financesTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[5].classList.add('active');
+                document.querySelectorAll('.tab-btn')[4].classList.add('active');
                 if (!leagueFinancesData) {
                     loadLeagueFinances(); // Load team finances
                 }
                 if (!playerContractsData) {
-                    loadPlayerContracts().then(() => {
-                        if (players && players.length > 0) {
-                            mergePlayerContracts(); // Merge with roster if loaded
-                        }
-                    });
+                    loadPlayerContracts(); // Just load, don't auto-merge
                 }
             } else if (tabName === 'composition') {
                 document.getElementById('compositionTab').classList.add('active');
@@ -4954,14 +4842,14 @@
                 generateRosterComposition();
             } else if (tabName === 'capplanning') {
                 document.getElementById('capPlanningTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[7].classList.add('active');
+                document.querySelectorAll('.tab-btn')[5].classList.add('active');
                 generateCapPlanning();
             } else if (tabName === 'rules') {
                 document.getElementById('rulesTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[7].classList.add('active');
+                document.querySelectorAll('.tab-btn')[6].classList.add('active');
             } else if (tabName === 'guide') {
                 document.getElementById('guideTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[8].classList.add('active');
+                document.querySelectorAll('.tab-btn')[7].classList.add('active');
             }
         }
 
@@ -5249,456 +5137,6 @@
             content.innerHTML = html;
         }
         
-        
-        // ========== ASSISTANT GM CHAT SYSTEM ==========
-        
-        let assistantChatHistory = [];
-        let assistantInitialized = false;
-        
-        async function initializeAssistantGM() {
-            if (assistantInitialized) return;
-            
-            console.log('🤖 Initializing Assistant GM...');
-            
-            // Update context status indicators
-            updateAssistantContextStatus();
-            
-            // Load previous conversation if exists
-            await loadPreviousConversation();
-            
-            assistantInitialized = true;
-        }
-        
-        function updateAssistantContextStatus() {
-            const rosterStatus = document.getElementById('assistantRosterStatus');
-            const contractsStatus = document.getElementById('assistantContractsStatus');
-            const financialsStatus = document.getElementById('assistantFinancialsStatus');
-            
-            if (players && players.length > 0) {
-                rosterStatus.innerHTML = `📋 Roster: <span style="color: #22c55e;">Loaded (${players.length} players)</span>`;
-            }
-            
-            if (playerContractsData && Object.keys(playerContractsData).length > 0) {
-                contractsStatus.innerHTML = `💰 Contracts: <span style="color: #22c55e;">Loaded (${Object.keys(playerContractsData).length} contracts)</span>`;
-            }
-            
-            if (leagueFinancesData && leagueFinancesData.length > 0) {
-                financialsStatus.innerHTML = `💵 Financials: <span style="color: #22c55e;">Loaded (${leagueFinancesData.length} teams)</span>`;
-            }
-        }
-        
-        async function loadPreviousConversation() {
-            // TODO: Use conversation_search or recent_chats to load previous Assistant GM conversations
-            console.log('📜 Checking for previous conversations...');
-            // For now, just check localStorage for simple persistence
-            const savedChat = localStorage.getItem('assistantGMChat');
-            if (savedChat) {
-                try {
-                    assistantChatHistory = JSON.parse(savedChat);
-                    console.log(`✅ Loaded ${assistantChatHistory.length} previous messages`);
-                    
-                    // Render loaded messages
-                    assistantChatHistory.forEach(msg => {
-                        addMessageToChat(msg.role, msg.content, false);
-                    });
-                    
-                    // Scroll to bottom
-                    const chatArea = document.getElementById('assistantChatMessages');
-                    chatArea.scrollTop = chatArea.scrollHeight;
-                } catch (error) {
-                    console.error('Error loading chat history:', error);
-                }
-            }
-        }
-        
-        function handleAssistantInputKeydown(event) {
-            // Send on Enter (without Shift)
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendAssistantMessage();
-            }
-        }
-        
-        async function copyContextForClaude() {
-            const input = document.getElementById('assistantInput');
-            const userQuestion = input.value.trim();
-            
-            if (!userQuestion) {
-                alert('⚠️ Please type a question first!');
-                return;
-            }
-            
-            // Build the full context message
-            const contextMessage = buildContextMessage(userQuestion);
-            
-            // Copy to clipboard
-            try {
-                await navigator.clipboard.writeText(contextMessage);
-                
-                // Show instructions
-                showCopyInstructions();
-                
-            } catch (error) {
-                console.error('Copy failed:', error);
-                alert('❌ Copy failed. Please try again or copy manually.\n\nThe message has been logged to console - you can copy it from there.');
-                console.log('=== COPY THIS MESSAGE ===');
-                console.log(contextMessage);
-                console.log('=== END MESSAGE ===');
-            }
-        }
-        
-        function showCopyInstructions() {
-            // Create overlay with instructions
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;';
-            
-            overlay.innerHTML = `
-                <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 2px solid rgba(168, 85, 247, 0.5); border-radius: 16px; padding: 40px; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <div style="font-size: 3rem; margin-bottom: 15px;">✅</div>
-                        <h2 style="color: #a855f7; margin: 0 0 10px 0;">Context Copied!</h2>
-                        <p style="color: #94a3b8; margin: 0;">Your question + all league data is ready to paste</p>
-                    </div>
-                    
-                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 25px;">
-                        <div style="color: #60a5fa; font-weight: 600; margin-bottom: 12px;">📋 Next Steps:</div>
-                        <ol style="color: #cbd5e1; margin: 0; padding-left: 20px; line-height: 1.8;">
-                            <li><strong>Open Claude</strong> in a new tab (claude.ai)</li>
-                            <li><strong>Go to your "MBL Assistant GM" project</strong><br>
-                                <span style="font-size: 0.875rem; color: #94a3b8;">(Create a new project if you don't have one yet)</span>
-                            </li>
-                            <li><strong>Paste</strong> (Ctrl+V / Cmd+V) and send</li>
-                            <li><strong>Get full AI analysis!</strong> 🎯</li>
-                        </ol>
-                    </div>
-                    
-                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 25px;">
-                        <div style="color: #a855f7; font-size: 0.875rem; font-weight: 600; margin-bottom: 8px;">💡 Pro Tip:</div>
-                        <div style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.6;">
-                            Upload the <strong>MBL Constitution PDF</strong> to your project for automatic rule checking and legality verification.
-                        </div>
-                    </div>
-                    
-                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 15px; background: rgba(168, 85, 247, 0.3); border: 2px solid rgba(168, 85, 247, 0.5); border-radius: 8px; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer;">
-                        Got It! 🚀
-                    </button>
-                </div>
-            `;
-            
-            document.body.appendChild(overlay);
-            
-            // Close on click outside
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    overlay.remove();
-                }
-            });
-        }
-        
-        function buildContextMessage(userQuestion) {
-            let context = `# MBL Assistant GM - Trade Analysis Request\n\n`;
-            context += `You are my Assistant GM for the **San Francisco Giants** in the **MBL (Multiverse Baseball League)**.\n\n`;
-            
-            context += `## League Configuration\n`;
-            context += `- **30 teams**, dynasty format\n`;
-            context += `- **Salary Cap:** $241M per team\n`;
-            context += `- **Contract Years:** Through 2031\n`;
-            context += `- **Scoring Categories:**\n`;
-            context += `  - Hitting: R, HR, RBI, SB, OBP, SLG\n`;
-            context += `  - Pitching: K, QA4, SV+H, ERA, WHIP, K/BB\n\n`;
-            
-            // Detect other teams mentioned in the question
-            const mlbTeams = [
-                'Diamondbacks', 'Braves', 'Orioles', 'Red Sox', 'Cubs', 'White Sox', 'Reds', 'Guardians', 'Indians',
-                'Rockies', 'Tigers', 'Astros', 'Royals', 'Angels', 'Dodgers', 'Marlins', 'Brewers', 'Twins',
-                'Mets', 'Yankees', 'Athletics', 'Phillies', 'Pirates', 'Padres', 'Giants', 'Mariners', 'Cardinals',
-                'Rays', 'Rangers', 'Blue Jays', 'Nationals', 'Arizona', 'Atlanta', 'Baltimore', 'Boston', 'Chicago',
-                'Cincinnati', 'Cleveland', 'Colorado', 'Detroit', 'Houston', 'Kansas City', 'Los Angeles', 'Miami',
-                'Milwaukee', 'Minnesota', 'New York', 'Oakland', 'Philadelphia', 'Pittsburgh', 'San Diego', 
-                'San Francisco', 'Seattle', 'St. Louis', 'Tampa Bay', 'Texas', 'Toronto', 'Washington'
-            ];
-            
-            const mentionedTeams = [];
-            const questionLower = userQuestion.toLowerCase();
-            mlbTeams.forEach(team => {
-                if (questionLower.includes(team.toLowerCase())) {
-                    mentionedTeams.push(team);
-                }
-            });
-            
-            // Roster info
-            if (players && players.length > 0) {
-                // Filter to only MY team's players
-                const league = LEAGUES[selectedFantraxLeague];
-                const myTeamName = league?.myTeam || "San Francisco Giants";
-                const myPlayers = players.filter(p => p.fantraxTeam === myTeamName);
-                
-                context += `## My Team: ${myTeamName}\n\n`;
-                context += `**My Roster Size:** ${myPlayers.length} players\n\n`;
-                
-                // COMPLETE ROSTER - alphabetically by position
-                context += `**MY COMPLETE ROSTER:**\n`;
-                context += `(This is the definitive list - if a player is NOT in this list, they are on another team)\n\n`;
-                
-                const playersByPosition = {};
-                myPlayers.forEach(p => {
-                    const pos = p.position || 'Unknown';
-                    if (!playersByPosition[pos]) playersByPosition[pos] = [];
-                    playersByPosition[pos].push(p);
-                });
-                
-                // Sort positions
-                const posOrder = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UT', 'SP', 'RP', 'P'];
-                const sortedPositions = Object.keys(playersByPosition).sort((a, b) => {
-                    const aIdx = posOrder.indexOf(a);
-                    const bIdx = posOrder.indexOf(b);
-                    if (aIdx === -1 && bIdx === -1) return a.localeCompare(b);
-                    if (aIdx === -1) return 1;
-                    if (bIdx === -1) return -1;
-                    return aIdx - bIdx;
-                });
-                
-                sortedPositions.forEach(pos => {
-                    const posList = playersByPosition[pos].sort((a, b) => a.name.localeCompare(b.name));
-                    context += `\n**${pos} (${posList.length}):**\n`;
-                    posList.forEach(p => {
-                        let info = `- ${p.name}`;
-                        if (p.contract?.salary2026) {
-                            info += ` ($${(p.contract.salary2026/1000000).toFixed(1)}M)`;
-                        } else if (p.contract?.serviceStatus) {
-                            info += ` (${p.contract.serviceStatus})`;
-                        }
-                        if (p.age) info += ` [${p.age}]`;
-                        context += info + '\n';
-                    });
-                });
-                context += `\n`;
-                
-                // Summary of top contracts
-                const keyPlayers = myPlayers.filter(p => p.contract && p.contract.salary2026 > 10000000)
-                    .sort((a, b) => (b.contract?.salary2026 || 0) - (a.contract?.salary2026 || 0))
-                    .slice(0, 10);
-                
-                if (keyPlayers.length > 0) {
-                    context += `**Top 10 Highest Salaries (2026):**\n`;
-                    keyPlayers.forEach(p => {
-                        const salary = p.contract.salary2026;
-                        const years = [];
-                        if (p.contract.salary2027) years.push('2027');
-                        if (p.contract.salary2028) years.push('2028');
-                        const yearsStr = years.length > 0 ? ` (thru ${years[years.length - 1]})` : '';
-                        context += `- ${p.name} (${p.position}): $${(salary/1000000).toFixed(1)}M${yearsStr}\n`;
-                    });
-                    context += `\n`;
-                }
-                
-                // ADD OTHER TEAMS' ROSTERS IF MENTIONED
-                if (mentionedTeams.length > 0) {
-                    // Get unique team names from all players
-                    const allTeamNames = [...new Set(players.map(p => p.fantraxTeam))].filter(t => t && t !== myTeamName);
-                    
-                    // Find teams that match mentioned teams
-                    const teamsToInclude = allTeamNames.filter(teamName => {
-                        return mentionedTeams.some(mentioned => 
-                            teamName.toLowerCase().includes(mentioned.toLowerCase())
-                        );
-                    });
-                    
-                    if (teamsToInclude.length > 0) {
-                        context += `---\n\n`;
-                        context += `## Other Teams' Rosters (Mentioned in Question)\n\n`;
-                        
-                        teamsToInclude.forEach(otherTeam => {
-                            const otherPlayers = players.filter(p => p.fantraxTeam === otherTeam);
-                            
-                            context += `### ${otherTeam} Roster (${otherPlayers.length} players)\n\n`;
-                            
-                            const otherPlayersByPosition = {};
-                            otherPlayers.forEach(p => {
-                                const pos = p.position || 'Unknown';
-                                if (!otherPlayersByPosition[pos]) otherPlayersByPosition[pos] = [];
-                                otherPlayersByPosition[pos].push(p);
-                            });
-                            
-                            const posOrder = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UT', 'SP', 'RP', 'P'];
-                            const sortedPositions = Object.keys(otherPlayersByPosition).sort((a, b) => {
-                                const aIdx = posOrder.indexOf(a);
-                                const bIdx = posOrder.indexOf(b);
-                                if (aIdx === -1 && bIdx === -1) return a.localeCompare(b);
-                                if (aIdx === -1) return 1;
-                                if (bIdx === -1) return -1;
-                                return aIdx - bIdx;
-                            });
-                            
-                            sortedPositions.forEach(pos => {
-                                const posList = otherPlayersByPosition[pos].sort((a, b) => a.name.localeCompare(b.name));
-                                context += `**${pos} (${posList.length}):** `;
-                                context += posList.map(p => {
-                                    let info = p.name;
-                                    if (p.contract?.salary2026) {
-                                        info += ` ($${(p.contract.salary2026/1000000).toFixed(1)}M)`;
-                                    } else if (p.contract?.serviceStatus) {
-                                        info += ` (${p.contract.serviceStatus})`;
-                                    }
-                                    if (p.age) info += ` [${p.age}]`;
-                                    return info;
-                                }).join(', ');
-                                context += '\n';
-                            });
-                            context += `\n`;
-                            
-                            // Financial info for other team
-                            if (leagueFinancesData) {
-                                const otherTeamFinances = leagueFinancesData.find(t => t.teamName === otherTeam);
-                                if (otherTeamFinances) {
-                                    context += `**${otherTeam} Cap Space:** 2026: $${(otherTeamFinances.capSpace2026/1000000).toFixed(1)}M, 2027: $${(otherTeamFinances.capSpace2027/1000000).toFixed(1)}M\n\n`;
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-            
-            // Financial info
-            if (leagueFinancesData) {
-                const myTeam = leagueFinancesData.find(t => t.teamName === 'San Francisco Giants');
-                if (myTeam) {
-                    context += `## Financial Situation\n\n`;
-                    context += `**Cap Space:**\n`;
-                    context += `- 2026: $${(myTeam.capSpace2026/1000000).toFixed(1)}M\n`;
-                    context += `- 2027: $${(myTeam.capSpace2027/1000000).toFixed(1)}M\n`;
-                    context += `- 2028: $${(myTeam.capSpace2028/1000000).toFixed(1)}M\n\n`;
-                    
-                    context += `**Payroll:**\n`;
-                    context += `- 2026: $${(myTeam.payroll2026/1000000).toFixed(1)}M\n`;
-                    context += `- 2027: $${(myTeam.payroll2027/1000000).toFixed(1)}M\n`;
-                    context += `- 2028: $${(myTeam.payroll2028/1000000).toFixed(1)}M\n\n`;
-                }
-            }
-            
-            // Data status
-            const league = LEAGUES[selectedFantraxLeague];
-            const myTeamName = league?.myTeam || "San Francisco Giants";
-            const myPlayers = players ? players.filter(p => p.fantraxTeam === myTeamName) : [];
-            
-            context += `## Available Data\n`;
-            if (players && players.length > 0) {
-                context += `✅ **League-wide roster:** ${players.length} total players across all 30 teams\n`;
-                context += `✅ **My roster (${myTeamName}):** ${myPlayers.length} players (shown above)\n`;
-            }
-            if (playerContractsData && Object.keys(playerContractsData).length > 0) {
-                context += `✅ **Player contracts:** ${Object.keys(playerContractsData).length} contracts league-wide\n`;
-            }
-            if (leagueFinancesData && leagueFinancesData.length > 0) {
-                context += `✅ **League financials:** ${leagueFinancesData.length} teams\n`;
-            }
-            context += `✅ **MBL Constitution:** Available in project files\n\n`;
-            
-            context += `**Important:** Players mentioned in my question who are NOT in my roster above belong to OTHER teams.\n\n`;
-            
-            context += `---\n\n`;
-            context += `## My Question\n\n`;
-            context += `${userQuestion}\n\n`;
-            context += `---\n\n`;
-            context += `Please help me evaluate this! Feel free to:\n`;
-            context += `- **Research players** I mention using web search (especially if they're not on my roster)\n`;
-            context += `- Check MBL rules for legality (reference the constitution)\n`;
-            context += `- Suggest creative alternatives I might not have considered\n`;
-            context += `- Point out cap space issues or roster problems\n`;
-            context += `- Give honest strategic advice\n`;
-            
-            return context;
-        }
-        
-        function addMessageToChat(role, content, shouldSave = true) {
-            const chatArea = document.getElementById('assistantChatMessages');
-            const messageDiv = document.createElement('div');
-            
-            if (role === 'user') {
-                messageDiv.className = 'user-message';
-                messageDiv.style.cssText = 'margin-bottom: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; border-radius: 6px;';
-                messageDiv.innerHTML = `
-                    <div style="font-weight: 600; color: #3b82f6; margin-bottom: 8px;">You</div>
-                    <div style="color: #cbd5e1; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(content)}</div>
-                `;
-            } else {
-                messageDiv.className = 'assistant-message';
-                messageDiv.style.cssText = 'margin-bottom: 20px; padding: 15px; background: rgba(168, 85, 247, 0.1); border-left: 3px solid #a855f7; border-radius: 6px;';
-                messageDiv.innerHTML = `
-                    <div style="font-weight: 600; color: #a855f7; margin-bottom: 8px;">🤖 Assistant GM</div>
-                    <div style="color: #cbd5e1; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(content)}</div>
-                `;
-            }
-            
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-        
-        function addThinkingIndicator() {
-            const chatArea = document.getElementById('assistantChatMessages');
-            const thinkingDiv = document.createElement('div');
-            const thinkingId = 'thinking-' + Date.now();
-            thinkingDiv.id = thinkingId;
-            thinkingDiv.style.cssText = 'margin-bottom: 20px; padding: 15px; background: rgba(168, 85, 247, 0.05); border-left: 3px solid #a855f7; border-radius: 6px;';
-            thinkingDiv.innerHTML = `
-                <div style="font-weight: 600; color: #a855f7; margin-bottom: 8px;">🤖 Assistant GM</div>
-                <div style="color: #94a3b8; line-height: 1.6;">
-                    <span class="thinking-dots">Thinking</span>
-                </div>
-            `;
-            chatArea.appendChild(thinkingDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-            
-            // Animate thinking dots
-            const dots = thinkingDiv.querySelector('.thinking-dots');
-            let dotCount = 0;
-            const interval = setInterval(() => {
-                dotCount = (dotCount + 1) % 4;
-                dots.textContent = 'Thinking' + '.'.repeat(dotCount);
-            }, 500);
-            thinkingDiv.dataset.interval = interval;
-            
-            return thinkingId;
-        }
-        
-        function removeThinkingIndicator(thinkingId) {
-            const thinkingDiv = document.getElementById(thinkingId);
-            if (thinkingDiv) {
-                clearInterval(thinkingDiv.dataset.interval);
-                thinkingDiv.remove();
-            }
-        }
-        
-        function clearAssistantChat() {
-            if (!confirm('Clear all chat history? This cannot be undone.')) return;
-            
-            assistantChatHistory = [];
-            localStorage.removeItem('assistantGMChat');
-            
-            // Clear chat area except welcome message
-            const chatArea = document.getElementById('assistantChatMessages');
-            const welcomeMsg = chatArea.querySelector('.assistant-message');
-            chatArea.innerHTML = '';
-            if (welcomeMsg) {
-                chatArea.appendChild(welcomeMsg);
-            }
-            
-            console.log('🗑️ Chat history cleared');
-        }
-        
-        function saveChatHistory() {
-            try {
-                localStorage.setItem('assistantGMChat', JSON.stringify(assistantChatHistory));
-            } catch (error) {
-                console.error('Error saving chat history:', error);
-            }
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
         
         // ========== PLAYER NOTES & TAGS SYSTEM ==========
         
@@ -6094,16 +5532,7 @@
         
         // ========== END NOTES SYSTEM ==========
 
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    parseCSV(event.target.result);
-                };
-                reader.readAsText(file);
-            }
-        });
+        // Removed: CSV upload event listeners (inputs no longer exist)
 
         document.getElementById('searchInput').addEventListener('input', applyFilters);
         document.getElementById('positionFilter').addEventListener('change', applyFilters);
@@ -8230,11 +7659,16 @@
                     <div class="empty-state">
                         <div style="font-size: 4rem;">💰</div>
                         <h3>No Salary Data Loaded</h3>
-                        <p style="color: #bfdbfe;">Upload your salary CSV to see multi-year projections</p>
+                        <p style="color: #bfdbfe;">Load your league data to see multi-year projections</p>
                     </div>
                 `;
                 return;
             }
+            
+            // Filter to only active team
+            const league = LEAGUES[selectedFantraxLeague];
+            const myTeamName = league?.myTeam;
+            const myPlayers = players.filter(p => p.fantraxTeam === myTeamName);
             
             // Calculate projections for 2025-2028
             const years = [2025, 2026, 2027, 2028];
@@ -8248,7 +7682,7 @@
             });
             
             // Project each player's salary
-            players.forEach(p => {
+            myPlayers.forEach(p => {
                 if (!salaryData[p.name]) return;
                 
                 const contract = salaryData[p.name];
@@ -8671,9 +8105,19 @@
                 return;
             }
             
+            // Filter to only active team
+            const league = LEAGUES[selectedFantraxLeague];
+            const myTeamName = league?.myTeam;
+            const myPlayers = players.filter(p => p.fantraxTeam === myTeamName);
+            
+            if (myPlayers.length === 0) {
+                document.getElementById('positionBreakdown').innerHTML = '<p style="color: #94a3b8; font-style: italic;">No players on your team</p>';
+                return;
+            }
+            
             // By Position
             const positionCounts = {};
-            players.forEach(p => {
+            myPlayers.forEach(p => {
                 const positions = p.position.split(',').map(pos => pos.trim());
                 positions.forEach(pos => {
                     positionCounts[pos] = (positionCounts[pos] || 0) + 1;
@@ -8685,7 +8129,7 @@
             positionOrder.forEach(pos => {
                 const count = positionCounts[pos] || 0;
                 if (count > 0) {
-                    const barWidth = (count / players.length) * 100;
+                    const barWidth = (count / myPlayers.length) * 100;
                     positionHtml += `
                         <div style="margin-bottom: 10px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
@@ -8711,7 +8155,7 @@
                 'Unknown': 0
             };
             
-            players.forEach(p => {
+            myPlayers.forEach(p => {
                 if (salaryData[p.name]) {
                     const status = salaryData[p.name].serviceStatus;
                     if (serviceGroups.hasOwnProperty(status)) {
@@ -8727,7 +8171,7 @@
             let serviceHtml = '';
             Object.entries(serviceGroups).forEach(([status, count]) => {
                 if (count > 0) {
-                    const barWidth = (count / players.length) * 100;
+                    const barWidth = (count / myPlayers.length) * 100;
                     const colors = {
                         'Team Control': '#22c55e',
                         'Arb 1': '#60a5fa',
@@ -9377,6 +8821,34 @@
         }
         
         // Merge contracts into roster players
+        
+        function manualEnrichPlayers() {
+            if (!players || players.length === 0) {
+                alert('⚠️ Load roster first!');
+                return;
+            }
+            
+            if (!playerContractsData || Object.keys(playerContractsData).length === 0) {
+                alert('⚠️ No contract data available. Try refreshing the page.');
+                return;
+            }
+            
+            console.log('✨ Manually enriching players with contract data...');
+            mergePlayerContracts();
+            
+            // Update button to show success
+            const btn = document.getElementById('enrichBtn');
+            btn.innerHTML = '✅ Enriched!';
+            btn.style.background = 'rgba(34, 197, 94, 0.3)';
+            btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+            btn.disabled = true;
+            
+            // Re-render to show enriched data
+            applyTeamFilter();
+            
+            alert('✅ Players enriched with contract data!');
+        }
+        
         function mergePlayerContracts() {
             if (!playerContractsData || !players || players.length === 0) {
                 console.log('⚠️ Cannot merge contracts - data not ready');
