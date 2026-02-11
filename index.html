@@ -1273,7 +1273,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.1 - Contract Fix</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.2 - Enrich Button</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1986,7 +1986,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.1 - Contract Fix 🔧 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.2 - Enrich Button Fix 🔘 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 CRITICAL FIX: Enrich button stays disabled even when contract data loads</li>
+                            <li>✅ Button now enables automatically after contracts load from Google Sheets</li>
+                            <li>📊 Added serviceStatus calculation (TC/ARB1/ARB2/ARB3/FA) from salary data</li>
+                            <li>💰 Fixed salary display to handle both numeric salaries and text codes</li>
+                            <li>🔧 Contract info now shows "TC" or "ARB1" for service time players</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.1 - Contract Fix 🔧</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 CRITICAL FIX: Contracts not displaying after enrichment</li>
                             <li>✅ Fixed player cards to use player.contract instead of salaryData</li>
@@ -5784,7 +5795,7 @@
                         ${player.status ? `<span class="badge badge-status">${player.status}</span>` : ''}
                         ${player.age ? `<span class="badge badge-age">${player.age} yrs</span>` : ''}
                         ${player.ranking ? `<span class="badge badge-ranking">Rank: ${player.ranking}</span>` : ''}
-                        ${player.contract?.salary2026 ? `<span class="badge badge-salary">$${(player.contract.salary2026/1000000).toFixed(1)}M</span>` : ''}
+                        ${player.contract?.salary2026 ? `<span class="badge badge-salary">${typeof player.contract.salary2026 === 'number' ? '$' + (player.contract.salary2026/1000000).toFixed(1) + 'M' : player.contract.salary2026}</span>` : ''}
                         ${player.contract?.serviceStatus ? `<span class="badge badge-service">${player.contract.serviceStatus}</span>` : ''}
                         ${player.serviceInfo?.isMiLBEligible ? `<span class="badge badge-milb-eligible">✓ MiLB Eligible</span>` : ''}
                         ${player.serviceInfo?.warnings.map(w => 
@@ -6785,8 +6796,16 @@
             const contract = player.contract;
             if (!contract) return '';
             
-            const salary = parseInt(contract.salary2026) || 0;
+            const salary2026 = contract.salary2026;
             const status = contract.serviceStatus || 'Unknown';
+            
+            // Format salary display
+            let salaryDisplay;
+            if (typeof salary2026 === 'number') {
+                salaryDisplay = '$' + (salary2026/1000000).toFixed(1) + 'M';
+            } else {
+                salaryDisplay = salary2026; // It's already a string like "TC" or "ARB1"
+            }
             
             // Count contract years
             let years = 0;
@@ -6798,7 +6817,7 @@
             if (contract.salary2031) years++;
             
             // Determine if player can be dropped without penalty
-            const canDropFree = status === 'TC' || salary <= 800000;
+            const canDropFree = status === 'TC' || (typeof salary2026 === 'number' && salary2026 <= 800000);
             
             return `
                 <div class="service-tracker" style="border-color: rgba(6, 182, 212, 0.3);">
@@ -6807,7 +6826,7 @@
                     </div>
                     <div class="tracker-row">
                         <span class="tracker-label">2026 Salary:</span>
-                        <span class="tracker-value">$${(salary/1000000).toFixed(1)}M</span>
+                        <span class="tracker-value">${salaryDisplay}</span>
                     </div>
                     <div class="tracker-row">
                         <span class="tracker-label">Contract Years:</span>
@@ -8820,16 +8839,47 @@
                     if (!playerName || !team) continue; // Skip empty rows
                     
                     // Get salary data (columns G-L: 2026-2031)
+                    const salary2026 = cells[6]?.v || 0;
+                    const salary2027 = cells[7]?.v || '';
+                    const salary2028 = cells[8]?.v || '';
+                    
+                    // Determine service status based on salary
+                    let serviceStatus = 'Unknown';
+                    if (typeof salary2026 === 'string') {
+                        // String values indicate service time status
+                        if (salary2026.includes('TC') || salary2026.toLowerCase().includes('team control')) {
+                            serviceStatus = 'TC';
+                        } else if (salary2026.includes('ARB1') || salary2026.toLowerCase().includes('arb 1')) {
+                            serviceStatus = 'ARB1';
+                        } else if (salary2026.includes('ARB2') || salary2026.toLowerCase().includes('arb 2')) {
+                            serviceStatus = 'ARB2';
+                        } else if (salary2026.includes('ARB3') || salary2026.toLowerCase().includes('arb 3')) {
+                            serviceStatus = 'ARB3';
+                        } else if (salary2026.toLowerCase().includes('fa')) {
+                            serviceStatus = 'FA';
+                        } else {
+                            serviceStatus = salary2026; // Use as-is if it's a status
+                        }
+                    } else if (typeof salary2026 === 'number') {
+                        // Numeric salary - check if it's league minimum
+                        if (salary2026 <= 800000) {
+                            serviceStatus = 'TC';
+                        } else {
+                            serviceStatus = 'Under Contract';
+                        }
+                    }
+                    
                     const contract = {
                         name: playerName,
                         team: team,
                         position: cells[5]?.v || '', // Column F: Position
-                        salary2026: cells[6]?.v || 0, // Column G: 2026
-                        salary2027: cells[7]?.v || '', // Column H: 2027
-                        salary2028: cells[8]?.v || '', // Column I: 2028
+                        salary2026: salary2026,
+                        salary2027: salary2027,
+                        salary2028: salary2028,
                         salary2029: cells[9]?.v || '', // Column J: 2029
                         salary2030: cells[10]?.v || '', // Column K: 2030
-                        salary2031: cells[11]?.v || ''  // Column L: 2031
+                        salary2031: cells[11]?.v || '',  // Column L: 2031
+                        serviceStatus: serviceStatus
                     };
                     
                     contracts[playerName] = contract;
@@ -8842,6 +8892,13 @@
                 
                 playerContractsData = contracts;
                 console.log(`✅ Loaded contracts for ${playerCount} players`);
+                
+                // Enable enrich button if roster is also loaded
+                const enrichBtn = document.getElementById('enrichBtn');
+                if (enrichBtn && players && players.length > 0) {
+                    enrichBtn.disabled = false;
+                    console.log('✅ Enrich button enabled');
+                }
                 
                 return contracts;
                 
