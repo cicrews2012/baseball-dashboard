@@ -1273,7 +1273,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.2 - Enrich Button</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.3 - Cap Planning</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1734,6 +1734,14 @@
                 <h2 style="margin-bottom: 10px;">💰 Multi-Year Cap Planning</h2>
                 <p style="color: #94a3b8; margin-bottom: 20px;">Plan your salary cap strategy across multiple seasons with extension scenarios and free agent budgeting</p>
                 
+                <!-- Team Selector for Cap Planning -->
+                <div id="capPlanningTeamSelector" style="margin-bottom: 20px; display: none;">
+                    <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.875rem;">Select Team:</label>
+                    <select id="capPlanningTeamSelect" class="team-select" style="width: 100%; padding: 10px; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; color: #e2e8f0; font-size: 1rem;">
+                        <option value="">Choose a team...</option>
+                    </select>
+                </div>
+                
                 <div id="capPlanningContent"></div>
             </div>
         </div>
@@ -1986,7 +1994,19 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.2 - Enrich Button Fix 🔘 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.3 - Cap Planning Overhaul 💰 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🎯 Added team selector dropdown to Cap Planning tab</li>
+                            <li>💰 Now uses contract data from Google Sheets (playerContractsData)</li>
+                            <li>📊 Shows projections for 2026-2031 instead of 2025-2028</li>
+                            <li>✅ Works with any team in the league, not just your team</li>
+                            <li>🔢 Smart estimation: TC=$800K, ARB1=$2.5M, ARB2=$5M, ARB3=$8M</li>
+                            <li>📈 Displays actual contract amounts for multi-year deals</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.2 - Enrich Button Fix 🔘</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 CRITICAL FIX: Enrich button stays disabled even when contract data loads</li>
                             <li>✅ Button now enables automatically after contracts load from Google Sheets</li>
@@ -7701,27 +7721,70 @@
         
         // ========== MULTI-YEAR CAP PLANNING ==========
         
-        function generateCapPlanning() {
+        function generateCapPlanning(selectedTeam = null) {
             const content = document.getElementById('capPlanningContent');
+            const teamSelector = document.getElementById('capPlanningTeamSelector');
+            const teamSelect = document.getElementById('capPlanningTeamSelect');
             
-            if (Object.keys(salaryData).length === 0) {
+            // Check if contract data is loaded
+            if (!playerContractsData || Object.keys(playerContractsData).length === 0) {
                 content.innerHTML = `
                     <div class="empty-state">
                         <div style="font-size: 4rem;">💰</div>
-                        <h3>No Salary Data Loaded</h3>
-                        <p style="color: #bfdbfe;">Load your league data to see multi-year projections</p>
+                        <h3>No Contract Data Loaded</h3>
+                        <p style="color: #bfdbfe;">Click "Enrich with Contracts" to load salary data</p>
+                    </div>
+                `;
+                teamSelector.style.display = 'none';
+                return;
+            }
+            
+            // Populate team selector if not already done
+            if (teamSelect.options.length === 1) {
+                const teams = new Set();
+                Object.values(playerContractsData).forEach(contract => {
+                    if (contract.team) teams.add(contract.team);
+                });
+                
+                Array.from(teams).sort().forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team;
+                    option.textContent = team;
+                    teamSelect.appendChild(option);
+                });
+                
+                // Set default team to user's team if available
+                const league = LEAGUES[selectedFantraxLeague];
+                if (league?.myTeam && teams.has(league.myTeam)) {
+                    teamSelect.value = league.myTeam;
+                    selectedTeam = league.myTeam;
+                }
+            }
+            
+            // Show team selector
+            teamSelector.style.display = 'block';
+            
+            // If no team selected, show prompt
+            if (!selectedTeam) {
+                selectedTeam = teamSelect.value;
+            }
+            
+            if (!selectedTeam) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 4rem;">👆</div>
+                        <h3>Select a Team</h3>
+                        <p style="color: #bfdbfe;">Choose a team from the dropdown to view cap planning</p>
                     </div>
                 `;
                 return;
             }
             
-            // Filter to only active team
-            const league = LEAGUES[selectedFantraxLeague];
-            const myTeamName = league?.myTeam;
-            const myPlayers = players.filter(p => p.fantraxTeam === myTeamName);
+            // Get all players for the selected team
+            const teamPlayers = Object.values(playerContractsData).filter(p => p.team === selectedTeam);
             
-            // Calculate projections for 2025-2028
-            const years = [2025, 2026, 2027, 2028];
+            // Calculate projections for 2026-2031
+            const years = [2026, 2027, 2028, 2029, 2030, 2031];
             const yearlyProjections = {};
             
             years.forEach(year => {
@@ -7732,65 +7795,58 @@
             });
             
             // Project each player's salary
-            myPlayers.forEach(p => {
-                if (!salaryData[p.name]) return;
-                
-                const contract = salaryData[p.name];
-                const baseYear = 2025;
-                const yearsRemaining = parseInt(contract.yearsRemaining) || 0;
-                const baseSalary = parseInt(contract.salary) || 0;
-                const status = contract.serviceStatus;
-                
-                years.forEach((year, idx) => {
-                    const yearOffset = year - baseYear;
+            teamPlayers.forEach(contract => {
+                years.forEach(year => {
+                    const salaryKey = `salary${year}`;
+                    const salary = contract[salaryKey];
                     
-                    if (yearOffset === 0) {
-                        // 2025 - current salary
-                        yearlyProjections[year].totalCommitted += baseSalary;
-                        yearlyProjections[year].players.push({
-                            name: p.name,
-                            salary: baseSalary,
-                            status: status
-                        });
-                    } else if (yearOffset <= yearsRemaining) {
-                        // Under contract
-                        yearlyProjections[year].totalCommitted += baseSalary;
-                        yearlyProjections[year].players.push({
-                            name: p.name,
-                            salary: baseSalary,
-                            status: 'Under Contract'
-                        });
-                    } else if (status === 'Team Control') {
-                        // Project TC to arb
-                        const projectedSalary = 760000 + (yearOffset * 500000); // Rough arb escalation
-                        yearlyProjections[year].totalCommitted += projectedSalary;
-                        yearlyProjections[year].players.push({
-                            name: p.name,
-                            salary: projectedSalary,
-                            status: `Arb ${yearOffset}`
-                        });
-                    } else if (status.includes('Arb')) {
-                        // Project arb raises
-                        const arbYear = parseInt(status.match(/\d+/)?.[0]) || 1;
-                        const newArbYear = arbYear + yearOffset;
-                        if (newArbYear <= 3) {
-                            const projectedSalary = baseSalary * (1 + (0.3 * yearOffset)); // 30% annual raise
+                    if (salary) {
+                        // Handle both numeric and string salaries
+                        let projectedSalary = 0;
+                        let status = contract.serviceStatus || 'Unknown';
+                        
+                        if (typeof salary === 'number') {
+                            projectedSalary = salary;
+                            status = contract.serviceStatus || 'Under Contract';
+                        } else if (typeof salary === 'string') {
+                            // It's a service status like "TC", "ARB1", etc.
+                            status = salary;
+                            
+                            // Estimate salaries for service time players
+                            if (salary === 'TC') {
+                                projectedSalary = 800000; // League minimum
+                            } else if (salary === 'ARB1') {
+                                projectedSalary = 2500000; // ~$2.5M arb 1
+                            } else if (salary === 'ARB2') {
+                                projectedSalary = 5000000; // ~$5M arb 2
+                            } else if (salary === 'ARB3') {
+                                projectedSalary = 8000000; // ~$8M arb 3
+                            } else {
+                                projectedSalary = 0; // FA or unknown
+                            }
+                        }
+                        
+                        if (projectedSalary > 0) {
                             yearlyProjections[year].totalCommitted += projectedSalary;
                             yearlyProjections[year].players.push({
-                                name: p.name,
+                                name: contract.name,
                                 salary: projectedSalary,
-                                status: `Arb ${newArbYear} (Est.)`
+                                status: status
                             });
                         }
                     }
-                    // Otherwise player becomes FA (not projected)
                 });
             });
             
-            const capLimit = 241000000;
+            const capLimit = 241000000; // MBL cap limit
             
             let html = `
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #60a5fa; margin-bottom: 10px;">📊 ${selectedTeam}</h3>
+                    <p style="color: #94a3b8; font-size: 0.875rem;">Multi-year salary cap projections</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
                     ${years.map(year => {
                         const proj = yearlyProjections[year];
                         const capUsed = proj.totalCommitted;
@@ -7803,11 +7859,11 @@
                                 <h3 style="color: #60a5fa; margin-bottom: 15px; font-size: 1.5rem;">${year}</h3>
                                 <div style="margin-bottom: 10px;">
                                     <div style="color: #94a3b8; font-size: 0.875rem;">Cap Used</div>
-                                    <div style="font-size: 1.25rem; font-weight: bold; color: #60a5fa;">$${formatSalary(capUsed.toString())}</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold; color: #60a5fa;">$${(capUsed/1000000).toFixed(1)}M</div>
                                 </div>
                                 <div style="margin-bottom: 10px;">
                                     <div style="color: #94a3b8; font-size: 0.875rem;">Cap Space</div>
-                                    <div style="font-size: 1.25rem; font-weight: bold; color: ${capSpace > 0 ? '#22c55e' : '#ef4444'};">$${formatSalary(capSpace.toString())}</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold; color: ${capSpace > 0 ? '#22c55e' : '#ef4444'};">$${(capSpace/1000000).toFixed(1)}M</div>
                                 </div>
                                 <div style="margin-bottom: 10px;">
                                     <div style="color: #94a3b8; font-size: 0.875rem;">Cap %</div>
@@ -7824,10 +7880,12 @@
                 <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                     <h3 style="color: #f59e0b; margin-bottom: 15px;">⚠️ Projection Notes</h3>
                     <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px; font-size: 0.875rem;">
-                        <li><strong>Team Control:</strong> Projected at $760K + $500K per year (rough arb escalation)</li>
-                        <li><strong>Arb Players:</strong> Projected at 30% annual raises (conservative estimate)</li>
-                        <li><strong>Free Agents:</strong> Not included in future year projections</li>
-                        <li><strong>Multi-Year Contracts:</strong> Shown at current salary (assumes flat)</li>
+                        <li><strong>TC (Team Control):</strong> Estimated at $800K (league minimum)</li>
+                        <li><strong>ARB1:</strong> Estimated at $2.5M (first year arbitration)</li>
+                        <li><strong>ARB2:</strong> Estimated at $5M (second year arbitration)</li>
+                        <li><strong>ARB3:</strong> Estimated at $8M (third year arbitration)</li>
+                        <li><strong>Under Contract:</strong> Actual contract amount from Google Sheets</li>
+                        <li><strong>Free Agents:</strong> Not included in projections</li>
                     </ul>
                 </div>
                 
@@ -7840,16 +7898,15 @@
                         return `
                             <details style="margin-bottom: 15px;">
                                 <summary style="cursor: pointer; font-weight: 600; color: #a855f7; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
-                                    ${year} - ${sortedPlayers.length} Players - $${formatSalary(proj.totalCommitted.toString())}
+                                    ${year} - ${sortedPlayers.length} Players - $${(proj.totalCommitted/1000000).toFixed(1)}M
                                 </summary>
-                                <div style="margin-top: 10px; max-height: 300px; overflow-y: auto;">
-                                    ${sortedPlayers.slice(0, 20).map(p => `
+                                <div style="margin-top: 10px; max-height: 400px; overflow-y: auto;">
+                                    ${sortedPlayers.map(p => `
                                         <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                                             <span>${p.name}</span>
-                                            <span style="color: #94a3b8;">$${formatSalary(p.salary.toString())} • ${p.status}</span>
+                                            <span style="color: #94a3b8;">$${(p.salary/1000000).toFixed(1)}M • ${p.status}</span>
                                         </div>
                                     `).join('')}
-                                    ${sortedPlayers.length > 20 ? `<div style="padding: 10px; text-align: center; color: #94a3b8; font-style: italic;">+ ${sortedPlayers.length - 20} more players</div>` : ''}
                                 </div>
                             </details>
                         `;
@@ -9427,7 +9484,13 @@
         
         // Populate trade dropdown when salary data loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Will be called after roster loads
+            // Cap Planning team selector
+            const capPlanningTeamSelect = document.getElementById('capPlanningTeamSelect');
+            if (capPlanningTeamSelect) {
+                capPlanningTeamSelect.addEventListener('change', function() {
+                    generateCapPlanning(this.value);
+                });
+            }
         });
         
         // ========== DROP PENALTY CALCULATOR ==========
