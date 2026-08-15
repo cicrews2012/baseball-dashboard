@@ -4090,7 +4090,89 @@
         }
         
         
+        // ========== MLB ENRICHMENT CACHES ==========
+        // Roster sync used to re-fetch every player's bio/team from the MLB Stats API on
+        // every single "Refresh Roster" click, even though the same real-world players show
+        // up almost every time. These two caches persist across syncs (and across leagues,
+        // since MLB bio data isn't league-specific) so repeat syncs skip the network entirely
+        // for players already resolved recently, and dedupe the ~30 possible MLB org lookups
+        // that were otherwise being repeated once per player.
+
+        const MLB_TEAM_CACHE_KEY = 'mlb_team_info_cache';
+        const MLB_PLAYER_BIO_CACHE_KEY = 'mlb_player_bio_cache';
+        const MLB_BIO_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h - team/org affiliations rarely change faster than this
+
+        function loadJSONCache(key) {
+            try {
+                return JSON.parse(localStorage.getItem(key)) || {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        let mlbTeamInfoCache = loadJSONCache(MLB_TEAM_CACHE_KEY); // { [teamId]: teamName }
+        let mlbPlayerBioCache = loadJSONCache(MLB_PLAYER_BIO_CACHE_KEY); // { [normalizedName]: {mlbPlayerId, age, mlbTeam, mlbOrg, status, cachedAt} }
+
+        function saveMLBCaches() {
+            try {
+                localStorage.setItem(MLB_TEAM_CACHE_KEY, JSON.stringify(mlbTeamInfoCache));
+                localStorage.setItem(MLB_PLAYER_BIO_CACHE_KEY, JSON.stringify(mlbPlayerBioCache));
+            } catch (error) {
+                console.error('Error saving MLB enrichment caches:', error);
+            }
+        }
+
+        // Concurrent players in the same enrichment batch can share an MLB org (e.g. two
+        // Brewers prospects). Track in-flight lookups so they share one fetch instead of
+        // each racing past the empty cache and firing a duplicate request.
+        const mlbTeamFetchesInFlight = {}; // { [teamId]: Promise<string|null> }
+
+        // Look up (and cache) an MLB team's display name by ID, avoiding a repeat
+        // teams/{id} fetch for every player who happens to share the same org.
+        async function getTeamNameCached(teamId) {
+            if (Object.prototype.hasOwnProperty.call(mlbTeamInfoCache, teamId)) return mlbTeamInfoCache[teamId];
+            if (mlbTeamFetchesInFlight[teamId]) return mlbTeamFetchesInFlight[teamId];
+
+            const fetchPromise = (async () => {
+                const teamUrl = `https://statsapi.mlb.com/api/v1/teams/${teamId}`;
+                const teamRes = await fetch(teamUrl);
+                const teamData = await teamRes.json();
+
+                let name = null;
+                if (teamData.teams && teamData.teams.length > 0) {
+                    const team = teamData.teams[0];
+                    if (team.id !== 0 && !team.name.includes('Commissioner')) {
+                        name = team.name || null;
+                    }
+                }
+
+                mlbTeamInfoCache[teamId] = name; // cache misses too, so we don't retry a dead ID every sync
+                return name;
+            })();
+
+            mlbTeamFetchesInFlight[teamId] = fetchPromise;
+            try {
+                return await fetchPromise;
+            } finally {
+                delete mlbTeamFetchesInFlight[teamId];
+            }
+        }
+
         async function enrichPlayerWithMLBData(player) {
+            const cacheKey = normalizePlayerName(player.name);
+            const cached = mlbPlayerBioCache[cacheKey];
+            if (cached && (Date.now() - cached.cachedAt) < MLB_BIO_CACHE_MAX_AGE_MS) {
+                player.age = cached.age;
+                player.mlbTeam = cached.mlbTeam;
+                player.mlbOrg = cached.mlbOrg;
+                player.status = cached.status;
+                player.mlbPlayerId = cached.mlbPlayerId;
+                player.usedFallback = cached.usedFallback || false;
+                player.mlbDataEnriched = true;
+                player.mlbNotFound = cached.mlbNotFound || false;
+                return player;
+            }
+
             try {
                 // Fantrax names come as "Last, First" - need to convert for MLB API
                 const searchName = convertLastFirstToFirstLast(player.name);
@@ -4123,7 +4205,7 @@
                 
                 if (!searchData.people || searchData.people.length === 0) {
                     // Player not found in MLB database
-                    
+
                     // Try Fantrax fallback
                     if (player.team && (player.team.length === 2 || player.team.length === 3)) {
                         const fullTeamName = getFullTeamName(player.team);
@@ -4131,25 +4213,35 @@
                             player.mlbTeam = fullTeamName;
                             player.mlbOrg = fullTeamName;
                             player.usedFallback = true; // Mark for stats tracking
-                        } else {
                         }
-                    } else {
                     }
-                    
+
                     player.mlbDataEnriched = true;
                     player.mlbNotFound = true;
+
+                    mlbPlayerBioCache[cacheKey] = {
+                        age: player.age,
+                        mlbTeam: player.mlbTeam || '',
+                        mlbOrg: player.mlbOrg || '',
+                        status: player.status || '',
+                        mlbPlayerId: null,
+                        usedFallback: player.usedFallback || false,
+                        mlbNotFound: true,
+                        cachedAt: Date.now(),
+                    };
+
                     return player;
                 }
-                
+
                 const mlbPlayer = searchData.people[0];
-                
+
                 // Update player with MLB data
                 player.age = mlbPlayer.currentAge || 0;
-                
+
                 // Get MLB organization (not current team which could be MiLB/Winter ball)
                 // Priority: 1) parentOrgId, 2) primaryTeam, 3) currentTeam
                 let teamId = null;
-                
+
                 // Check if currentTeam has a parentOrgId (MiLB team)
                 if (mlbPlayer.currentTeam?.parentOrgId && mlbPlayer.currentTeam.parentOrgId !== 0) {
                     teamId = mlbPlayer.currentTeam.parentOrgId;
@@ -4162,28 +4254,12 @@
                 else if (mlbPlayer.currentTeam?.id && mlbPlayer.currentTeam.id !== 0 && mlbPlayer.currentTeam.sport?.id === 1) {
                     teamId = mlbPlayer.currentTeam.id;
                 }
-                
+
                 if (teamId) {
                     try {
-                        // Fetch the org/team info
-                        const teamUrl = `https://statsapi.mlb.com/api/v1/teams/${teamId}`;
-                        const teamRes = await fetch(teamUrl);
-                        const teamData = await teamRes.json();
-                        
-                        if (teamData.teams && teamData.teams.length > 0) {
-                            const team = teamData.teams[0];
-                            // Make sure it's not "Office of the Commissioner"
-                            if (team.id !== 0 && !team.name.includes('Commissioner')) {
-                                player.mlbTeam = team.name || '';
-                                player.mlbOrg = team.name || 'Free Agent';
-                            } else {
-                                player.mlbTeam = '';
-                                player.mlbOrg = 'Free Agent';
-                            }
-                        } else {
-                            player.mlbTeam = '';
-                            player.mlbOrg = 'Free Agent';
-                        }
+                        const teamName = await getTeamNameCached(teamId);
+                        player.mlbTeam = teamName || '';
+                        player.mlbOrg = teamName || 'Free Agent';
                     } catch (error) {
                         console.error(`Error fetching team ${teamId}:`, error);
                         player.mlbTeam = '';
@@ -4193,7 +4269,7 @@
                     player.mlbTeam = '';
                     player.mlbOrg = 'Free Agent';
                 }
-                
+
                 // FALLBACK: If still no MLB team, try to extract from player.team or player.position
                 // Fantrax often includes team abbreviations in the roster data
                 if (!player.mlbTeam || player.mlbTeam === '') {
@@ -4208,20 +4284,30 @@
                         }
                     }
                 }
-                
+
                 player.status = mlbPlayer.active ? 'Act' : 'Min';
-                
-                
+
                 // Check if on IL
                 if (mlbPlayer.status?.statusCode === 'IL60' || mlbPlayer.status?.statusCode === 'IL10') {
                     player.status = mlbPlayer.status.statusCode;
                 }
-                
+
                 player.mlbDataEnriched = true;
                 player.mlbPlayerId = mlbPlayer.id;
-                
+
+                mlbPlayerBioCache[cacheKey] = {
+                    age: player.age,
+                    mlbTeam: player.mlbTeam || '',
+                    mlbOrg: player.mlbOrg || '',
+                    status: player.status || '',
+                    mlbPlayerId: player.mlbPlayerId,
+                    usedFallback: false,
+                    mlbNotFound: false,
+                    cachedAt: Date.now(),
+                };
+
                 return player;
-                
+
             } catch (error) {
                 console.error(`Error enriching ${player.name}:`, error);
                 player.mlbDataEnriched = true;
@@ -4230,8 +4316,8 @@
             }
         }
         
-        async function batchEnrichPlayers(playersList, batchSize = 10) {
-            
+        async function batchEnrichPlayers(playersList, batchSize = 20) {
+
             const statusDiv = document.getElementById('leagueStatus');
             const statusIcon = document.getElementById('leagueStatusIcon');
             const statusText = document.getElementById('leagueStatusText');
@@ -4270,19 +4356,21 @@
                 });
                 
                 enrichedCount += batch.length;
-                
+
                 // Re-render after each batch to show progress
                 if (i % 50 === 0 && i > 0) {
                     applyTeamFilter();
                     updateSummaryStats();
+                    saveMLBCaches(); // persist progress periodically on long syncs
                 }
             }
-            
-            
+
+
             // Final render
             applyTeamFilter();
             updateSummaryStats();
-            
+            saveMLBCaches();
+
             // Update status
             const league = LEAGUES[selectedFantraxLeague];
             if (statusDiv && statusText) {
@@ -4290,7 +4378,7 @@
                 statusText.textContent = `${league.name} - All player data loaded`;
                 statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
             }
-            
+
             // Update cache with enriched data
             const cacheKey = `${selectedFantraxLeague}_roster_cache`;
             const lastSyncKey = `${selectedFantraxLeague}_lastSync`;
