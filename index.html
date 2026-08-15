@@ -1268,7 +1268,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.7 - Cap Planning Matches the Official Sheet</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.8 - Year-by-Year Breakdown Matches Too</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1990,7 +1990,16 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.7 - Cap Planning Matches the Official Sheet 🎯 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.8 - Year-by-Year Breakdown Matches Too 📋 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 The Year-by-Year Breakdown's per-year total still included our own TC/arbitration salary estimates, so it didn't match the official Cap Used number now shown above it (e.g. SF's 2027 breakdown read $235.5M against an official $125.5M)</li>
+                            <li>✅ The breakdown's main total and player list now only count players with a real dollar figure from the sheet - the same players the league's official total counts - so the two numbers line up</li>
+                            <li>👀 Team control/arbitration players are still shown, just separated underneath as "not yet counted", with our estimate labeled as such</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.7 - Cap Planning Matches the Official Sheet 🎯</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Cap Planning's headline Cap Used/Space/% for 2027+ was showing our own player-level estimate (which includes conservative guesses for every TC/arbitration-eligible player) instead of the commissioner's official "Team Salaries" total - the two are supposed to differ since the official sheet deliberately excludes those players from future-year totals until their real salary is known, but showing our number under the "Cap Used" label made it look wrong (e.g. SF's 2027 read $235.5M instead of the sheet's official $125.5M)</li>
                             <li>✅ Cap Used/Space/% now read the commissioner's official numbers directly whenever available, falling back to our own estimate (now labeled "est.") only for years the sheet hasn't filled in yet</li>
@@ -7262,17 +7271,23 @@
                 };
             });
             
-            // Project each player's salary
+            // Project each player's salary. Tag whether it's a real dollar figure from the
+            // sheet ("locked in") vs. our own conservative guess for a TC/arbitration-status
+            // player ("estimated") - the commissioner's official totals only ever count the
+            // former for future years, so the breakdown needs to keep them separate to have
+            // any chance of adding up to the same number as the official Cap Used above.
             teamPlayers.forEach(contract => {
                 years.forEach(year => {
                     const { amount: projectedSalary, status } = estimateSalaryForYear(contract, year);
 
                     if (projectedSalary > 0) {
+                        const isEstimate = status in SERVICE_STATUS_SALARY_ESTIMATES;
                         yearlyProjections[year].totalCommitted += projectedSalary;
                         yearlyProjections[year].players.push({
                             name: contract.name,
                             salary: projectedSalary,
-                            status: status
+                            status: status,
+                            isEstimate: isEstimate
                         });
                     }
                 });
@@ -7319,7 +7334,11 @@
                         const capUsed = hasOfficial ? officialPayroll : proj.totalCommitted;
                         const capSpace = capLimit - capUsed;
                         const capPct = ((capUsed / capLimit) * 100).toFixed(1);
-                        const playerCount = proj.players.length;
+                        const lockedInCount = proj.players.filter(p => !p.isEstimate).length;
+                        const estimateCount = proj.players.length - lockedInCount;
+                        const playerCountText = hasOfficial
+                            ? `${lockedInCount} Players counted${estimateCount > 0 ? ` (+${estimateCount} on TC/arb, not yet counted)` : ''}`
+                            : `${proj.players.length} Players (est.)`;
 
                         return `
                             <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px;">
@@ -7337,7 +7356,7 @@
                                     <div style="font-size: 1.25rem; font-weight: bold;">${capPct}%</div>
                                 </div>
                                 <div style="padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                                    <div style="color: #94a3b8; font-size: 0.875rem;">${playerCount} Players ${hasOfficial ? 'w/ estimated salary' : ''}</div>
+                                    <div style="color: #94a3b8; font-size: 0.875rem;">${playerCountText}</div>
                                 </div>
                             </div>
                         `;
@@ -7348,11 +7367,11 @@
                     <h3 style="color: #f59e0b; margin-bottom: 15px;">⚠️ Projection Notes</h3>
                     <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px; font-size: 0.875rem;">
                         <li><strong>Cap Used</strong> above is the commissioner's own official total from the "Team Salaries" sheet when available (marked "est." when we have to fall back to our own estimate instead).</li>
-                        <li>Per that sheet's own notes, <strong>TC/arbitration-eligible players are intentionally left out</strong> of official future-year totals until their real salary is determined - so the official number can be well below what the "Year-by-Year Breakdown" below adds up to, which includes our own estimates for those players.</li>
-                        <li><strong>TC (Team Control):</strong> Estimated at $800K (league minimum)</li>
-                        <li><strong>ARB1:</strong> Estimated at $2.5M (first year arbitration)</li>
-                        <li><strong>ARB2:</strong> Estimated at $5M (second year arbitration)</li>
-                        <li><strong>ARB3:</strong> Estimated at $8M (third year arbitration)</li>
+                        <li>Per that sheet's own notes, <strong>TC/arbitration-eligible players are intentionally left out</strong> of official future-year totals until their real salary is determined - the "Year-by-Year Breakdown" below matches this: its main total only counts players with a real dollar figure from the sheet, with TC/arbitration players listed separately underneath since the league doesn't count them yet.</li>
+                        <li><strong>TC (Team Control):</strong> Estimated at $800K (league minimum) for informational purposes only</li>
+                        <li><strong>ARB1:</strong> Estimated at $2.5M (first year arbitration) for informational purposes only</li>
+                        <li><strong>ARB2:</strong> Estimated at $5M (second year arbitration) for informational purposes only</li>
+                        <li><strong>ARB3:</strong> Estimated at $8M (third year arbitration) for informational purposes only</li>
                         <li><strong>Under Contract:</strong> Actual contract amount from Google Sheets</li>
                         <li><strong>Free Agents:</strong> Not included in projections</li>
                     </ul>
@@ -7360,23 +7379,37 @@
 
                 <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 20px;">
                     <h3 style="color: #a855f7; margin-bottom: 15px;">📋 Year-by-Year Breakdown</h3>
-                    <p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 15px;">Player-level estimate, including TC/arbitration guesses not yet in the official totals above.</p>
+                    <p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 15px;">Locked-in total matches the official Cap Used above; team control/arbitration players are shown separately since the league doesn't count them until their real salary is set.</p>
                     ${years.map(year => {
                         const proj = yearlyProjections[year];
-                        const sortedPlayers = proj.players.sort((a, b) => b.salary - a.salary);
+                        const lockedInPlayers = proj.players.filter(p => !p.isEstimate).sort((a, b) => b.salary - a.salary);
+                        const estimatedPlayers = proj.players.filter(p => p.isEstimate).sort((a, b) => b.salary - a.salary);
+                        const lockedInTotal = lockedInPlayers.reduce((sum, p) => sum + p.salary, 0);
+                        const estimatedTotal = estimatedPlayers.reduce((sum, p) => sum + p.salary, 0);
 
                         return `
                             <details style="margin-bottom: 15px;">
                                 <summary style="cursor: pointer; font-weight: 600; color: #a855f7; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
-                                    ${year} - ${sortedPlayers.length} Players - $${(proj.totalCommitted/1000000).toFixed(1)}M
+                                    ${year} - ${lockedInPlayers.length} Players - $${(lockedInTotal/1000000).toFixed(1)}M
                                 </summary>
                                 <div style="margin-top: 10px; max-height: 400px; overflow-y: auto;">
-                                    ${sortedPlayers.map(p => `
+                                    ${lockedInPlayers.map(p => `
                                         <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                                             <span>${p.name}</span>
                                             <span style="color: #94a3b8;">$${(p.salary/1000000).toFixed(1)}M • ${p.status}</span>
                                         </div>
                                     `).join('')}
+                                    ${estimatedPlayers.length > 0 ? `
+                                        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed rgba(168, 85, 247, 0.3); color: #a78bfa; font-size: 0.8rem;">
+                                            + ${estimatedPlayers.length} more on team control/arbitration, not counted by the league yet (our estimate: $${(estimatedTotal/1000000).toFixed(1)}M)
+                                        </div>
+                                        ${estimatedPlayers.map(p => `
+                                            <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); opacity: 0.6;">
+                                                <span>${p.name}</span>
+                                                <span style="color: #94a3b8;">$${(p.salary/1000000).toFixed(1)}M (est.) • ${p.status}</span>
+                                            </div>
+                                        `).join('')}
+                                    ` : ''}
                                 </div>
                             </details>
                         `;
