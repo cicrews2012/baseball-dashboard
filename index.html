@@ -1268,7 +1268,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.3 - Cap Planning</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.4 - Faster Roster Sync</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1989,7 +1989,17 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.3 - Cap Planning Overhaul 💰 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.4 - Faster Roster Sync ⚡ (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>⚡ Roster refresh now caches each player's MLB bio/team for 24h, so repeat syncs of players you've already seen skip the network entirely</li>
+                            <li>🏟️ MLB team/org lookups are now deduped - each org is fetched once total instead of once per player who shares it</li>
+                            <li>🐛 Fixed a race where two teammates in the same sync batch could each fire a duplicate team lookup</li>
+                            <li>🚀 Increased sync batch concurrency now that most players resolve instantly from cache</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.3 - Cap Planning Overhaul 💰</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🎯 Added team selector dropdown to Cap Planning tab</li>
                             <li>💰 Now uses contract data from Google Sheets (playerContractsData)</li>
@@ -1999,7 +2009,7 @@
                             <li>📈 Displays actual contract amounts for multi-year deals</li>
                         </ul>
                     </div>
-                    
+
                     <div style="margin-bottom: 15px;">
                         <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.2 - Enrich Button Fix 🔘</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
