@@ -1289,18 +1289,20 @@
             </div>
             <div class="tabs">
                 <!-- Fantasy Dynasty League Tabs -->
-                <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
-                <button class="tab-btn" onclick="switchTab('composition')">📊 Roster Breakdown</button>
-                <button class="tab-btn" onclick="switchTab('capplanning')">💰 Cap Planning</button>
-                <button class="tab-btn" onclick="switchTab('finances')">💵 League Finances</button>
-                <button class="tab-btn" onclick="switchTab('rules')">📖 League Rules</button>
-                
+                <button class="tab-btn active" data-tab="roster" onclick="switchTab('roster')">📋 My Roster</button>
+                <button class="tab-btn" data-tab="myteams" onclick="switchTab('myteams')">🧑‍🤝‍🧑 My Teams</button>
+                <button class="tab-btn" data-tab="composition" onclick="switchTab('composition')">📊 Roster Breakdown</button>
+                <button class="tab-btn" data-tab="capplanning" onclick="switchTab('capplanning')">💰 Cap Planning</button>
+                <button class="tab-btn" data-tab="finances" onclick="switchTab('finances')">💵 League Finances</button>
+                <button class="tab-btn" data-tab="rules" onclick="switchTab('rules')">📖 League Rules</button>
+
                 <!-- MLB Scouting/Research Tabs -->
-                <button class="tab-btn" onclick="switchTab('research')">🔬 Player Lookup</button>
-                <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
-                <button class="tab-btn" onclick="switchTab('watchlist')">👁️ Watchlist</button>
-                
-                <button class="tab-btn" onclick="switchTab('guide')">📖 Guide</button>
+                <button class="tab-btn" data-tab="research" onclick="switchTab('research')">🔬 Player Lookup</button>
+                <button class="tab-btn" data-tab="prospects" onclick="switchTab('prospects')">🏆 Top Prospects</button>
+                <button class="tab-btn" data-tab="myprospects" onclick="switchTab('myprospects')">🌱 My Prospects</button>
+                <button class="tab-btn" data-tab="watchlist" onclick="switchTab('watchlist')">👁️ Watchlist</button>
+
+                <button class="tab-btn" data-tab="guide" onclick="switchTab('guide')">📖 Guide</button>
             </div>
             <div class="controls-row">
                 <!-- Removed CSV upload buttons - data now loads from APIs -->
@@ -1468,6 +1470,17 @@
             <div class="players-grid hidden" id="playersGrid"></div>
         </div>
 
+        <div class="tab-content" id="myTeamsTab">
+            <div class="research-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">🧑‍🤝‍🧑 My Teams</h2>
+                    <button class="upload-btn" onclick="renderMyTeams()" style="padding: 8px 20px;">🔄 Refresh</button>
+                </div>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Both leagues at a glance — no need to switch the league selector to see the other team.</p>
+                <div id="myTeamsContent"></div>
+            </div>
+        </div>
+
         <div class="tab-content" id="researchTab">
             <div class="research-section">
                 <h2 style="margin-bottom: 20px;">🔬 Research Any Player</h2>
@@ -1602,6 +1615,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="myProspectsTab">
+            <div class="research-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">🌱 My Prospects</h2>
+                    <button class="upload-btn" onclick="renderMyProspects()" style="padding: 8px 20px;">🔄 Refresh</button>
+                </div>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Every prospect you own across both leagues, in one list — with rank, tier, ETA, and year-over-year movement. Expand a card for live stats.</p>
+                <div id="myProspectsContent"></div>
             </div>
         </div>
 
@@ -4843,41 +4867,46 @@
             localStorage.setItem(lastSyncKey, new Date().toISOString());
         }
         
+        const TAB_ELEMENT_IDS = {
+            roster: 'rosterTab',
+            myteams: 'myTeamsTab',
+            research: 'researchTab',
+            watchlist: 'watchlistTab',
+            prospects: 'prospectsTab',
+            myprospects: 'myProspectsTab',
+            finances: 'financesTab',
+            composition: 'compositionTab',
+            capplanning: 'capPlanningTab',
+            rules: 'rulesTab',
+            guide: 'guideTab'
+        };
+
         function switchTab(tabName) {
             // Hide all tabs
-            document.getElementById('rosterTab').classList.remove('active');
-            document.getElementById('researchTab').classList.remove('active');
-            document.getElementById('watchlistTab').classList.remove('active');
-            document.getElementById('prospectsTab').classList.remove('active');
-            document.getElementById('financesTab').classList.remove('active');
-            document.getElementById('compositionTab').classList.remove('active');
-            document.getElementById('capPlanningTab').classList.remove('active');
-            document.getElementById('rulesTab').classList.remove('active');
-            document.getElementById('guideTab').classList.remove('active');
-            
+            Object.values(TAB_ELEMENT_IDS).forEach(id => {
+                document.getElementById(id)?.classList.remove('active');
+            });
+
             // Remove active from all buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
+
             // Show selected tab
-            if (tabName === 'roster') {
-                document.getElementById('rosterTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            } else if (tabName === 'research') {
-                document.getElementById('researchTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            const tabElement = document.getElementById(TAB_ELEMENT_IDS[tabName]);
+            if (!tabElement) return;
+            tabElement.classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.add('active');
+
+            if (tabName === 'myteams') {
+                renderMyTeams();
             } else if (tabName === 'watchlist') {
-                document.getElementById('watchlistTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 renderWatchlist();
                 updatePlayersWithNotesList();
             } else if (tabName === 'prospects') {
-                document.getElementById('prospectsTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 populateTeamDropdowns();
                 loadTop100Prospects(); // Load prospects when tab is opened
+            } else if (tabName === 'myprospects') {
+                renderMyProspects();
             } else if (tabName === 'finances') {
-                document.getElementById('financesTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[4].classList.add('active');
                 if (!leagueFinancesData) {
                     loadLeagueFinances(); // Load team finances
                 }
@@ -4885,19 +4914,9 @@
                     loadPlayerContracts(); // Just load, don't auto-merge
                 }
             } else if (tabName === 'composition') {
-                document.getElementById('compositionTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[6].classList.add('active');
                 generateRosterComposition();
             } else if (tabName === 'capplanning') {
-                document.getElementById('capPlanningTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[5].classList.add('active');
                 generateCapPlanning();
-            } else if (tabName === 'rules') {
-                document.getElementById('rulesTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[6].classList.add('active');
-            } else if (tabName === 'guide') {
-                document.getElementById('guideTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[7].classList.add('active');
             }
         }
 
@@ -7620,101 +7639,399 @@
         
         // ========== OWNERSHIP DETECTION ==========
         
+        // Remove accents/diacritics from text
+        function removeAccents(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // Normalize a player name to handle both "First Last" and "Last, First" formats
+        function normalizePlayerName(name) {
+            if (!name) return '';
+            name = name.trim();
+
+            // If it contains a comma, it's "Last, First" format - convert to "First Last"
+            if (name.includes(',')) {
+                const parts = name.split(',').map(p => p.trim());
+                name = `${parts[1]} ${parts[0]}`;
+            }
+
+            // Remove accents and convert to lowercase
+            return removeAccents(name).toLowerCase();
+        }
+
+        const MLB_TEAM_ABBREV_MAP = {
+            'ARI': 'Arizona Diamondbacks', 'ATL': 'Atlanta Braves', 'BAL': 'Baltimore Orioles',
+            'BOS': 'Boston Red Sox', 'CHC': 'Chicago Cubs', 'CHW': 'Chicago White Sox',
+            'CIN': 'Cincinnati Reds', 'CLE': 'Cleveland Guardians', 'COL': 'Colorado Rockies',
+            'DET': 'Detroit Tigers', 'HOU': 'Houston Astros', 'KC': 'Kansas City Royals',
+            'LAA': 'Los Angeles Angels', 'LAD': 'Los Angeles Dodgers', 'MIA': 'Miami Marlins',
+            'MIL': 'Milwaukee Brewers', 'MIN': 'Minnesota Twins', 'NYM': 'New York Mets',
+            'NYY': 'New York Yankees', 'OAK': 'Oakland Athletics', 'PHI': 'Philadelphia Phillies',
+            'PIT': 'Pittsburgh Pirates', 'SD': 'San Diego Padres', 'SF': 'San Francisco Giants',
+            'SEA': 'Seattle Mariners', 'STL': 'St. Louis Cardinals', 'TB': 'Tampa Bay Rays',
+            'TEX': 'Texas Rangers', 'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals'
+        };
+
+        // Normalize an MLB team name/abbreviation for comparison
+        function normalizeMLBTeamName(team) {
+            if (!team) return '';
+            const upper = team.toUpperCase();
+            if (MLB_TEAM_ABBREV_MAP[upper]) {
+                return MLB_TEAM_ABBREV_MAP[upper].toLowerCase();
+            }
+            return team.toLowerCase();
+        }
+
+        // Find roster players matching a prospect's name/age/team, narrowing progressively.
+        // Shared by findOwner() (whole-league ownership badge) and My Prospects (per-team matching).
+        function matchProspectInRoster(rosterPlayers, prospectName, prospectAge, prospectTeam) {
+            if (!rosterPlayers || rosterPlayers.length === 0) return [];
+
+            const prospectNameNorm = normalizePlayerName(prospectName);
+            const prospectTeamNorm = normalizeMLBTeamName(prospectTeam);
+
+            // Try exact name match first (normalized)
+            let matches = rosterPlayers.filter(p => normalizePlayerName(p.name) === prospectNameNorm);
+
+            // If multiple or no matches, try name + age
+            if (matches.length !== 1 && prospectAge) {
+                matches = rosterPlayers.filter(p =>
+                    normalizePlayerName(p.name) === prospectNameNorm &&
+                    Math.abs(p.age - parseFloat(prospectAge)) <= 1 // Allow 1 year variance
+                );
+            }
+
+            // If still multiple or no matches, try name + age + team
+            if (matches.length !== 1 && prospectTeamNorm) {
+                matches = rosterPlayers.filter(p => {
+                    const nameMatch = normalizePlayerName(p.name) === prospectNameNorm;
+                    const ageMatch = !prospectAge || Math.abs(p.age - parseFloat(prospectAge)) <= 1;
+                    const teamMatch = !p.mlbTeam || normalizeMLBTeamName(p.mlbTeam) === prospectTeamNorm;
+                    return nameMatch && ageMatch && teamMatch;
+                });
+            }
+
+            return matches;
+        }
+
         function findOwner(prospectName, prospectAge, prospectTeam) {
             // Try to find this prospect in loaded rosters
             if (!players || players.length === 0) {
-                console.log(`⚠️ findOwner(${prospectName}): No players loaded`);
                 return null;
             }
-            
-            console.log(`🔍 findOwner: Looking for "${prospectName}", age ${prospectAge}, team ${prospectTeam}`);
-            
-            // Remove accents/diacritics from text
-            const removeAccents = (str) => {
-                return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            };
-            
-            // Normalize name to handle both "First Last" and "Last, First" formats
-            const normalizeName = (name) => {
-                if (!name) return '';
-                name = name.trim();
-                
-                // If it contains a comma, it's "Last, First" format - convert to "First Last"
-                if (name.includes(',')) {
-                    const parts = name.split(',').map(p => p.trim());
-                    name = `${parts[1]} ${parts[0]}`;
-                }
-                
-                // Remove accents and convert to lowercase
-                return removeAccents(name).toLowerCase();
-            };
-            
-            const prospectNameNorm = normalizeName(prospectName);
-            
-            // Normalize team names for comparison
-            const normalizeTeam = (team) => {
-                if (!team) return '';
-                const abbrevMap = {
-                    'ARI': 'Arizona Diamondbacks', 'ATL': 'Atlanta Braves', 'BAL': 'Baltimore Orioles',
-                    'BOS': 'Boston Red Sox', 'CHC': 'Chicago Cubs', 'CHW': 'Chicago White Sox',
-                    'CIN': 'Cincinnati Reds', 'CLE': 'Cleveland Guardians', 'COL': 'Colorado Rockies',
-                    'DET': 'Detroit Tigers', 'HOU': 'Houston Astros', 'KC': 'Kansas City Royals',
-                    'LAA': 'Los Angeles Angels', 'LAD': 'Los Angeles Dodgers', 'MIA': 'Miami Marlins',
-                    'MIL': 'Milwaukee Brewers', 'MIN': 'Minnesota Twins', 'NYM': 'New York Mets',
-                    'NYY': 'New York Yankees', 'OAK': 'Oakland Athletics', 'PHI': 'Philadelphia Phillies',
-                    'PIT': 'Pittsburgh Pirates', 'SD': 'San Diego Padres', 'SF': 'San Francisco Giants',
-                    'SEA': 'Seattle Mariners', 'STL': 'St. Louis Cardinals', 'TB': 'Tampa Bay Rays',
-                    'TEX': 'Texas Rangers', 'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals'
-                };
-                
-                // If it's an abbreviation, expand it
-                const upper = team.toUpperCase();
-                if (abbrevMap[upper]) {
-                    return abbrevMap[upper].toLowerCase();
-                }
-                return team.toLowerCase();
-            };
-            
-            const prospectTeamNorm = normalizeTeam(prospectTeam);
-            
-            // Try exact name match first (normalized)
-            let matches = players.filter(p => normalizeName(p.name) === prospectNameNorm);
-            console.log(`  Step 1 - Normalized name "${prospectNameNorm}": ${matches.length} matches`);
-            
-            // If multiple or no matches, try name + age
-            if (matches.length !== 1 && prospectAge) {
-                matches = players.filter(p => 
-                    normalizeName(p.name) === prospectNameNorm && 
-                    Math.abs(p.age - parseFloat(prospectAge)) <= 1 // Allow 1 year variance
-                );
-                console.log(`  Step 2 - Name + age (±1): ${matches.length} matches`);
-            }
-            
-            // If still multiple or no matches, try name + age + team
-            if (matches.length !== 1 && prospectTeamNorm) {
-                matches = players.filter(p => {
-                    const nameMatch = normalizeName(p.name) === prospectNameNorm;
-                    const ageMatch = !prospectAge || Math.abs(p.age - parseFloat(prospectAge)) <= 1;
-                    const teamMatch = !p.mlbTeam || normalizeTeam(p.mlbTeam) === prospectTeamNorm;
-                    return nameMatch && ageMatch && teamMatch;
-                });
-                console.log(`  Step 3 - Name + age + team: ${matches.length} matches`);
-            }
-            
-            if (matches.length === 1) {
-                console.log(`  ✅ Found owner: ${matches[0].fantraxTeam}`);
+
+            const matches = matchProspectInRoster(players, prospectName, prospectAge, prospectTeam);
+
+            if (matches.length >= 1) {
                 return matches[0].fantraxTeam;
             }
-            
-            if (matches.length > 1) {
-                console.log(`  ⚠️ Multiple matches found (${matches.length}), using first: ${matches[0].fantraxTeam}`);
-                return matches[0].fantraxTeam;
-            }
-            
-            console.log(`  ❌ No match found`);
+
             return null;
         }
-        
+
+        // ========== MY TEAMS DASHBOARD ==========
+        // Reads both leagues' cached rosters directly from localStorage, independent of
+        // whichever league is currently active in "My Roster" — so both teams can be
+        // seen side by side without switching the league selector.
+
+        function getCachedLeagueRoster(leagueKey) {
+            try {
+                const cached = localStorage.getItem(`${leagueKey}_roster_cache`);
+                return cached ? JSON.parse(cached) : null;
+            } catch (error) {
+                console.error(`Error reading cached roster for ${leagueKey}:`, error);
+                return null;
+            }
+        }
+
+        function getCachedLeagueSalaryData(leagueKey) {
+            try {
+                const cached = localStorage.getItem(`${leagueKey}_salary_data`);
+                return cached ? JSON.parse(cached) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function formatRelativeTime(isoString) {
+            if (!isoString) return 'never';
+            const then = new Date(isoString);
+            const minutesAgo = Math.floor((new Date() - then) / 1000 / 60);
+            if (minutesAgo < 1) return 'just now';
+            if (minutesAgo < 60) return `${minutesAgo}m ago`;
+            const hoursAgo = Math.floor(minutesAgo / 60);
+            if (hoursAgo < 24) return `${hoursAgo}h ago`;
+            return `${Math.floor(hoursAgo / 24)}d ago`;
+        }
+
+        // Jump to "My Roster" pre-loaded with a specific league (reuses the existing
+        // single-active-league sync flow rather than duplicating it).
+        function goToTeamRoster(leagueKey) {
+            const selector = document.getElementById('leagueSelector');
+            if (selector) selector.value = leagueKey;
+            handleLeagueChange(leagueKey);
+            switchTab('roster');
+        }
+
+        function buildPositionBreakdownHtml(teamPlayers) {
+            const positionCounts = {};
+            teamPlayers.forEach(p => {
+                (p.position || '').split(',').map(pos => pos.trim()).filter(Boolean).forEach(pos => {
+                    positionCounts[pos] = (positionCounts[pos] || 0) + 1;
+                });
+            });
+
+            const positionOrder = ['C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP', 'P'];
+            let html = '';
+            positionOrder.forEach(pos => {
+                const count = positionCounts[pos] || 0;
+                if (count > 0) {
+                    const barWidth = (count / teamPlayers.length) * 100;
+                    html += `
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 0.8125rem;">
+                                <span style="font-weight: 600;">${pos}</span>
+                                <span style="color: #60a5fa;">${count}</span>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="background: #60a5fa; height: 100%; width: ${barWidth}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            return html || '<p style="color: #94a3b8; font-style: italic; font-size: 0.875rem;">No position data</p>';
+        }
+
+        function renderMyTeamCard(leagueKey) {
+            const league = LEAGUES[leagueKey];
+            const roster = getCachedLeagueRoster(leagueKey);
+            const lastSync = localStorage.getItem(`${leagueKey}_lastSync`);
+            const cardStyle = 'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;';
+
+            if (!roster || roster.length === 0) {
+                return `
+                    <div style="${cardStyle}">
+                        <h3 style="margin-top: 0;">${league.name}</h3>
+                        <p style="color: #94a3b8; font-size: 0.875rem;">${league.description}</p>
+                        <div class="empty-state" style="padding: 20px 0;">
+                            <div style="font-size: 2.5rem;">📭</div>
+                            <p style="color: #94a3b8; margin-top: 10px;">Not synced yet</p>
+                        </div>
+                        <button class="upload-btn" onclick="goToTeamRoster('${leagueKey}')" style="width: 100%;">🔄 Sync This League</button>
+                    </div>
+                `;
+            }
+
+            const myPlayers = roster.filter(p => p.fantraxTeam === league.myTeam);
+
+            let capHtml = '';
+            if (league.salaryCapEnabled && league.capAmount) {
+                const salaryData = getCachedLeagueSalaryData(leagueKey);
+                if (salaryData) {
+                    const totalSalary = myPlayers.reduce((sum, p) => sum + (parseInt(salaryData[p.name]?.salary) || 0), 0);
+                    const pctUsed = Math.min(100, (totalSalary / league.capAmount) * 100);
+                    capHtml = `
+                        <div style="margin-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.875rem;">
+                                <span style="font-weight: 600;">💰 Cap Usage</span>
+                                <span style="color: #fcd34d;">$${(totalSalary / 1000000).toFixed(1)}M / $${(league.capAmount / 1000000).toFixed(0)}M</span>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: ${pctUsed > 95 ? '#ef4444' : '#22c55e'}; height: 100%; width: ${pctUsed}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            return `
+                <div style="${cardStyle}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;">
+                        <div>
+                            <h3 style="margin: 0;">${league.name}</h3>
+                            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 0.875rem;">${league.myTeam}</p>
+                        </div>
+                        <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; white-space: nowrap;">
+                            Synced ${formatRelativeTime(lastSync)}
+                        </span>
+                    </div>
+                    <div style="margin: 15px 0; font-size: 0.875rem; color: #cbd5e1;">
+                        <strong style="color: #4ade80; font-size: 1.25rem;">${myPlayers.length}</strong> players on roster
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.875rem; color: #94a3b8;">POSITION BREAKDOWN</div>
+                        ${buildPositionBreakdownHtml(myPlayers)}
+                    </div>
+                    ${capHtml}
+                    <button class="upload-btn" onclick="goToTeamRoster('${leagueKey}')" style="width: 100%; margin-top: 15px;">View Full Roster →</button>
+                </div>
+            `;
+        }
+
+        function renderMyTeams() {
+            const container = document.getElementById('myTeamsContent');
+            if (!container) return;
+
+            const leagueKeys = Object.keys(LEAGUES).filter(k => k !== 'NONE');
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+                    ${leagueKeys.map(key => renderMyTeamCard(key)).join('')}
+                </div>
+            `;
+        }
+
+        // ========== MY PROSPECTS DASHBOARD ==========
+        // Cross-references both teams' cached rosters against the prospect rankings so every
+        // prospect you own shows up in one place, tagged by league, with year-over-year rank
+        // movement. Cards reuse toggleProspectCard() to lazily fetch live stats on expand,
+        // exactly like the Top Prospects tab.
+
+        async function renderMyProspects() {
+            const container = document.getElementById('myProspectsContent');
+            if (!container) return;
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading your prospects...</p></div>';
+
+            const leagueKeys = Object.keys(LEAGUES).filter(k => k !== 'NONE');
+            const teamRosters = {};
+            let anySynced = false;
+
+            leagueKeys.forEach(key => {
+                const roster = getCachedLeagueRoster(key);
+                if (roster && roster.length > 0) {
+                    anySynced = true;
+                    teamRosters[key] = roster.filter(p => p.fantraxTeam === LEAGUES[key].myTeam);
+                } else {
+                    teamRosters[key] = [];
+                }
+            });
+
+            if (!anySynced) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem;">🌱</div>
+                        <h3>No Rosters Synced Yet</h3>
+                        <p style="color: #94a3b8; margin-top: 10px;">Sync at least one league from "My Roster" to see your prospects here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentYear = currentProspectYear || '2026';
+            const priorYear = String(parseInt(currentYear) - 1);
+
+            const [currentData, priorData] = await Promise.all([
+                loadProspectsForYear(currentYear),
+                loadProspectsForYear(priorYear)
+            ]);
+
+            const currentProspects = currentData?.prospects || [];
+            const priorProspects = priorData?.prospects || [];
+
+            const myProspectEntries = [];
+            currentProspects.forEach(prospect => {
+                const owningLeagues = leagueKeys.filter(key =>
+                    matchProspectInRoster(teamRosters[key], prospect.name, prospect.age, prospect.team).length > 0
+                );
+                if (owningLeagues.length > 0) {
+                    myProspectEntries.push({ prospect, owningLeagues });
+                }
+            });
+
+            if (myProspectEntries.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem;">🌱</div>
+                        <h3>No Ranked Prospects Found on Your Rosters</h3>
+                        <p style="color: #94a3b8; margin-top: 10px;">None of your synced roster players matched the ${currentYear} prospect rankings.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            myProspectEntries.sort((a, b) => a.prospect.rank - b.prospect.rank);
+
+            // Summary strip: FV tier distribution + call-up watch
+            const fvCounts = {};
+            myProspectEntries.forEach(({ prospect }) => {
+                const fvMatch = prospect.notes.match(/FV (\d+)/);
+                const fv = fvMatch ? parseInt(fvMatch[1]) : null;
+                let tier = 'Unrated';
+                if (fv !== null) {
+                    if (fv >= 60) tier = 'Elite (60+)';
+                    else if (fv >= 55) tier = 'Excellent (55-59)';
+                    else if (fv >= 50) tier = 'Solid (50-54)';
+                    else if (fv >= 45) tier = 'Average (45-49)';
+                    else tier = 'Below Avg';
+                }
+                fvCounts[tier] = (fvCounts[tier] || 0) + 1;
+            });
+            const thisYear = new Date().getFullYear();
+            const callUpWatch = myProspectEntries.filter(({ prospect }) => parseInt(prospect.eta) <= thisYear + 1);
+
+            let html = `
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                        <div><strong style="color: #4ade80; font-size: 1.5rem;">${myProspectEntries.length}</strong><br><span style="color: #94a3b8; font-size: 0.875rem;">Total Prospects (${currentYear})</span></div>
+                        <div><strong style="color: #fcd34d; font-size: 1.5rem;">${callUpWatch.length}</strong><br><span style="color: #94a3b8; font-size: 0.875rem;">Call-Up Watch (ETA ${thisYear}-${thisYear + 1})</span></div>
+                        ${Object.entries(fvCounts).map(([tier, count]) => `<div><strong style="color: #60a5fa; font-size: 1.5rem;">${count}</strong><br><span style="color: #94a3b8; font-size: 0.875rem;">${tier}</span></div>`).join('')}
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 15px;">
+            `;
+
+            myProspectEntries.forEach(({ prospect, owningLeagues }, index) => {
+                const tierColor = getTierColor(prospect.tier);
+                const positionColor = getPositionColor(prospect.pos);
+                const cardId = `myprospect-${index}`;
+
+                const priorMatch = priorProspects.find(p => normalizePlayerName(p.name) === normalizePlayerName(prospect.name));
+                let movementBadge = '<span class="badge" style="background: rgba(96, 165, 250, 0.3); color: #60a5fa;">🆕 NEW</span>';
+                if (priorMatch) {
+                    const delta = priorMatch.rank - prospect.rank; // positive = moved up in rank
+                    if (delta > 0) {
+                        movementBadge = `<span class="badge" style="background: rgba(34, 197, 94, 0.3); color: #4ade80;">▲ +${delta}</span>`;
+                    } else if (delta < 0) {
+                        movementBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.3); color: #f87171;">▼ ${delta}</span>`;
+                    } else {
+                        movementBadge = `<span class="badge" style="background: rgba(148, 163, 184, 0.3); color: #94a3b8;">— No Change</span>`;
+                    }
+                }
+
+                const leagueBadges = owningLeagues.map(key =>
+                    `<span class="badge" style="background: rgba(34, 197, 94, 0.3); color: #4ade80;">${LEAGUES[key].name.split(' (')[0]}</span>`
+                ).join('');
+
+                html += `
+                    <div class="player-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);"
+                         onmouseover="this.style.borderColor='#60a5fa'"
+                         onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                        <div class="player-header" onclick="toggleProspectCard('${cardId}', '${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
+                            <div class="player-name">#${prospect.rank} ${prospect.name}</div>
+                            <div class="player-badges">
+                                ${leagueBadges}
+                                <span class="badge badge-position" style="background: ${positionColor};">${prospect.pos}</span>
+                                <span class="badge badge-team" style="background: rgba(59, 130, 246, 0.3); color: #60a5fa;">${prospect.team}</span>
+                                <span class="badge" style="background: ${tierColor}; color: white;">${prospect.tier}</span>
+                                <span class="badge badge-age">${prospect.age} yrs</span>
+                                <span class="badge" style="background: rgba(251, 191, 36, 0.3); color: #fcd34d;">ETA: ${prospect.eta}</span>
+                                ${movementBadge}
+                            </div>
+                        </div>
+                        <div class="player-details" id="${cardId}">
+                            <div style="color: #cbd5e1; font-size: 0.875rem; margin-bottom: 15px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                                ${prospect.notes}
+                            </div>
+                            <div id="${cardId}-content"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
         // ========== ROSTER COMPOSITION DASHBOARD ==========
         
         let currentLeague = 'mbl'; // Track which league rules to show
