@@ -1268,7 +1268,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.6 - Cap Planning Team Matching Fix</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.7 - Cap Planning Matches the Official Sheet</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1990,7 +1990,16 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.6 - Cap Planning Team Matching Fix 🎯 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.7 - Cap Planning Matches the Official Sheet 🎯 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Cap Planning's headline Cap Used/Space/% for 2027+ was showing our own player-level estimate (which includes conservative guesses for every TC/arbitration-eligible player) instead of the commissioner's official "Team Salaries" total - the two are supposed to differ since the official sheet deliberately excludes those players from future-year totals until their real salary is known, but showing our number under the "Cap Used" label made it look wrong (e.g. SF's 2027 read $235.5M instead of the sheet's official $125.5M)</li>
+                            <li>✅ Cap Used/Space/% now read the commissioner's official numbers directly whenever available, falling back to our own estimate (now labeled "est.") only for years the sheet hasn't filled in yet</li>
+                            <li>📋 Year-by-Year Breakdown is now explicitly labeled as our own player-level estimate, so it's clear why its total can be higher than the official Cap Used above</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.6 - Cap Planning Team Matching Fix 🎯</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 Fixed Cap Planning's team dropdown never auto-selecting your team - it was comparing your team's full name ("San Francisco Giants") against the contract sheet's abbreviations ("SF"), so the match always silently failed</li>
                             <li>🏷️ Cap Planning's team dropdown now shows full team names ("San Francisco Giants") instead of raw abbreviations ("SF")</li>
@@ -7271,6 +7280,18 @@
             
             const capLimit = LEAGUES.MBL.capAmount;
 
+            // The commissioner's own "Team Salaries" tab is the authoritative cap number:
+            // per its own footnotes, it deliberately excludes TC/arbitration-eligible
+            // players from future-year totals until their real salary is determined,
+            // while our player-level estimate (above) intentionally includes a
+            // conservative guess for those players so they're visible in planning.
+            // Those two numbers are supposed to differ - use the official payroll for
+            // the headline Cap Used/Space/% whenever we have it, so the numbers here
+            // match the sheet the commissioner (and everyone else) actually looks at.
+            const officialFinances = (typeof leagueFinancesData !== 'undefined' && leagueFinancesData)
+                ? leagueFinancesData.find(t => t.team === selectedTeam)
+                : null;
+
             // Surface how fresh the underlying contract sheet data is, so if the
             // commissioner just updated it, it's obvious a "Refresh Contracts" is needed.
             let contractsAsOfText = '';
@@ -7293,16 +7314,18 @@
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
                     ${years.map(year => {
                         const proj = yearlyProjections[year];
-                        const capUsed = proj.totalCommitted;
+                        const officialPayroll = officialFinances?.[`payroll${year}`];
+                        const hasOfficial = typeof officialPayroll === 'number' && officialPayroll > 0;
+                        const capUsed = hasOfficial ? officialPayroll : proj.totalCommitted;
                         const capSpace = capLimit - capUsed;
                         const capPct = ((capUsed / capLimit) * 100).toFixed(1);
                         const playerCount = proj.players.length;
-                        
+
                         return `
                             <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px;">
                                 <h3 style="color: #60a5fa; margin-bottom: 15px; font-size: 1.5rem;">${year}</h3>
                                 <div style="margin-bottom: 10px;">
-                                    <div style="color: #94a3b8; font-size: 0.875rem;">Cap Used</div>
+                                    <div style="color: #94a3b8; font-size: 0.875rem;">Cap Used${hasOfficial ? '' : ' (est.)'}</div>
                                     <div style="font-size: 1.25rem; font-weight: bold; color: #60a5fa;">$${(capUsed/1000000).toFixed(1)}M</div>
                                 </div>
                                 <div style="margin-bottom: 10px;">
@@ -7314,16 +7337,18 @@
                                     <div style="font-size: 1.25rem; font-weight: bold;">${capPct}%</div>
                                 </div>
                                 <div style="padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                                    <div style="color: #94a3b8; font-size: 0.875rem;">${playerCount} Players</div>
+                                    <div style="color: #94a3b8; font-size: 0.875rem;">${playerCount} Players ${hasOfficial ? 'w/ estimated salary' : ''}</div>
                                 </div>
                             </div>
                         `;
                     }).join('')}
                 </div>
-                
+
                 <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                     <h3 style="color: #f59e0b; margin-bottom: 15px;">⚠️ Projection Notes</h3>
                     <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px; font-size: 0.875rem;">
+                        <li><strong>Cap Used</strong> above is the commissioner's own official total from the "Team Salaries" sheet when available (marked "est." when we have to fall back to our own estimate instead).</li>
+                        <li>Per that sheet's own notes, <strong>TC/arbitration-eligible players are intentionally left out</strong> of official future-year totals until their real salary is determined - so the official number can be well below what the "Year-by-Year Breakdown" below adds up to, which includes our own estimates for those players.</li>
                         <li><strong>TC (Team Control):</strong> Estimated at $800K (league minimum)</li>
                         <li><strong>ARB1:</strong> Estimated at $2.5M (first year arbitration)</li>
                         <li><strong>ARB2:</strong> Estimated at $5M (second year arbitration)</li>
@@ -7332,13 +7357,14 @@
                         <li><strong>Free Agents:</strong> Not included in projections</li>
                     </ul>
                 </div>
-                
+
                 <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 20px;">
                     <h3 style="color: #a855f7; margin-bottom: 15px;">📋 Year-by-Year Breakdown</h3>
+                    <p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 15px;">Player-level estimate, including TC/arbitration guesses not yet in the official totals above.</p>
                     ${years.map(year => {
                         const proj = yearlyProjections[year];
                         const sortedPlayers = proj.players.sort((a, b) => b.salary - a.salary);
-                        
+
                         return `
                             <details style="margin-bottom: 15px;">
                                 <summary style="cursor: pointer; font-weight: 600; color: #a855f7; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
