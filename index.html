@@ -1268,7 +1268,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.5 - Cap Planning That Actually Works</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.6 - Cap Planning Team Matching Fix</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1990,7 +1990,18 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.5 - Cap Planning That Actually Works 💰 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.6 - Cap Planning Team Matching Fix 🎯 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Fixed Cap Planning's team dropdown never auto-selecting your team - it was comparing your team's full name ("San Francisco Giants") against the contract sheet's abbreviations ("SF"), so the match always silently failed</li>
+                            <li>🏷️ Cap Planning's team dropdown now shows full team names ("San Francisco Giants") instead of raw abbreviations ("SF")</li>
+                            <li>🩹 Fixed "WSH" vs "WAS" mismatch that broke team-name lookups for Washington specifically (the commissioner's sheet uses "WAS")</li>
+                            <li>🛡️ Salary estimation now tolerates a dollar figure entered as text (e.g. "$30,100,000") in the sheet instead of silently zeroing that player out for the year</li>
+                            <li>🕒 Cap Planning now shows when the contract data was last loaded, with a nudge to hit "Refresh Contracts" if the sheet changed recently</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.5 - Cap Planning That Actually Works 💰</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>💰 Salary cap corrected to $244M league-wide (was stuck at $241M in 7 places after the offseason vote raised it)</li>
                             <li>⚡ Contracts and league finances now auto-load from the commissioner's Google Sheet on page open and cache for 12h - no more visiting League Finances first for Cap Planning to work</li>
@@ -2794,7 +2805,8 @@
                 'NYY': 'New York Yankees', 'OAK': 'Oakland Athletics', 'PHI': 'Philadelphia Phillies',
                 'PIT': 'Pittsburgh Pirates', 'SD': 'San Diego Padres', 'SF': 'San Francisco Giants',
                 'SEA': 'Seattle Mariners', 'STL': 'St. Louis Cardinals', 'TB': 'Tampa Bay Rays',
-                'TEX': 'Texas Rangers', 'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals'
+                'TEX': 'Texas Rangers', 'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals',
+                'WAS': 'Washington Nationals' // commissioner's sheet uses WAS, not WSH
             };
             return fullNameMap[upperAbbrev] || null;
         }
@@ -7193,15 +7205,18 @@
                 Array.from(teams).sort().forEach(team => {
                     const option = document.createElement('option');
                     option.value = team;
-                    option.textContent = team;
+                    option.textContent = getFullTeamName(team) || team;
                     teamSelect.appendChild(option);
                 });
-                
-                // Set default team to user's team if available
+
+                // Set default team to user's team if available. playerContractsData.team
+                // holds MLB abbreviations (e.g. "SF"), while league.myTeam is a full name
+                // (e.g. "San Francisco Giants") - convert before comparing/matching.
                 const league = LEAGUES[selectedFantraxLeague];
-                if (league?.myTeam && teams.has(league.myTeam)) {
-                    teamSelect.value = league.myTeam;
-                    selectedTeam = league.myTeam;
+                const myTeamAbbrev = league?.myTeam ? getTeamAbbreviation(league.myTeam) : null;
+                if (myTeamAbbrev && teams.has(myTeamAbbrev)) {
+                    teamSelect.value = myTeamAbbrev;
+                    selectedTeam = myTeamAbbrev;
                 }
             }
             
@@ -7255,13 +7270,26 @@
             });
             
             const capLimit = LEAGUES.MBL.capAmount;
-            
+
+            // Surface how fresh the underlying contract sheet data is, so if the
+            // commissioner just updated it, it's obvious a "Refresh Contracts" is needed.
+            let contractsAsOfText = '';
+            try {
+                const cachedMeta = JSON.parse(localStorage.getItem(PLAYER_CONTRACTS_CACHE_KEY));
+                if (cachedMeta?.cachedAt) {
+                    contractsAsOfText = `Contract data as of ${new Date(cachedMeta.cachedAt).toLocaleString()} - click "Refresh Contracts" above if the sheet changed recently`;
+                }
+            } catch (error) {
+                // no cache metadata available, skip the freshness note
+            }
+
             let html = `
                 <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                    <h3 style="color: #60a5fa; margin-bottom: 10px;">📊 ${selectedTeam}</h3>
+                    <h3 style="color: #60a5fa; margin-bottom: 10px;">📊 ${getFullTeamName(selectedTeam) || selectedTeam}</h3>
                     <p style="color: #94a3b8; font-size: 0.875rem;">Multi-year salary cap projections</p>
+                    ${contractsAsOfText ? `<p style="color: #64748b; font-size: 0.75rem; margin-top: 8px;">${contractsAsOfText}</p>` : ''}
                 </div>
-                
+
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
                     ${years.map(year => {
                         const proj = yearlyProjections[year];
@@ -8062,7 +8090,19 @@
             }
 
             // String value = a service-time status like "TC", "ARB1", etc.
-            return { amount: SERVICE_STATUS_SALARY_ESTIMATES[salary] || 0, status: salary };
+            if (salary in SERVICE_STATUS_SALARY_ESTIMATES) {
+                return { amount: SERVICE_STATUS_SALARY_ESTIMATES[salary], status: salary };
+            }
+
+            // Occasionally a dollar figure gets entered/pasted into the sheet as text
+            // (e.g. "$30,100,000") instead of a real number - parse it out rather than
+            // silently treating the player as unsigned for that year.
+            const parsedSalary = parseFloat(String(salary).replace(/[^0-9.]/g, ''));
+            if (!isNaN(parsedSalary) && parsedSalary > 0) {
+                return { amount: parsedSalary, status: contract.serviceStatus || 'Under Contract' };
+            }
+
+            return { amount: 0, status: salary };
         }
 
         // How many of salary2026..salary2031 are populated (real salary or a status string).
