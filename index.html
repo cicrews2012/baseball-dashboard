@@ -1268,7 +1268,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.8 - Year-by-Year Breakdown Matches Too</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.9 - Retry MLB Lookups On Demand</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1990,7 +1990,15 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.8 - Year-by-Year Breakdown Matches Too 📋 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.9 - Retry MLB Lookups On Demand 🔄 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>❓ Answers a question about "not found in MLB database" players: this was never permanently stuck - reloading the page (or a "Refresh Roster") already retries every player fresh, since that result was only ever remembered for your current browser tab, not saved to your cached roster</li>
+                            <li>🔄 Added a "Check MLB Database Again" button right on the not-found card, so you can force that same retry for one player - useful once a recent draft pick or international signee actually shows up in the MLB Stats API - without reloading your whole roster</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.8 - Year-by-Year Breakdown Matches Too 📋</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>🐛 The Year-by-Year Breakdown's per-year total still included our own TC/arbitration salary estimates, so it didn't match the official Cap Used number now shown above it (e.g. SF's 2027 breakdown read $235.5M against an official $125.5M)</li>
                             <li>✅ The breakdown's main total and player list now only count players with a real dollar figure from the sheet - the same players the league's official total counts - so the two numbers line up</li>
@@ -5832,7 +5840,7 @@
         function updatePlayerCard(safeId) {
             const content = document.getElementById(`content-${safeId}`);
             const player = players.find(p => getSafeId(p.id) === safeId);
-            
+
             if (!player) {
                 console.error(`Player not found for safe ID: ${safeId}`);
                 return;
@@ -5842,11 +5850,14 @@
                 let errorHTML = `<div class="error-msg">${player.stats.error}`;
                 if (player.stats.showSearchLink) {
                     errorHTML += `<br><br>
-                        <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' baseball stats')}" 
-                           target="_blank" class="search-link">
+                        <button class="search-link" style="cursor: pointer; border: none;" onclick="retryPlayerStats('${safeId}')">
+                            🔄 Check MLB Database Again
+                        </button>
+                        <a href="https://www.google.com/search?q=${encodeURIComponent(player.name + ' baseball stats')}"
+                           target="_blank" class="search-link" style="margin-left: 10px;">
                             🔍 Search Google for "${player.name}"
                         </a>
-                        <a href="https://www.baseball-reference.com/search/search.fcgi?search=${encodeURIComponent(player.name)}" 
+                        <a href="https://www.baseball-reference.com/search/search.fcgi?search=${encodeURIComponent(player.name)}"
                            target="_blank" class="search-link" style="margin-left: 10px;">
                             📊 Search Baseball Reference
                         </a>`;
@@ -5857,6 +5868,28 @@
             }
 
             updatePlayerCardContent(safeId, player);
+        }
+
+        // A "not found" result from fetchPlayerStats is only ever remembered in-memory for
+        // this tab (never written to the roster's localStorage cache), so a page reload
+        // already retries every player fresh. This lets you force that same retry for one
+        // player right now, without reloading the whole roster - useful once a recent draft
+        // pick/international signee actually shows up in the MLB Stats API.
+        async function retryPlayerStats(safeId) {
+            const player = players.find(p => getSafeId(p.id) === safeId);
+            if (!player) return;
+
+            player.stats = null;
+            player.statsLoaded = false;
+
+            const content = document.getElementById(`content-${safeId}`);
+            if (content) {
+                content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Checking MLB database...</p></div>';
+            }
+
+            await fetchPlayerStats(player);
+            player.statsVersion = STATS_VERSION;
+            updatePlayerCard(safeId);
         }
 
         function renderHitterStats(stats, isSeason) {
