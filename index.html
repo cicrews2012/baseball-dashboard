@@ -1268,7 +1268,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.9 - Retry MLB Lookups On Demand</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.5.0 - Quick Stats On The Card</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1990,7 +1990,16 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.9 - Retry MLB Lookups On Demand 🔄 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.5.0 - Quick Stats On The Card 📊 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>📊 Roster cards now show a quick current-season stat line (AVG/HR/RBI/SB for hitters, ERA/W-L/K/WHIP for pitchers) right on the collapsed card - no more clicking in just to check basic numbers</li>
+                            <li>⚡ Pulled during the same roster sync that already fetches team/age data, cached for 24h alongside it, so repeat syncs stay just as fast; only newly-seen players cost one extra request</li>
+                            <li>Click the card for the full comprehensive stats breakdown (career, minor league levels, advanced metrics) as before</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.9 - Retry MLB Lookups On Demand 🔄</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>❓ Answers a question about "not found in MLB database" players: this was never permanently stuck - reloading the page (or a "Refresh Roster") already retries every player fresh, since that result was only ever remembered for your current browser tab, not saved to your cached roster</li>
                             <li>🔄 Added a "Check MLB Database Again" button right on the not-found card, so you can force that same retry for one player - useful once a recent draft pick or international signee actually shows up in the MLB Stats API - without reloading your whole roster</li>
@@ -4207,6 +4216,7 @@
                 player.usedFallback = cached.usedFallback || false;
                 player.mlbDataEnriched = true;
                 player.mlbNotFound = cached.mlbNotFound || false;
+                player.quickStats = cached.quickStats || null;
                 return player;
             }
 
@@ -4256,6 +4266,8 @@
                     player.mlbDataEnriched = true;
                     player.mlbNotFound = true;
 
+                    player.quickStats = null;
+
                     mlbPlayerBioCache[cacheKey] = {
                         age: player.age,
                         mlbTeam: player.mlbTeam || '',
@@ -4264,6 +4276,7 @@
                         mlbPlayerId: null,
                         usedFallback: player.usedFallback || false,
                         mlbNotFound: true,
+                        quickStats: null,
                         cachedAt: Date.now(),
                     };
 
@@ -4332,12 +4345,43 @@
                 player.mlbDataEnriched = true;
                 player.mlbPlayerId = mlbPlayer.id;
 
+                // Pull a quick season stat line so it can show on the collapsed card
+                // without clicking in. Reuses the same hydration pattern as the full
+                // stats fetch (fetchPlayerStats), just scoped to one stat group/season
+                // so it stays cheap. Best-effort - if it fails, the card just won't
+                // show a stat line, and the full comprehensive stats are still
+                // available on click.
+                player.quickStats = null;
+                try {
+                    const currentYear = new Date().getFullYear();
+                    const isPitcherPos = player.position && (
+                        player.position.includes('SP') ||
+                        player.position.includes('RP') ||
+                        player.position === 'P'
+                    );
+                    const groupName = isPitcherPos ? 'pitching' : 'hitting';
+                    const quickStatsUrl = `https://statsapi.mlb.com/api/v1/people/${mlbPlayer.id}?hydrate=stats(group=[${groupName}],type=season,season=${currentYear})`;
+                    const quickStatsRes = await fetch(quickStatsUrl);
+                    const quickStatsData = await quickStatsRes.json();
+                    const personWithStats = quickStatsData.people?.[0];
+                    const statGroup = personWithStats?.stats?.find(g =>
+                        g.type?.displayName === 'season' && g.group?.displayName === groupName
+                    );
+                    const split = statGroup?.splits?.[0];
+                    if (split?.stat?.gamesPlayed > 0) {
+                        player.quickStats = buildStatObject(split.stat, 'MLB', isPitcherPos, split);
+                    }
+                } catch (error) {
+                    // quick stats are a nice-to-have, fall back silently
+                }
+
                 mlbPlayerBioCache[cacheKey] = {
                     age: player.age,
                     mlbTeam: player.mlbTeam || '',
                     mlbOrg: player.mlbOrg || '',
                     status: player.status || '',
                     mlbPlayerId: player.mlbPlayerId,
+                    quickStats: player.quickStats,
                     usedFallback: false,
                     mlbNotFound: false,
                     cachedAt: Date.now(),
@@ -5143,6 +5187,14 @@
                             </span>`
                         ).join('') : ''}
                     </div>
+                    ${player.quickStats ? `
+                        <div class="player-quick-stats" style="margin-top: 8px; color: #94a3b8; font-size: 0.85rem;">
+                            ${player.quickStats.type === 'pitching'
+                                ? `${player.quickStats.era} ERA &nbsp;•&nbsp; ${player.quickStats.w}-${player.quickStats.l} &nbsp;•&nbsp; ${player.quickStats.so} K &nbsp;•&nbsp; ${player.quickStats.whip} WHIP`
+                                : `${player.quickStats.avg} AVG &nbsp;•&nbsp; ${player.quickStats.hr} HR &nbsp;•&nbsp; ${player.quickStats.rbi} RBI &nbsp;•&nbsp; ${player.quickStats.sb} SB`}
+                            <span style="opacity: 0.6;">(${new Date().getFullYear()}, click for full stats)</span>
+                        </div>
+                    ` : ''}
                     ${flagsHTML}
                 </div>
                 <div class="player-details" id="details-${getSafeId(player.id)}">
