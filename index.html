@@ -934,12 +934,7 @@
             .tab-content > div > div[style*="grid-template-columns: repeat(2, 1fr)"] {
                 grid-template-columns: 1fr !important;
             }
-            
-            /* Trade analyzer mobile */
-            #tradeTab .research-section > div {
-                grid-template-columns: 1fr !important;
-            }
-            
+
             /* Roster composition mobile */
             #compositionTab .research-section > div {
                 grid-template-columns: 1fr !important;
@@ -1289,18 +1284,20 @@
             </div>
             <div class="tabs">
                 <!-- Fantasy Dynasty League Tabs -->
-                <button class="tab-btn active" onclick="switchTab('roster')">📋 My Roster</button>
-                <button class="tab-btn" onclick="switchTab('composition')">📊 Roster Breakdown</button>
-                <button class="tab-btn" onclick="switchTab('capplanning')">💰 Cap Planning</button>
-                <button class="tab-btn" onclick="switchTab('finances')">💵 League Finances</button>
-                <button class="tab-btn" onclick="switchTab('rules')">📖 League Rules</button>
-                
+                <button class="tab-btn active" data-tab="roster" onclick="switchTab('roster')">📋 My Roster</button>
+                <button class="tab-btn" data-tab="myteams" onclick="switchTab('myteams')">🧑‍🤝‍🧑 My Teams</button>
+                <button class="tab-btn" data-tab="composition" onclick="switchTab('composition')">📊 Roster Breakdown</button>
+                <button class="tab-btn" data-tab="capplanning" onclick="switchTab('capplanning')">💰 Cap Planning</button>
+                <button class="tab-btn" data-tab="finances" onclick="switchTab('finances')">💵 League Finances</button>
+                <button class="tab-btn" data-tab="rules" onclick="switchTab('rules')">📖 League Rules</button>
+
                 <!-- MLB Scouting/Research Tabs -->
-                <button class="tab-btn" onclick="switchTab('research')">🔬 Player Lookup</button>
-                <button class="tab-btn" onclick="switchTab('prospects')">🏆 Top Prospects</button>
-                <button class="tab-btn" onclick="switchTab('watchlist')">👁️ Watchlist</button>
-                
-                <button class="tab-btn" onclick="switchTab('guide')">📖 Guide</button>
+                <button class="tab-btn" data-tab="research" onclick="switchTab('research')">🔬 Player Lookup</button>
+                <button class="tab-btn" data-tab="prospects" onclick="switchTab('prospects')">🏆 Top Prospects</button>
+                <button class="tab-btn" data-tab="myprospects" onclick="switchTab('myprospects')">🌱 My Prospects</button>
+                <button class="tab-btn" data-tab="watchlist" onclick="switchTab('watchlist')">👁️ Watchlist</button>
+
+                <button class="tab-btn" data-tab="guide" onclick="switchTab('guide')">📖 Guide</button>
             </div>
             <div class="controls-row">
                 <!-- Removed CSV upload buttons - data now loads from APIs -->
@@ -1468,16 +1465,21 @@
             <div class="players-grid hidden" id="playersGrid"></div>
         </div>
 
+        <div class="tab-content" id="myTeamsTab">
+            <div class="research-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">🧑‍🤝‍🧑 My Teams</h2>
+                    <button class="upload-btn" onclick="renderMyTeams()" style="padding: 8px 20px;">🔄 Refresh</button>
+                </div>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Both leagues at a glance — no need to switch the league selector to see the other team.</p>
+                <div id="myTeamsContent"></div>
+            </div>
+        </div>
+
         <div class="tab-content" id="researchTab">
             <div class="research-section">
                 <h2 style="margin-bottom: 20px;">🔬 Research Any Player</h2>
                 <p style="color: #94a3b8; margin-bottom: 20px;">Look up any player in the MLB database - perfect for waiver wire research and trade targets</p>
-                
-                <!-- Debug Button -->
-                <button onclick="console.log('🐛 DEBUG STATE:', {playersCount: players?.length, contractsCount: playerContractsData ? Object.keys(playerContractsData).length : 0, samplePlayerName: players?.[0]?.name, samplePlayerContract: players?.[0]?.contract, contractsExample: playerContractsData ? Object.keys(playerContractsData).slice(0, 3) : []})" 
-                        style="margin-bottom: 10px; padding: 5px 10px; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.5); color: #a855f7; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">
-                    🐛 Debug Contracts
-                </button>
                 
                 <div class="research-input-row">
                     <input type="text" class="research-input" id="researchInput" 
@@ -1602,6 +1604,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="myProspectsTab">
+            <div class="research-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">🌱 My Prospects</h2>
+                    <button class="upload-btn" onclick="renderMyProspects()" style="padding: 8px 20px;">🔄 Refresh</button>
+                </div>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Every prospect you own across both leagues, in one list — with rank, tier, ETA, and year-over-year movement. Expand a card for live stats.</p>
+                <div id="myProspectsContent"></div>
             </div>
         </div>
 
@@ -1821,22 +1834,6 @@
                             <li><strong>2026 Projections:</strong> Automatic calculation of next year's cap commitments</li>
                             <li><strong>Player Contracts:</strong> 2025 salary, years remaining, service status displayed on each card</li>
                             <li><strong>Service Status Labels:</strong> Team Control, Arb 1-3, Free Agent indicators</li>
-                            <li><strong>Drop Penalty Calculator:</strong> Year-by-year breakdown of cap hits (100%/80%/60%/40%/20%)</li>
-                        </ul>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #60a5fa; margin-bottom: 10px;">🔄 Trade Analyzer</h4>
-                        <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
-                            <li><strong>Multi-Player Trades:</strong> Build trades by selecting players you send and receive</li>
-                            <li><strong>Autocomplete Search:</strong> "You Receive" section now has MLB player search with typeahead</li>
-                            <li><strong>MBL Salary Impact:</strong> See exactly how trade affects your cap space (for MBL)</li>
-                            <li><strong>Trade Legality Check:</strong> Automatic validation against $241M salary cap</li>
-                            <li><strong>Visual Breakdown:</strong> Side-by-side comparison of salary in vs. salary out</li>
-                            <li><strong>Cap Space Projection:</strong> Shows your cap space after trade completes</li>
-                            <li><strong>Blocked Trade Warning:</strong> Red alert if trade puts you over cap (illegal per MBL rules)</li>
-                            <li><strong>Trade Value Analysis (Coming Soon):</strong> AI-powered fair/win/lose ratings when season starts</li>
-                            <li><strong>Multi-League Support:</strong> Value analysis will work for any league format, not just MBL</li>
                         </ul>
                     </div>
 
@@ -1970,8 +1967,6 @@
                         <h4 style="color: #a855f7; margin-bottom: 10px;">🎯 Workflow Recommendations</h4>
                         <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
                             <li><strong>Weekly Review:</strong> Upload fresh roster CSV to check for promotions/changes</li>
-                            <li><strong>Trade Analysis:</strong> Use Trade Analyzer tab to evaluate multi-player deals before proposing</li>
-                            <li><strong>Drop Decisions:</strong> Check Drop Penalty Calculator before cutting any player with years remaining</li>
                             <li><strong>Waiver Wire:</strong> Use Research tab + Quick Filters to find targets</li>
                             <li><strong>Service Time Monitoring:</strong> Check prospects weekly as they approach 130 AB/50 IP</li>
                             <li><strong>Cap Planning:</strong> Monitor 2026 Projected cap commitments for offseason planning</li>
@@ -2739,16 +2734,6 @@
         </div>
     </div>
 
-    <div class="comparison-modal" id="dropPenaltyModal">
-        <div class="comparison-content" style="max-width: 600px;">
-            <div class="comparison-header">
-                <h2>💰 Drop Penalty Calculator</h2>
-                <button class="close-comparison" onclick="closeDropPenalty()">✕ Close</button>
-            </div>
-            <div id="dropPenaltyContent" style="padding: 20px;"></div>
-        </div>
-    </div>
-
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // ============================================
         // STATS VERSION - Increment when calculation logic changes
@@ -2802,20 +2787,12 @@
         
         // Initialize Supabase client
         async function initSupabase() {
-            console.log('🔧 Initializing Supabase...');
-            console.log('  SUPABASE_URL:', SUPABASE_URL);
-            console.log('  SUPABASE_KEY exists:', !!SUPABASE_KEY);
-            console.log('  window.supabase exists:', !!window.supabase);
             
             const statusEl = document.getElementById('supabaseStatus');
             try {
                 if (window.supabase && window.supabase.createClient) {
-                    console.log('  ✓ Supabase library loaded');
                     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     supabaseEnabled = true;
-                    console.log('✅ Supabase initialized successfully');
-                    console.log('  supabaseClient:', supabaseClient ? 'created' : 'null');
-                    console.log('  supabaseEnabled:', supabaseEnabled);
                     
                     // Test connection
                     try {
@@ -2823,7 +2800,6 @@
                         if (error) {
                             console.warn('⚠️ Supabase connection test failed:', error);
                         } else {
-                            console.log('✅ Supabase connection test passed');
                         }
                     } catch (testError) {
                         console.warn('⚠️ Supabase connection test error:', testError);
@@ -2837,7 +2813,6 @@
                     return true;
                 } else {
                     console.warn('❌ Supabase library not loaded');
-                    console.log('  window.supabase:', window.supabase);
                 }
             } catch (error) {
                 console.error('❌ Supabase initialization error:', error);
@@ -2869,7 +2844,6 @@
         let currentProspectYear = "2026"; // Default to 2026 class
         let salaryData = {}; // Stores player salary/contract info
         let watchlistPlayers = []; // Stores watchlist player data
-        let demoMode = false; // Toggle for testing with mock data
         let playerNotes = {}; // Stores notes and tags for each player
         
         // ========== LEAGUE CONFIGURATION ==========
@@ -2935,7 +2909,6 @@
         // Fetch prospects from GitHub
         async function fetchProspectsFromGitHub(year) {
             const url = `${GITHUB_PROSPECTS_BASE_URL}/prospects-${year}.json`;
-            console.log(`📥 Fetching ${year} prospects from GitHub...`);
             
             try {
                 const response = await fetch(url);
@@ -2944,7 +2917,6 @@
                 }
                 
                 const data = await response.json();
-                console.log(`✅ Loaded ${data.prospects.length} prospects from GitHub (${year})`);
                 
                 // Cache in localStorage
                 localStorage.setItem(`prospects_${year}`, JSON.stringify(data));
@@ -2970,7 +2942,6 @@
                     
                     if (age < maxAge) {
                         const data = JSON.parse(cached);
-                        console.log(`📦 Loaded ${data.prospects.length} ${year} prospects from cache (${Math.floor(age / (24 * 60 * 60 * 1000))} days old)`);
                         liveProspectData = data.prospects;
                         prospectDataSource = 'cached';
                         return data;
@@ -2991,7 +2962,6 @@
             const cached = localStorage.getItem(`prospects_${year}`);
             if (cached) {
                 const data = JSON.parse(cached);
-                console.log(`⚠️ GitHub failed, using cached ${year} prospects`);
                 liveProspectData = data.prospects;
                 prospectDataSource = 'cached';
                 return data;
@@ -3003,136 +2973,7 @@
         // Auto-load prospects on page load
         (async () => {
             await loadProspectsForYear(currentProspectYear);
-            console.log(`✓ Loaded ${liveProspectData ? liveProspectData.length : 0} prospects for ${currentProspectYear}`);
         })();
-        
-        // Save prospects to cache
-        function cacheProspects(prospects, year) {
-            try {
-                const cacheData = {
-                    prospects: prospects,
-                    cachedAt: new Date().toISOString(),
-                    year: year
-                };
-                localStorage.setItem(`prospects_${year}`, JSON.stringify(cacheData));
-                console.log(`💾 Cached ${prospects.length} ${year} prospects`);
-            } catch (error) {
-                console.warn('Error caching prospects:', error);
-            }
-        }
-        
-        // Fetch live prospects from MLB.com
-        // REMOVED: fetchLiveProspects - now using manual CSV data only
-        // All prospect data is embedded from FanGraphs CSV files
-        
-        // Parse MLB.com HTML to extract prospect data
-        function parseMLBProspectsHTML(html, year) {
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Find prospects table (MLB.com uses various selectors)
-                let table = doc.querySelector('table.prospects-table') || 
-                            doc.querySelector('table') ||
-                            doc.querySelector('[data-test-table]');
-                
-                if (!table) {
-                    console.warn('No table found, checking for alternate structure...');
-                    // Sometimes MLB uses different structures
-                    const prospectsContainer = doc.querySelector('.prospects-list') || 
-                                             doc.querySelector('[data-prospects]');
-                    if (prospectsContainer) {
-                        return parseAlternateStructure(prospectsContainer, year);
-                    }
-                    throw new Error('No prospects table or container found');
-                }
-                
-                const rows = table.querySelectorAll('tbody tr');
-                console.log(`Found ${rows.length} prospect rows`);
-                
-                const prospects = [];
-                let rank = 1;
-                
-                rows.forEach((row, index) => {
-                    try {
-                        const cells = row.querySelectorAll('td');
-                        if (cells.length < 3) return;
-                        
-                        // Extract data from cells
-                        let nameCell = cells[1] || cells[0];
-                        let nameLink = nameCell.querySelector('a');
-                        let name = nameLink ? nameLink.textContent.trim() : nameCell.textContent.trim();
-                        
-                        // Clean up name (remove extra whitespace, numbers, etc.)
-                        name = name.replace(/^\d+\s*/, '').replace(/\s+/g, ' ').trim();
-                        
-                        if (!name || name.length < 2) return;
-                        
-                        // Try to extract other data
-                        let team = '';
-                        let position = '';
-                        let age = null;
-                        let eta = year;
-                        
-                        // Look for team abbreviation (usually 3 letters)
-                        cells.forEach(cell => {
-                            const text = cell.textContent.trim();
-                            if (/^[A-Z]{2,3}$/.test(text) && text.length <= 3) {
-                                team = text;
-                            }
-                            // Position patterns
-                            if (/^(C|1B|2B|3B|SS|OF|LHP|RHP|P|DH)$/i.test(text)) {
-                                position = text.toUpperCase();
-                            }
-                            // Age
-                            if (/^\d{1,2}$/.test(text)) {
-                                const num = parseInt(text);
-                                if (num >= 16 && num <= 35) {
-                                    age = num;
-                                }
-                            }
-                        });
-                        
-                        // Infer tier based on rank
-                        let tier = 'Solid';
-                        if (rank <= 10) tier = 'Elite';
-                        else if (rank <= 30) tier = 'Star';
-                        else if (rank <= 60) tier = 'Solid';
-                        else tier = 'MLB Ready';
-                        
-                        prospects.push({
-                            rank: rank,
-                            name: name,
-                            pos: position || 'OF', // Default if not found
-                            team: team || 'N/A',
-                            age: age || 20,
-                            eta: eta,
-                            tier: tier,
-                            notes: `${year} prospect via MLB Pipeline`
-                        });
-                        
-                        rank++;
-                        
-                    } catch (error) {
-                        console.warn(`Error parsing row ${index}:`, error);
-                    }
-                });
-                
-                return prospects;
-                
-            } catch (error) {
-                console.error('Error parsing MLB prospects HTML:', error);
-                return null;
-            }
-        }
-        
-        // Parse alternate HTML structures
-        function parseAlternateStructure(container, year) {
-            const prospects = [];
-            // Add fallback parsing logic here if MLB changes their structure
-            console.warn('Using alternate structure parser (not yet implemented)');
-            return prospects;
-        }
         
         // Get current prospect database (live or cached)
         function getProspectDatabase() {
@@ -3163,12 +3004,10 @@
         async function switchProspectYear(year) {
             // Prevent switching if already on this year
             if (currentProspectYear === year) {
-                console.log(`Already on ${year} prospect class`);
                 return;
             }
             
             currentProspectYear = year;
-            console.log(`Switched to ${year} prospect class`);
             
             // Clear current data when switching years
             liveProspectData = null;
@@ -3181,199 +3020,7 @@
             await loadTop100Prospects();
         }
         
-        // Team name mappings for filter dropdown
-        const teamAbbreviations = {
-            "ARI": "Arizona Diamondbacks", "ATL": "Atlanta Braves", "BAL": "Baltimore Orioles",
-            "BOS": "Boston Red Sox", "CHC": "Chicago Cubs", "CWS": "Chicago White Sox",
-            "CIN": "Cincinnati Reds", "CLE": "Cleveland Guardians", "COL": "Colorado Rockies",
-            "DET": "Detroit Tigers", "HOU": "Houston Astros", "KC": "Kansas City Royals",
-            "LAA": "Los Angeles Angels", "LAD": "Los Angeles Dodgers", "MIA": "Miami Marlins",
-            "MIL": "Milwaukee Brewers", "MIN": "Minnesota Twins", "NYM": "New York Mets",
-            "NYY": "New York Yankees", "OAK": "Oakland Athletics", "PHI": "Philadelphia Phillies",
-            "PIT": "Pittsburgh Pirates", "SD": "San Diego Padres", "SF": "San Francisco Giants",
-            "SEA": "Seattle Mariners", "STL": "St. Louis Cardinals", "TB": "Tampa Bay Rays",
-            "TEX": "Texas Rangers", "TOR": "Toronto Blue Jays", "WSH": "Washington Nationals"
-        };
-
-        // ========== DEMO MODE & MOCK DATA ==========
-        
-        const mockPlayers = {
-            "Paul Skenes": {
-                id: 675911,
-                fullName: "Paul Skenes",
-                primaryPosition: { abbreviation: "SP" },
-                currentTeam: { name: "Pittsburgh Pirates" },
-                currentAge: 22,
-                stats: {
-                    career: {
-                        type: 'pitching',
-                        level: 'MLB',
-                        era: '2.30',
-                        w: 8,
-                        l: 2,
-                        so: 145,
-                        whip: '0.95',
-                        games: 20
-                    },
-                    season: {
-                        type: 'pitching',
-                        level: 'MLB',
-                        era: '2.30',
-                        w: 8,
-                        l: 2,
-                        so: 145,
-                        whip: '0.95',
-                        games: 20
-                    }
-                }
-            },
-            "Gunnar Henderson": {
-                id: 683002,
-                fullName: "Gunnar Henderson",
-                primaryPosition: { abbreviation: "SS" },
-                currentTeam: { name: "Baltimore Orioles" },
-                currentAge: 23,
-                stats: {
-                    career: {
-                        type: 'hitting',
-                        level: 'MLB',
-                        avg: '.271',
-                        hr: 65,
-                        rbi: 158,
-                        sb: 24,
-                        ops: '.876',
-                        games: 245
-                    },
-                    season: {
-                        type: 'hitting',
-                        level: 'MLB',
-                        avg: '.281',
-                        hr: 37,
-                        rbi: 92,
-                        sb: 15,
-                        ops: '.905',
-                        games: 159
-                    }
-                }
-            },
-            "Jackson Chourio": {
-                id: 694160,
-                fullName: "Jackson Chourio",
-                primaryPosition: { abbreviation: "OF" },
-                currentTeam: { name: "Milwaukee Brewers" },
-                currentAge: 20,
-                stats: {
-                    career: {
-                        type: 'hitting',
-                        level: 'AAA',
-                        avg: '.315',
-                        hr: 12,
-                        rbi: 45,
-                        sb: 18,
-                        ops: '.895',
-                        games: 78
-                    },
-                    season: {
-                        type: 'hitting',
-                        level: 'AAA',
-                        avg: '.315',
-                        hr: 12,
-                        rbi: 45,
-                        sb: 18,
-                        ops: '.895',
-                        games: 78
-                    }
-                }
-            },
-            "Bobby Witt Jr": {
-                id: 677951,
-                fullName: "Bobby Witt Jr.",
-                primaryPosition: { abbreviation: "SS" },
-                currentTeam: { name: "Kansas City Royals" },
-                currentAge: 24,
-                stats: {
-                    career: {
-                        type: 'hitting',
-                        level: 'MLB',
-                        avg: '.278',
-                        hr: 78,
-                        rbi: 214,
-                        sb: 109,
-                        ops: '.811',
-                        games: 408
-                    },
-                    season: {
-                        type: 'hitting',
-                        level: 'MLB',
-                        avg: '.332',
-                        hr: 32,
-                        rbi: 109,
-                        sb: 49,
-                        ops: '.977',
-                        games: 161
-                    }
-                }
-            },
-            "Elly De La Cruz": {
-                id: 680927,
-                fullName: "Elly De La Cruz",
-                primaryPosition: { abbreviation: "SS" },
-                currentTeam: { name: "Cincinnati Reds" },
-                currentAge: 22,
-                stats: {
-                    career: {
-                        type: 'hitting',
-                        level: 'MLB',
-                        avg: '.256',
-                        hr: 38,
-                        rbi: 81,
-                        sb: 92,
-                        ops: '.788',
-                        games: 195
-                    },
-                    season: {
-                        type: 'hitting',
-                        level: 'MLB',
-                        avg: '.259',
-                        hr: 25,
-                        rbi: 76,
-                        sb: 67,
-                        ops: '.799',
-                        games: 160
-                    }
-                }
-            }
-        };
-        
-        function toggleDemoMode() {
-            demoMode = !demoMode;
-            const btn = document.getElementById('demoModeBtn');
-            if (demoMode) {
-                btn.textContent = '🧪 Demo Mode: ON';
-                btn.style.background = 'rgba(34, 197, 94, 0.3)';
-                btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-                alert('🧪 Demo Mode Enabled!\n\nYou can now test MLB API functions with mock data.\n\nTry searching for:\n• Paul Skenes\n• Gunnar Henderson\n• Jackson Chourio\n• Bobby Witt Jr\n• Elly De La Cruz');
-            } else {
-                btn.textContent = '🧪 Demo Mode: OFF';
-                btn.style.background = 'rgba(255, 255, 255, 0.2)';
-                btn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            }
-        }
-        
         async function fetchPlayerStatsWithDemo(player) {
-            if (demoMode && mockPlayers[player.name]) {
-                // Simulate API delay
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                const mockData = mockPlayers[player.name];
-                player.mlbOrg = mockData.currentTeam.name;
-                player.stats = mockData.stats;
-                player.statsLoaded = true;
-                console.log('🧪 Demo Mode: Loaded mock data for', player.name);
-                return;
-            }
-            
-            // Otherwise use real API
             return await fetchPlayerStats(player);
         }
 
@@ -3385,22 +3032,18 @@
                     const result = await window.storage.get('watchlist-players');
                     if (result && result.value) {
                         watchlistPlayers = JSON.parse(result.value);
-                        console.log(`Loaded ${watchlistPlayers.length} players from watchlist`);
                     }
                 }
             } catch (error) {
-                console.log('No existing watchlist found');
                 watchlistPlayers = [];
             }
         }
         
         async function saveWatchlist() {
             try {
-                console.log(`💾 Saving watchlist with ${watchlistPlayers.length} players...`);
                 
                 // Try Supabase first
                 if (supabaseEnabled && supabaseClient) {
-                    console.log('☁️ Attempting Supabase sync...');
                     for (const player of watchlistPlayers) {
                         const { data, error } = await supabaseClient
                             .from('watchlist')
@@ -3416,20 +3059,15 @@
                         if (error) {
                             console.error('❌ Supabase watchlist save error for', player.name, ':', error);
                         } else {
-                            console.log('✅ Synced', player.name, 'to Supabase');
                         }
                     }
-                    console.log('✅ Watchlist synced to Supabase');
                 } else {
                     console.warn('⚠️ Supabase not enabled or client not initialized');
-                    console.log('supabaseEnabled:', supabaseEnabled);
-                    console.log('supabaseClient:', supabaseClient ? 'exists' : 'null');
                 }
                 
                 // Also save to local storage as backup
                 if (window.storage) {
                     await window.storage.set('watchlist-players', JSON.stringify(watchlistPlayers));
-                    console.log('💾 Watchlist saved to local storage');
                 }
             } catch (error) {
                 console.error('❌ Error saving watchlist:', error);
@@ -3501,7 +3139,6 @@
                     if (error) {
                         console.error('Supabase delete error:', error);
                     } else {
-                        console.log(`✅ Removed ${playerToRemove.name} from Supabase watchlist`);
                     }
                 } catch (error) {
                     console.error('Error removing from Supabase:', error);
@@ -3536,7 +3173,6 @@
                                     .eq('player_name', player.name);
                             }
                         } else {
-                            console.log('✅ Cleared all watchlist items from Supabase');
                         }
                     } catch (error) {
                         console.error('Error clearing Supabase watchlist:', error);
@@ -3620,7 +3256,6 @@
                     if (error) {
                         console.error('Error deleting note from Supabase:', error);
                     } else {
-                        console.log(`✅ Deleted notes for ${playerName} from Supabase`);
                     }
                 } catch (error) {
                     console.error('Supabase delete error:', error);
@@ -3839,105 +3474,6 @@
             alert('AI Report feature will be available when MLB season starts!\n\nThis will analyze:\n• Last 5-7 games performance\n• Recent trends (hot/cold)\n• Injury updates\n• Trade rumors\n• Call-up potential\n\nStay tuned!');
         }
 
-        // Removed: Salary CSV upload handler (input no longer exists)
-
-        function parseSalaryCSV(text) {
-            const lines = text.split('\n');
-            salaryData = {};
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                // Parse CSV properly handling quoted values
-                const values = [];
-                let current = '';
-                let inQuotes = false;
-                
-                for (let char of line) {
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                values.push(current.trim());
-                
-                // Skip header row
-                if (i === 0 || values[0] === 'Player' || !values[0]) continue;
-                
-                const playerName = values[0];
-                const salary2025 = values[5]?.replace(/"/g, '').replace(/,/g, '') || '0';
-                const status2026 = values[6]?.replace(/"/g, '') || '';
-                const status2027 = values[7]?.replace(/"/g, '') || '';
-                
-                // Determine service time status
-                let serviceStatus = 'Unknown';
-                let yearsRemaining = 0;
-                
-                // Check 2026 status
-                if (status2026 === 'TC') {
-                    serviceStatus = 'Team Control';
-                    yearsRemaining = 1;
-                } else if (status2026 === 'ARB1') {
-                    serviceStatus = 'Arb 1';
-                    yearsRemaining = 1;
-                } else if (status2026 === 'ARB2') {
-                    serviceStatus = 'Arb 2';
-                    yearsRemaining = 1;
-                } else if (status2026 === 'ARB3') {
-                    serviceStatus = 'Arb 3';
-                    yearsRemaining = 1;
-                } else if (status2026 === 'FA') {
-                    serviceStatus = 'Free Agent (2026)';
-                    yearsRemaining = 0;
-                } else if (status2026 && !isNaN(parseFloat(status2026.replace(/,/g, '')))) {
-                    // Has a dollar amount in 2026
-                    serviceStatus = 'Under Contract';
-                    yearsRemaining = 1;
-                }
-                
-                // Count additional contract years
-                const futureYears = [status2027, values[8], values[9], values[10]];
-                for (const year of futureYears) {
-                    if (!year || year === 'FA' || year === '') break;
-                    yearsRemaining++;
-                }
-                
-                // Determine current year status based on next year
-                if (status2026 === 'TC') {
-                    serviceStatus = 'Team Control';
-                } else if (status2026 === 'ARB1') {
-                    serviceStatus = 'Team Control';
-                } else if (status2026 === 'ARB2') {
-                    serviceStatus = 'Arb 1';
-                } else if (status2026 === 'ARB3') {
-                    serviceStatus = 'Arb 2';
-                } else if (status2026 === 'FA') {
-                    serviceStatus = 'Arb 3';
-                }
-                
-                salaryData[playerName] = {
-                    salary: salary2025,
-                    yearsRemaining: yearsRemaining,
-                    serviceStatus: serviceStatus,
-                    next2026: status2026
-                };
-            }
-            
-            console.log(`Loaded salary data for ${Object.keys(salaryData).length} players`);
-            
-            // Re-render players to show salary info
-            if (players.length > 0) {
-                applyFilters();
-                populateTradeSendDropdown(); // Update trade analyzer
-            }
-            updateDataStatus(); // Update status indicators
-        }
-
         function calculateServiceTimeInfo(player) {
             if (!player.stats) return null;
             
@@ -4067,45 +3603,7 @@
 
         async function fetchAutocompleteSuggestions(query) {
             const dropdown = document.getElementById('autocompleteDropdown');
-            
-            if (demoMode) {
-                // Use mock data in demo mode
-                const results = Object.values(mockPlayers).filter(p => 
-                    p.fullName.toLowerCase().includes(query.toLowerCase())
-                );
-                
-                if (results.length === 0) {
-                    dropdown.innerHTML = '<div class="autocomplete-loading">No players found (try: Paul Skenes, Gunnar Henderson, etc.)</div>';
-                    autocompleteResults = [];
-                    return;
-                }
-                
-                autocompleteResults = results.slice(0, 10);
-                dropdown.innerHTML = '';
-                autocompleteResults.forEach((person, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'autocomplete-item';
-                    item.dataset.index = index;
-                    
-                    const position = person.primaryPosition?.abbreviation || 'N/A';
-                    const team = person.currentTeam?.name || 'Free Agent';
-                    const age = person.currentAge || '?';
-                    
-                    item.innerHTML = `
-                        <div style="font-weight: 600; color: #fff;">${person.fullName}</div>
-                        <div style="font-size: 0.875rem; color: #94a3b8;">
-                            ${position} • ${team} • Age ${age} <span style="color: #22c55e;">🧪 DEMO</span>
-                        </div>
-                    `;
-                    
-                    item.onclick = () => selectAutocompleteItem(person.fullName);
-                    dropdown.appendChild(item);
-                });
-                
-                dropdown.style.display = 'block';
-                return;
-            }
-            
+
             try {
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(query)}`;
                 const response = await fetch(searchUrl);
@@ -4211,7 +3709,6 @@
         // ========== LEAGUE MANAGEMENT FUNCTIONS ==========
         
         function initializeLeagueSelector() {
-            console.log('🏆 Initializing league selector...');
             const selector = document.getElementById('leagueSelector');
             
             if (!selector) {
@@ -4221,14 +3718,12 @@
             
             // Set the saved league selection
             selector.value = selectedFantraxLeague;
-            console.log(`  Current league: ${selectedFantraxLeague}`);
             
             // Trigger the change handler to update UI
             handleLeagueChange(selectedFantraxLeague);
         }
         
         function handleLeagueChange(leagueKey) {
-            console.log('📋 League changed to:', leagueKey);
             selectedFantraxLeague = leagueKey;
             localStorage.setItem('selectedFantraxLeague', leagueKey);
             
@@ -4280,11 +3775,9 @@
                     statusText.textContent = `${league.name} - Last synced ${timeAgo} ago`;
                     statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
                     
-                    console.log(`📦 Found cached roster for ${leagueKey} (${minutesAgo}m old)`);
                     
                     // Check if we should auto-refresh (>1 hour old)
                     if (minutesAgo > 60) {
-                        console.log('⏰ Cache is stale (>1 hour), auto-refreshing...');
                         setTimeout(() => refreshFantraxRoster(), 500);
                     } else {
                         // Load cached roster
@@ -4295,7 +3788,6 @@
         }
         
         function handleTeamFilterChange(teamName) {
-            console.log('👥 Team filter changed to:', teamName);
             selectedTeamFilter = teamName;
             localStorage.setItem(`${selectedFantraxLeague}_selectedTeam`, teamName);
             
@@ -4339,7 +3831,6 @@
         }
         
         async function refreshFantraxRoster() {
-            console.log('🔄 Refresh roster clicked for league:', selectedFantraxLeague);
             
             if (selectedFantraxLeague === 'NONE') {
                 alert('Please select a league first');
@@ -4361,7 +3852,6 @@
             
             try {
                 // Call Fantrax API via CORS proxy
-                console.log('🌐 Fetching rosters from Fantrax for league:', league.fantraxId);
                 
                 const PROXY_URL = 'https://fantrax-proxy.vercel.app/api/roster';
                 
@@ -4377,7 +3867,6 @@
                 }
                 
                 const data = await response.json();
-                console.log('✅ Fantrax API Response:', data);
                 
                 // Parse roster data
                 let teamRosters = [];
@@ -4389,7 +3878,6 @@
                         name: rosterData.teamName || rosterData.name || 'Unknown Team',
                         roster: rosterData.rosterItems || rosterData.roster || []
                     }));
-                    console.log('📋 Converted rosters to array:', teamRosters.length, 'teams');
                 } else if (data.teamRosters) {
                     teamRosters = data.teamRosters;
                 } else if (data.responses && data.responses[0]) {
@@ -4405,7 +3893,6 @@
                 
                 // Build player array
                 const playerNames = data.playerNames || {};
-                console.log('👥 Player names available:', Object.keys(playerNames).length);
                 
                 const rosterPlayers = [];
                 fantraxTeams = [];
@@ -4415,7 +3902,6 @@
                     fantraxTeams.push(teamName);
                     const rosterItems = team.roster || team.rosterItems || [];
                     
-                    console.log(`  Processing ${teamName}: ${rosterItems.length} players`);
                     
                     rosterItems.forEach(item => {
                         const fantraxId = item.id || item.playerId;
@@ -4444,7 +3930,6 @@
                     });
                 });
                 
-                console.log(`✅ Parsed ${rosterPlayers.length} players from ${fantraxTeams.length} teams`);
                 
                 // Cache the roster
                 const cacheKey = `${selectedFantraxLeague}_roster_cache`;
@@ -4501,19 +3986,16 @@
         }
         
         function loadCachedFantraxRoster(leagueKey) {
-            console.log('📦 Loading cached roster for:', leagueKey);
             
             const cacheKey = `${leagueKey}_roster_cache`;
             const cachedRoster = localStorage.getItem(cacheKey);
             
             if (!cachedRoster) {
-                console.log('⚠️ No cached roster found');
                 return;
             }
             
             try {
                 const rosterPlayers = JSON.parse(cachedRoster);
-                console.log(`✅ Loaded ${rosterPlayers.length} players from cache`);
                 
                 players = rosterPlayers;
                 
@@ -4524,10 +4006,7 @@
                 
                 const league = LEAGUES[leagueKey];
                 populateTeamSelector(league);
-                
-                // Initialize trade analyzer with teams
-                initTradeAnalyzer();
-                
+
                 // Load salary data if available
                 loadSalaryDataForLeague(leagueKey);
                 
@@ -4546,7 +4025,6 @@
                 // Check if data needs MLB enrichment
                 const needsEnrichment = rosterPlayers.some(p => !p.mlbDataEnriched);
                 if (needsEnrichment) {
-                    console.log('📊 Cached data needs MLB enrichment, starting background process...');
                     setTimeout(() => {
                         batchEnrichPlayers(players);
                     }, 100);
@@ -4592,7 +4070,6 @@
                 selectedTeamFilter = 'ALL';
             }
             
-            console.log(`👥 Populated team selector with ${sortedTeams.length} teams`);
         }
         
         function loadSalaryDataForLeague(leagueKey) {
@@ -4603,7 +4080,6 @@
             if (cachedSalary) {
                 try {
                     salaryData = JSON.parse(cachedSalary);
-                    console.log(`💰 Loaded salary data for ${Object.keys(salaryData).length} players`);
                 } catch (error) {
                     console.error('Error loading salary data:', error);
                     salaryData = {};
@@ -4617,16 +4093,8 @@
         async function enrichPlayerWithMLBData(player) {
             try {
                 // Fantrax names come as "Last, First" - need to convert for MLB API
-                let searchName = player.name;
-                
-                // Check if name is in "Last, First" format
-                if (player.name.includes(',')) {
-                    const parts = player.name.split(',').map(s => s.trim());
-                    if (parts.length === 2) {
-                        searchName = `${parts[1]} ${parts[0]}`; // "First Last"
-                    }
-                }
-                
+                const searchName = convertLastFirstToFirstLast(player.name);
+
                 const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}&hydrate=currentTeam,primaryTeam`;
                 const searchRes = await fetch(searchUrl);
                 const searchData = await searchRes.json();
@@ -4655,7 +4123,6 @@
                 
                 if (!searchData.people || searchData.people.length === 0) {
                     // Player not found in MLB database
-                    console.log(`  ⚠️ ${player.name} not found in MLB API - checking Fantrax fallback (team="${player.team}")`);
                     
                     // Try Fantrax fallback
                     if (player.team && (player.team.length === 2 || player.team.length === 3)) {
@@ -4664,12 +4131,9 @@
                             player.mlbTeam = fullTeamName;
                             player.mlbOrg = fullTeamName;
                             player.usedFallback = true; // Mark for stats tracking
-                            console.log(`  🔄 Fallback SUCCESS for ${player.name}: "${player.team}" → "${fullTeamName}"`);
                         } else {
-                            console.log(`  ❌ Fallback FAILED for ${player.name}: "${player.team}" not a valid MLB abbreviation`);
                         }
                     } else {
-                        console.log(`  ❌ No Fantrax team data for ${player.name} (team="${player.team}")`);
                     }
                     
                     player.mlbDataEnriched = true;
@@ -4741,14 +4205,12 @@
                         if (fullTeamName) {
                             player.mlbTeam = fullTeamName;
                             player.mlbOrg = fullTeamName;
-                            console.log(`  🔄 Fallback: Used Fantrax team for ${player.name}: "${player.team}" → "${fullTeamName}"`);
                         }
                     }
                 }
                 
                 player.status = mlbPlayer.active ? 'Act' : 'Min';
                 
-                console.log(`  ✅ ${player.name}: mlbTeam="${player.mlbTeam}", fantraxTeam="${player.fantraxTeam}"`);
                 
                 // Check if on IL
                 if (mlbPlayer.status?.statusCode === 'IL60' || mlbPlayer.status?.statusCode === 'IL10') {
@@ -4769,7 +4231,6 @@
         }
         
         async function batchEnrichPlayers(playersList, batchSize = 10) {
-            console.log(`🔄 Starting MLB data enrichment for ${playersList.length} players...`);
             
             const statusDiv = document.getElementById('leagueStatus');
             const statusIcon = document.getElementById('leagueStatusIcon');
@@ -4817,12 +4278,6 @@
                 }
             }
             
-            console.log(`✅ Enriched ${enrichedCount} players with MLB data`);
-            console.log(`📊 Enrichment Stats:
-  Total Players: ${stats.total}
-  ✅ MLB API Success: ${stats.mlbApiSuccess} (${Math.round(stats.mlbApiSuccess/stats.total*100)}%)
-  🔄 Fantrax Fallback: ${stats.fantraxFallback} (${Math.round(stats.fantraxFallback/stats.total*100)}%)
-  ❌ Not Found: ${stats.notFound} (${Math.round(stats.notFound/stats.total*100)}%)`);
             
             // Final render
             applyTeamFilter();
@@ -4843,41 +4298,46 @@
             localStorage.setItem(lastSyncKey, new Date().toISOString());
         }
         
+        const TAB_ELEMENT_IDS = {
+            roster: 'rosterTab',
+            myteams: 'myTeamsTab',
+            research: 'researchTab',
+            watchlist: 'watchlistTab',
+            prospects: 'prospectsTab',
+            myprospects: 'myProspectsTab',
+            finances: 'financesTab',
+            composition: 'compositionTab',
+            capplanning: 'capPlanningTab',
+            rules: 'rulesTab',
+            guide: 'guideTab'
+        };
+
         function switchTab(tabName) {
             // Hide all tabs
-            document.getElementById('rosterTab').classList.remove('active');
-            document.getElementById('researchTab').classList.remove('active');
-            document.getElementById('watchlistTab').classList.remove('active');
-            document.getElementById('prospectsTab').classList.remove('active');
-            document.getElementById('financesTab').classList.remove('active');
-            document.getElementById('compositionTab').classList.remove('active');
-            document.getElementById('capPlanningTab').classList.remove('active');
-            document.getElementById('rulesTab').classList.remove('active');
-            document.getElementById('guideTab').classList.remove('active');
-            
+            Object.values(TAB_ELEMENT_IDS).forEach(id => {
+                document.getElementById(id)?.classList.remove('active');
+            });
+
             // Remove active from all buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
+
             // Show selected tab
-            if (tabName === 'roster') {
-                document.getElementById('rosterTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            } else if (tabName === 'research') {
-                document.getElementById('researchTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            const tabElement = document.getElementById(TAB_ELEMENT_IDS[tabName]);
+            if (!tabElement) return;
+            tabElement.classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.add('active');
+
+            if (tabName === 'myteams') {
+                renderMyTeams();
             } else if (tabName === 'watchlist') {
-                document.getElementById('watchlistTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 renderWatchlist();
                 updatePlayersWithNotesList();
             } else if (tabName === 'prospects') {
-                document.getElementById('prospectsTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 populateTeamDropdowns();
                 loadTop100Prospects(); // Load prospects when tab is opened
+            } else if (tabName === 'myprospects') {
+                renderMyProspects();
             } else if (tabName === 'finances') {
-                document.getElementById('financesTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[4].classList.add('active');
                 if (!leagueFinancesData) {
                     loadLeagueFinances(); // Load team finances
                 }
@@ -4885,19 +4345,9 @@
                     loadPlayerContracts(); // Just load, don't auto-merge
                 }
             } else if (tabName === 'composition') {
-                document.getElementById('compositionTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[6].classList.add('active');
                 generateRosterComposition();
             } else if (tabName === 'capplanning') {
-                document.getElementById('capPlanningTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[5].classList.add('active');
                 generateCapPlanning();
-            } else if (tabName === 'rules') {
-                document.getElementById('rulesTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[6].classList.add('active');
-            } else if (tabName === 'guide') {
-                document.getElementById('guideTab').classList.add('active');
-                document.querySelectorAll('.tab-btn')[7].classList.add('active');
             }
         }
 
@@ -4950,38 +4400,18 @@
             await fetchPlayerStatsWithDemo(researchPlayer);
             
             // Check if this player exists in roster and attach contract data
-            console.log(`🔍 Checking for ${researchPlayer.name} in roster...`);
-            console.log(`  Players loaded: ${players ? players.length : 0}`);
-            console.log(`  Contracts loaded: ${playerContractsData ? Object.keys(playerContractsData).length : 0}`);
             
             if (players && players.length > 0) {
                 // Normalize name for matching (handle "Last, First" vs "First Last")
-                const normalizeName = (name) => {
-                    if (!name) return '';
-                    name = name.trim();
-                    // If "Last, First" format, convert to "First Last"
-                    if (name.includes(',')) {
-                        const parts = name.split(',').map(p => p.trim());
-                        name = `${parts[1]} ${parts[0]}`;
-                    }
-                    return name.toLowerCase();
-                };
+                const searchName = normalizePlayerName(researchPlayer.name);
+                const rosterPlayer = players.find(p => normalizePlayerName(p.name) === searchName);
                 
-                const searchName = normalizeName(researchPlayer.name);
-                const rosterPlayer = players.find(p => normalizeName(p.name) === searchName);
-                
-                console.log(`  Roster player found: ${rosterPlayer ? 'YES' : 'NO'}`);
                 if (rosterPlayer) {
-                    console.log(`  Roster name: "${rosterPlayer.name}"`);
-                    console.log(`  Has contract: ${rosterPlayer.contract ? 'YES' : 'NO'}`);
                     if (rosterPlayer.contract) {
                         researchPlayer.contract = rosterPlayer.contract;
-                        console.log(`💰 Attached contract data for ${researchPlayer.name}`);
                     } else {
-                        console.log(`⚠️ ${researchPlayer.name} in roster but no contract data`);
                     }
                 } else {
-                    console.log(`⚠️ ${researchPlayer.name} not found in roster`);
                 }
             }
             
@@ -5298,147 +4728,17 @@
                             if (error) console.warn('Supabase save error:', error);
                         }
                     }
-                    console.log('✅ Player notes synced to Supabase');
                 }
                 
                 // Also save to local storage as backup
                 if (window.storage) {
                     await window.storage.set('player-notes', JSON.stringify(playerNotes));
-                    console.log('Player notes saved to storage');
                 }
             } catch (error) {
                 console.error('Error saving notes:', error);
             }
         }
         
-        // Export/Import functions
-        function exportPlayerNotes() {
-            const exportData = {
-                version: '4.1.2',
-                exportDate: new Date().toISOString(),
-                league: currentLeague || 'mbl',
-                notes: playerNotes,
-                watchlist: watchlistPlayers.map(p => ({ 
-                    name: p.name, 
-                    addedDate: p.addedDate,
-                    position: p.position,
-                    team: p.team
-                }))
-            };
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            const dateStr = new Date().toISOString().split('T')[0];
-            a.download = `baseball-dashboard-notes-${dateStr}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            alert(`✅ Exported!\n\n📝 ${Object.keys(playerNotes).length} players with notes/tags\n👁️ ${watchlistPlayers.length} watchlist players\n\n💡 Save to iCloud Drive for cross-device sync!`);
-        }
-        
-        // Export comprehensive league data for AI trade analyzer
-        function importPlayerNotes() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    try {
-                        const importData = JSON.parse(event.target.result);
-                        
-                        // Validate structure
-                        if (!importData.version || !importData.notes) {
-                            alert('❌ Invalid file format');
-                            return;
-                        }
-                        
-                        // Merge or replace?
-                        const merge = confirm('Merge with existing notes?\n\nOK = Merge (keep existing + add new)\nCancel = Replace (overwrite everything)');
-                        
-                        if (merge) {
-                            // Merge notes
-                            Object.keys(importData.notes).forEach(playerName => {
-                                if (!playerNotes[playerName]) {
-                                    playerNotes[playerName] = importData.notes[playerName];
-                                } else {
-                                    // Merge tags (no duplicates)
-                                    const existingTags = playerNotes[playerName].tags || [];
-                                    const newTags = importData.notes[playerName].tags || [];
-                                    playerNotes[playerName].tags = [...new Set([...existingTags, ...newTags])];
-                                    
-                                    // Append notes if both exist
-                                    if (importData.notes[playerName].text && playerNotes[playerName].text) {
-                                        playerNotes[playerName].text += '\n\n--- Imported ---\n\n' + importData.notes[playerName].text;
-                                    } else if (importData.notes[playerName].text) {
-                                        playerNotes[playerName].text = importData.notes[playerName].text;
-                                    }
-                                }
-                            });
-                            
-                            // Merge watchlist
-                            if (importData.watchlist) {
-                                importData.watchlist.forEach(wp => {
-                                    if (!watchlistPlayers.some(p => p.name === wp.name)) {
-                                        watchlistPlayers.push({
-                                            id: Date.now() + Math.random(),
-                                            name: wp.name,
-                                            position: wp.position || '',
-                                            team: wp.team || '',
-                                            addedDate: wp.addedDate || new Date().toISOString(),
-                                            statsLoaded: false
-                                        });
-                                    }
-                                });
-                            }
-                        } else {
-                            // Replace everything
-                            playerNotes = importData.notes;
-                            if (importData.watchlist) {
-                                watchlistPlayers = importData.watchlist.map(wp => ({
-                                    id: Date.now() + Math.random(),
-                                    name: wp.name,
-                                    position: wp.position || '',
-                                    team: wp.team || '',
-                                    addedDate: wp.addedDate || new Date().toISOString(),
-                                    statsLoaded: false
-                                }));
-                            }
-                        }
-                        
-                        // Save to storage
-                        await savePlayerNotesToStorage();
-                        await saveWatchlist();
-                        
-                        updateDataStatus(); // Update status indicators
-                        
-                        alert(`✅ Import Complete!\n\n📝 ${Object.keys(playerNotes).length} players with notes\n👁️ ${watchlistPlayers.length} watchlist players`);
-                        
-                        // Refresh current view
-                        applyFilters();
-                        
-                    } catch (error) {
-                        console.error('Import error:', error);
-                        alert('❌ Error importing file: ' + error.message);
-                    }
-                };
-                reader.readAsText(file);
-            };
-            
-            input.click();
-        }
-        
-        // Load notes on startup
         loadPlayerNotesFromStorage();
         
         // ========== DATA STATUS INDICATORS ==========
@@ -5497,7 +4797,6 @@
                                 tags: note.tags || []
                             };
                         });
-                        console.log(`✅ Loaded ${data.length} notes from Supabase`);
                         updateDataStatus();
                         return;
                     }
@@ -5508,22 +4807,18 @@
                     const result = await window.storage.get('player-notes');
                     if (result && result.value) {
                         playerNotes = JSON.parse(result.value);
-                        console.log(`Loaded notes for ${Object.keys(playerNotes).length} players from storage`);
                     }
                 }
             } catch (error) {
-                console.log('No existing player notes found');
             }
             updateDataStatus();
         }
         
         async function loadWatchlist() {
             try {
-                console.log('📥 Loading watchlist...');
                 
                 // Try Supabase first
                 if (supabaseEnabled && supabaseClient) {
-                    console.log('☁️ Attempting to load from Supabase...');
                     const { data, error } = await supabaseClient
                         .from('watchlist')
                         .select('*')
@@ -5544,11 +4839,9 @@
                             stats: null,
                             addedDate: item.added_at
                         }));
-                        console.log(`✅ Loaded ${watchlistPlayers.length} players from Supabase watchlist`);
                         updateDataStatus();
                         return;
                     } else {
-                        console.log('ℹ️ No watchlist data in Supabase');
                     }
                 } else {
                     console.warn('⚠️ Supabase not enabled for loading');
@@ -5556,17 +4849,13 @@
                 
                 // Fallback to local storage
                 if (window.storage) {
-                    console.log('💾 Loading from local storage...');
                     const result = await window.storage.get('watchlist-players');
                     if (result && result.value) {
                         watchlistPlayers = JSON.parse(result.value);
-                        console.log(`📦 Loaded ${watchlistPlayers.length} players from local storage`);
                     } else {
-                        console.log('ℹ️ No watchlist in local storage');
                     }
                 }
             } catch (error) {
-                console.log('No existing watchlist found');
                 watchlistPlayers = [];
             }
             updateDataStatus();
@@ -5592,84 +4881,6 @@
         document.getElementById('positionFilter').addEventListener('change', applyFilters);
         document.getElementById('statusFilter').addEventListener('change', applyFilters);
         document.getElementById('sortFilter').addEventListener('change', applyFilters);
-
-        function parseCSV(text) {
-            const lines = text.split('\n');
-            players = [];
-            let currentSection = '';
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-
-                if (line.includes('"","Hitting"')) {
-                    currentSection = 'hitting';
-                    continue;
-                } else if (line.includes('"","Pitching"')) {
-                    currentSection = 'pitching';
-                    continue;
-                }
-
-                const values = [];
-                let current = '';
-                let inQuotes = false;
-                
-                for (let char of line) {
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                values.push(current.trim());
-                
-                const idValue = values[0] || '';
-                const playerName = values[2] || '';
-                const posValue = values[1] || '';
-                
-                if (!playerName || 
-                    playerName === 'Player' || 
-                    playerName.toLowerCase() === 'player' ||
-                    idValue === 'ID' || 
-                    idValue === '' ||
-                    posValue === 'Pos') {
-                    continue;
-                }
-                
-                const teamCode = values[3] || '';
-                
-                players.push({
-                    id: players.length,
-                    name: playerName,
-                    position: posValue,
-                    team: teamCode,
-                    status: values[5] || '',
-                    age: parseInt(values[6]) || 0,
-                    playerType: currentSection,
-                    mlbOrg: '',
-                    minorLeagueLevel: '',
-                    stats: null,
-                    statsLoaded: false,
-                    levelBreakdown: [],
-                    flags: [],
-                    ranking: null,
-                    scoutingGrades: null,
-                    news: []
-                });
-            }
-
-            updateSummaryStats();
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('statSummary').classList.remove('hidden');
-            document.getElementById('searchSection').classList.remove('hidden');
-            document.getElementById('playersGrid').classList.remove('hidden');
-            renderPlayers();
-            populateTradeSendDropdown(); // Populate trade analyzer dropdown
-            updateDataStatus(); // Update status indicators
-        }
 
         function updateSummaryStats() {
             const mlbCount = players.filter(p => p.status === 'Act' || p.status === 'Res').length;
@@ -5952,7 +5163,6 @@
                 
                 // If we have a cached ID, verify it matches the player name
                 if (playerId) {
-                    console.log(`🔍 Using cached MLB ID ${playerId} for ${player.name} - verifying...`);
                     
                     // Fetch player info to verify name matches
                     try {
@@ -5962,11 +5172,9 @@
                         
                         if (verifyData.people && verifyData.people.length > 0) {
                             const cachedPlayer = verifyData.people[0];
-                            const cachedName = cachedPlayer.fullName.toLowerCase();
-                            const searchName = player.name.includes(',') 
-                                ? `${player.name.split(',')[1].trim()} ${player.name.split(',')[0].trim()}`.toLowerCase()
-                                : player.name.toLowerCase();
-                            
+                            const cachedName = normalizePlayerName(cachedPlayer.fullName);
+                            const searchName = normalizePlayerName(player.name);
+
                             // STRICT: Only accept EXACT name match (no partial matches!)
                             const namesMatch = cachedName === searchName;
                             
@@ -5974,7 +5182,6 @@
                                 console.warn(`⚠️ Cached ID ${playerId} name mismatch: "${cachedName}" vs "${searchName}" - re-searching`);
                                 playerId = null; // Force new search
                             } else {
-                                console.log(`✅ Cached ID verified for ${player.name}`);
                                 skipNameValidation = true;
                             }
                         } else {
@@ -5990,16 +5197,9 @@
                 // If we don't have the MLB ID yet (or validation failed), search by name
                 if (!playerId) {
                     // Convert "Last, First" format to "First Last" if needed
-                    let searchName = player.name;
-                    if (player.name.includes(',')) {
-                        const parts = player.name.split(',').map(s => s.trim());
-                        if (parts.length === 2) {
-                            searchName = `${parts[1]} ${parts[0]}`; // "First Last"
-                        }
-                    }
-                    
+                    const searchName = convertLastFirstToFirstLast(player.name);
+
                     const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(searchName)}`;
-                    console.log('Fetching stats for:', player.name);
                     const searchRes = await fetch(searchUrl);
                     const searchData = await searchRes.json();
 
@@ -6022,7 +5222,6 @@
                                 if (bestMatch) {
                                     searchData.people = [bestMatch];
                                 } else {
-                                    console.log(`⚠️ Last name search for "${lastName}" found players, but no exact match for "${searchName}"`);
                                     // Clear results - we don't want partial matches!
                                     searchData.people = [];
                                 }
@@ -6041,7 +5240,6 @@
 
                     // If multiple matches, use smart matching
                     if (searchData.people.length > 1) {
-                        console.log(`⚠️ Multiple matches for "${searchName}":`, searchData.people.map(p => `${p.fullName} (age ${p.currentAge}, pos: ${p.primaryPosition?.abbreviation})`));
                         
                         // Strategy: Position match > Team match > Exact name > Youngest
                         
@@ -6052,7 +5250,6 @@
                                 p.primaryPosition?.code === player.position
                             );
                             if (posMatch) {
-                                console.log(`✅ Using position match: ${posMatch.fullName} (${posMatch.primaryPosition?.abbreviation})`);
                                 searchData.people = [posMatch];
                             }
                         }
@@ -6063,7 +5260,6 @@
                                 p.fullName.toLowerCase() === searchName.toLowerCase()
                             );
                             if (exactMatch) {
-                                console.log(`✅ Using exact name match: ${exactMatch.fullName} (age ${exactMatch.currentAge})`);
                                 searchData.people = [exactMatch];
                             }
                         }
@@ -6071,10 +5267,8 @@
                         // 3. If still multiple, pick youngest (likely the prospect)
                         if (searchData.people.length > 1) {
                             searchData.people.sort((a, b) => (a.currentAge || 99) - (b.currentAge || 99));
-                            console.log(`✅ Using youngest match: ${searchData.people[0].fullName} (age ${searchData.people[0].currentAge})`);
                         }
                     } else if (searchData.people.length === 1) {
-                        console.log(`✅ Single match found: ${searchData.people[0].fullName} (age ${searchData.people[0].currentAge})`);
                     }
 
                     playerId = searchData.people[0].id;
@@ -6091,16 +5285,6 @@
                 const playerInfo = mlbData.people[0];
                 
                 // LOG DETAILED PLAYER INFO TO DEBUG
-                console.log(`🔍 MLB API returned player:`, {
-                    name: playerInfo.fullName,
-                    id: playerInfo.id,
-                    birthDate: playerInfo.birthDate,
-                    currentAge: playerInfo.currentAge,
-                    currentTeam: playerInfo.currentTeam?.name || 'No team',
-                    primaryPosition: playerInfo.primaryPosition?.abbreviation,
-                    mlbDebutDate: playerInfo.mlbDebutDate,
-                    active: playerInfo.active
-                });
                 
                 // REJECT incomplete/historical players (no age/birthdate)
                 if (!playerInfo.birthDate || !playerInfo.currentAge) {
@@ -6129,7 +5313,6 @@
                 const isPitcher = playerInfo.primaryPosition?.abbreviation === 'P' || 
                                 playerInfo.primaryPosition?.code === '1';
                 
-                console.log(`🔍 ${player.name}: isPitcher=${isPitcher}, position=${playerInfo.primaryPosition?.abbreviation || 'unknown'}`);
 
                 // Process stats with level breakdown
                 let hasMLBStats = false;
@@ -6738,11 +5921,16 @@
         function formatSalary(salary) {
             const num = parseInt(salary);
             if (num >= 1000000) {
-                return (num / 1000000).toFixed(1) + 'M';
+                return formatAsMillions(num);
             } else if (num >= 1000) {
                 return (num / 1000).toFixed(0) + 'K';
             }
             return num.toString();
+        }
+
+        // Format a dollar amount as millions, e.g. 12345678 -> "12.3M" (no $ prefix)
+        function formatAsMillions(amount) {
+            return (amount / 1000000).toFixed(1) + 'M';
         }
 
         function renderServiceTimeTracker(player) {
@@ -6926,7 +6114,6 @@
                 }));
 
             } catch (error) {
-                console.log('Performance tracking unavailable:', error);
                 // Fail silently - tracking is optional
             }
         }
@@ -7027,7 +6214,6 @@
         // ========== END PROSPECT REFRESH SYSTEM ==========
         
         async function loadTop100Prospects(forceFetch = false) {
-            console.log(`Loading ${currentProspectYear} Prospects...`);
             const resultsDiv = document.getElementById('top100Results');
             const statusDiv = document.getElementById('refreshStatus');
             resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading Prospects...</p></div>';
@@ -7185,7 +6371,6 @@
                 html += `</div>`;
                 
                 resultsDiv.innerHTML = html;
-                console.log(`Displayed ${filteredProspects.length} prospects`);
                 
                 // Update last refreshed timestamp
                 prospectsLastRefreshed = new Date().toISOString();
@@ -7261,7 +6446,7 @@
                 teams.forEach(team => {
                     const option = document.createElement('option');
                     option.value = team;
-                    option.textContent = teamAbbreviations[team] || team;
+                    option.textContent = getFullTeamName(team) || team;
                     prospectTeamFilter.appendChild(option);
                 });
                 
@@ -7272,71 +6457,6 @@
                 document.getElementById('prospectETAFilter')?.addEventListener('change', loadTop100Prospects);
             }
         });
-
-        async function loadTeamProspects(teamId) {
-            if (!teamId) return;
-            
-            const resultsDiv = document.getElementById('teamProspectsResults');
-            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading team prospects...</p></div>';
-            
-            try {
-                const response = await fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/prospects`);
-                const data = await response.json();
-                
-                if (!data.prospects || data.prospects.length === 0) {
-                    resultsDiv.innerHTML = '<div class="error-msg">No prospects found for this team</div>';
-                    return;
-                }
-                
-                let html = `
-                    <table class="prospect-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Pos</th>
-                                <th>Age</th>
-                                <th>Level</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                data.prospects.forEach(prospect => {
-                    const position = prospect.primaryPosition?.abbreviation || 'N/A';
-                    const age = prospect.currentAge || 'N/A';
-                    const level = prospect.currentTeam?.name || 'N/A';
-                    const isOwned = players.some(p => p.name === prospect.fullName);
-                    
-                    html += `
-                        <tr>
-                            <td><span class="prospect-name">${prospect.fullName}</span></td>
-                            <td>${position}</td>
-                            <td>${age}</td>
-                            <td>${level}</td>
-                            <td>${isOwned ? '<span class="prospect-owned">✓ On Roster</span>' : ''}</td>
-                            <td>
-                                <button class="prospect-action-btn" onclick="researchProspectByName('${prospect.fullName}')">
-                                    📊 View Stats
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                html += `
-                        </tbody>
-                    </table>
-                `;
-                
-                resultsDiv.innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error loading team prospects:', error);
-                resultsDiv.innerHTML = '<div class="error-msg">Error loading team prospects. Please try again.</div>';
-            }
-        }
 
         function researchProspectByName(playerName) {
             // Switch to research tab and populate search
@@ -7358,10 +6478,6 @@
             const database = getProspectDatabase();
             const prospects = database.prospects;
             
-            console.log(`🔍 Database source: ${database.source}`);
-            console.log(`🔍 Total prospects available: ${prospects.length}`);
-            console.log(`🔍 liveProspectData length: ${liveProspectData ? liveProspectData.length : 'null'}`);
-            console.log(`🔍 currentProspectYear: ${currentProspectYear}`);
             
             if (!prospects || prospects.length === 0) {
                 resultsDiv.innerHTML = `
@@ -7381,7 +6497,6 @@
             const youngElite = prospects.filter(p => {
                 const fvMatch = p.notes.match(/FV (\d+)/);
                 if (!fvMatch) {
-                    console.log(`❌ ${p.name}: No FV match in notes: "${p.notes}"`);
                     return false;
                 }
                 const fv = parseInt(fvMatch[1]);
@@ -7389,7 +6504,6 @@
                 
                 const matches = fv >= 55 && age < 22;
                 if (matches) {
-                    console.log(`✓ ${p.name}: FV ${fv}, Age ${age}`);
                 }
                 return matches;
             }).sort((a, b) => {
@@ -7399,7 +6513,6 @@
                 return fvB - fvA;
             });
             
-            console.log(`⚡ Found ${youngElite.length} young elite prospects`);
             
             if (youngElite.length === 0) {
                 resultsDiv.innerHTML = `
@@ -7462,14 +6575,12 @@
             
             html += '</div>';
             resultsDiv.innerHTML = html;
-            console.log('✅ HTML inserted into resultsDiv, length:', html.length);
         }
         
         // Handle toggling prospect cards in Top Prospects view
         const loadedProspects = new Map(); // Cache loaded prospect stats
         
         async function toggleProspectCard(cardId, name, position, team) {
-            console.log(`🔍 toggleProspectCard called: cardId="${cardId}", name="${name}", position="${position}", team="${team}"`);
             
             const details = document.getElementById(cardId);
             const content = document.getElementById(`${cardId}-content`);
@@ -7485,17 +6596,14 @@
             }
             
             if (details.classList.contains('expanded')) {
-                console.log(`📦 Collapsing card: ${cardId}`);
                 details.classList.remove('expanded');
                 return;
             }
             
-            console.log(`📦 Expanding card: ${cardId}`);
             details.classList.add('expanded');
             
             // Check if already loaded
             if (!loadedProspects.has(cardId)) {
-                console.log(`📊 Loading stats for: ${name}`);
                 content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading player data...</p></div>';
                 
                 // Create temporary player object
@@ -7512,9 +6620,7 @@
                 // Fetch stats
                 await fetchPlayerStatsWithDemo(tempPlayer);
                 loadedProspects.set(cardId, tempPlayer);
-                console.log(`✅ Stats loaded for: ${name}`);
             } else {
-                console.log(`📦 Using cached stats for: ${name}`);
             }
             
             // Render stats
@@ -7613,108 +6719,392 @@
             content.innerHTML = html;
         }
 
-        // ========== DROP PENALTY CALCULATOR ==========
-        
-        let tradeSendPlayers = [];
-        let tradeReceivePlayers = [];
-        
         // ========== OWNERSHIP DETECTION ==========
         
+        // Remove accents/diacritics from text
+        function removeAccents(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // Fantrax/contract sources give names as "Last, First" - convert to "First Last",
+        // preserving case (used for MLB API search queries as well as comparisons below).
+        function convertLastFirstToFirstLast(name) {
+            if (!name) return '';
+            name = name.trim();
+            if (name.includes(',')) {
+                const parts = name.split(',').map(p => p.trim());
+                if (parts.length === 2) {
+                    return `${parts[1]} ${parts[0]}`;
+                }
+            }
+            return name;
+        }
+
+        // Normalize a player name to handle both "First Last" and "Last, First" formats
+        function normalizePlayerName(name) {
+            if (!name) return '';
+            const converted = convertLastFirstToFirstLast(name.trim());
+
+            // Remove accents and convert to lowercase
+            return removeAccents(converted).toLowerCase();
+        }
+
+        // Normalize an MLB team name/abbreviation for comparison
+        function normalizeMLBTeamName(team) {
+            if (!team) return '';
+            return (getFullTeamName(team) || team).toLowerCase();
+        }
+
+        // Find roster players matching a prospect's name/age/team, narrowing progressively.
+        // Shared by findOwner() (whole-league ownership badge) and My Prospects (per-team matching).
+        function matchProspectInRoster(rosterPlayers, prospectName, prospectAge, prospectTeam) {
+            if (!rosterPlayers || rosterPlayers.length === 0) return [];
+
+            const prospectNameNorm = normalizePlayerName(prospectName);
+            const prospectTeamNorm = normalizeMLBTeamName(prospectTeam);
+
+            // Try exact name match first (normalized)
+            let matches = rosterPlayers.filter(p => normalizePlayerName(p.name) === prospectNameNorm);
+
+            // If multiple or no matches, try name + age
+            if (matches.length !== 1 && prospectAge) {
+                matches = rosterPlayers.filter(p =>
+                    normalizePlayerName(p.name) === prospectNameNorm &&
+                    Math.abs(p.age - parseFloat(prospectAge)) <= 1 // Allow 1 year variance
+                );
+            }
+
+            // If still multiple or no matches, try name + age + team
+            if (matches.length !== 1 && prospectTeamNorm) {
+                matches = rosterPlayers.filter(p => {
+                    const nameMatch = normalizePlayerName(p.name) === prospectNameNorm;
+                    const ageMatch = !prospectAge || Math.abs(p.age - parseFloat(prospectAge)) <= 1;
+                    const teamMatch = !p.mlbTeam || normalizeMLBTeamName(p.mlbTeam) === prospectTeamNorm;
+                    return nameMatch && ageMatch && teamMatch;
+                });
+            }
+
+            return matches;
+        }
+
         function findOwner(prospectName, prospectAge, prospectTeam) {
             // Try to find this prospect in loaded rosters
             if (!players || players.length === 0) {
-                console.log(`⚠️ findOwner(${prospectName}): No players loaded`);
                 return null;
             }
-            
-            console.log(`🔍 findOwner: Looking for "${prospectName}", age ${prospectAge}, team ${prospectTeam}`);
-            
-            // Remove accents/diacritics from text
-            const removeAccents = (str) => {
-                return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            };
-            
-            // Normalize name to handle both "First Last" and "Last, First" formats
-            const normalizeName = (name) => {
-                if (!name) return '';
-                name = name.trim();
-                
-                // If it contains a comma, it's "Last, First" format - convert to "First Last"
-                if (name.includes(',')) {
-                    const parts = name.split(',').map(p => p.trim());
-                    name = `${parts[1]} ${parts[0]}`;
-                }
-                
-                // Remove accents and convert to lowercase
-                return removeAccents(name).toLowerCase();
-            };
-            
-            const prospectNameNorm = normalizeName(prospectName);
-            
-            // Normalize team names for comparison
-            const normalizeTeam = (team) => {
-                if (!team) return '';
-                const abbrevMap = {
-                    'ARI': 'Arizona Diamondbacks', 'ATL': 'Atlanta Braves', 'BAL': 'Baltimore Orioles',
-                    'BOS': 'Boston Red Sox', 'CHC': 'Chicago Cubs', 'CHW': 'Chicago White Sox',
-                    'CIN': 'Cincinnati Reds', 'CLE': 'Cleveland Guardians', 'COL': 'Colorado Rockies',
-                    'DET': 'Detroit Tigers', 'HOU': 'Houston Astros', 'KC': 'Kansas City Royals',
-                    'LAA': 'Los Angeles Angels', 'LAD': 'Los Angeles Dodgers', 'MIA': 'Miami Marlins',
-                    'MIL': 'Milwaukee Brewers', 'MIN': 'Minnesota Twins', 'NYM': 'New York Mets',
-                    'NYY': 'New York Yankees', 'OAK': 'Oakland Athletics', 'PHI': 'Philadelphia Phillies',
-                    'PIT': 'Pittsburgh Pirates', 'SD': 'San Diego Padres', 'SF': 'San Francisco Giants',
-                    'SEA': 'Seattle Mariners', 'STL': 'St. Louis Cardinals', 'TB': 'Tampa Bay Rays',
-                    'TEX': 'Texas Rangers', 'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals'
-                };
-                
-                // If it's an abbreviation, expand it
-                const upper = team.toUpperCase();
-                if (abbrevMap[upper]) {
-                    return abbrevMap[upper].toLowerCase();
-                }
-                return team.toLowerCase();
-            };
-            
-            const prospectTeamNorm = normalizeTeam(prospectTeam);
-            
-            // Try exact name match first (normalized)
-            let matches = players.filter(p => normalizeName(p.name) === prospectNameNorm);
-            console.log(`  Step 1 - Normalized name "${prospectNameNorm}": ${matches.length} matches`);
-            
-            // If multiple or no matches, try name + age
-            if (matches.length !== 1 && prospectAge) {
-                matches = players.filter(p => 
-                    normalizeName(p.name) === prospectNameNorm && 
-                    Math.abs(p.age - parseFloat(prospectAge)) <= 1 // Allow 1 year variance
-                );
-                console.log(`  Step 2 - Name + age (±1): ${matches.length} matches`);
-            }
-            
-            // If still multiple or no matches, try name + age + team
-            if (matches.length !== 1 && prospectTeamNorm) {
-                matches = players.filter(p => {
-                    const nameMatch = normalizeName(p.name) === prospectNameNorm;
-                    const ageMatch = !prospectAge || Math.abs(p.age - parseFloat(prospectAge)) <= 1;
-                    const teamMatch = !p.mlbTeam || normalizeTeam(p.mlbTeam) === prospectTeamNorm;
-                    return nameMatch && ageMatch && teamMatch;
-                });
-                console.log(`  Step 3 - Name + age + team: ${matches.length} matches`);
-            }
-            
-            if (matches.length === 1) {
-                console.log(`  ✅ Found owner: ${matches[0].fantraxTeam}`);
+
+            const matches = matchProspectInRoster(players, prospectName, prospectAge, prospectTeam);
+
+            if (matches.length >= 1) {
                 return matches[0].fantraxTeam;
             }
-            
-            if (matches.length > 1) {
-                console.log(`  ⚠️ Multiple matches found (${matches.length}), using first: ${matches[0].fantraxTeam}`);
-                return matches[0].fantraxTeam;
-            }
-            
-            console.log(`  ❌ No match found`);
+
             return null;
         }
-        
+
+        // ========== MY TEAMS DASHBOARD ==========
+        // Reads both leagues' cached rosters directly from localStorage, independent of
+        // whichever league is currently active in "My Roster" — so both teams can be
+        // seen side by side without switching the league selector.
+
+        function getCachedLeagueRoster(leagueKey) {
+            try {
+                const cached = localStorage.getItem(`${leagueKey}_roster_cache`);
+                return cached ? JSON.parse(cached) : null;
+            } catch (error) {
+                console.error(`Error reading cached roster for ${leagueKey}:`, error);
+                return null;
+            }
+        }
+
+        function getCachedLeagueSalaryData(leagueKey) {
+            try {
+                const cached = localStorage.getItem(`${leagueKey}_salary_data`);
+                return cached ? JSON.parse(cached) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function formatRelativeTime(isoString) {
+            if (!isoString) return 'never';
+            const then = new Date(isoString);
+            const minutesAgo = Math.floor((new Date() - then) / 1000 / 60);
+            if (minutesAgo < 1) return 'just now';
+            if (minutesAgo < 60) return `${minutesAgo}m ago`;
+            const hoursAgo = Math.floor(minutesAgo / 60);
+            if (hoursAgo < 24) return `${hoursAgo}h ago`;
+            return `${Math.floor(hoursAgo / 24)}d ago`;
+        }
+
+        // Jump to "My Roster" pre-loaded with a specific league (reuses the existing
+        // single-active-league sync flow rather than duplicating it).
+        function goToTeamRoster(leagueKey) {
+            const selector = document.getElementById('leagueSelector');
+            if (selector) selector.value = leagueKey;
+            handleLeagueChange(leagueKey);
+            switchTab('roster');
+        }
+
+        function buildPositionBreakdownHtml(teamPlayers) {
+            const positionCounts = {};
+            teamPlayers.forEach(p => {
+                (p.position || '').split(',').map(pos => pos.trim()).filter(Boolean).forEach(pos => {
+                    positionCounts[pos] = (positionCounts[pos] || 0) + 1;
+                });
+            });
+
+            const positionOrder = ['C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP', 'P'];
+            let html = '';
+            positionOrder.forEach(pos => {
+                const count = positionCounts[pos] || 0;
+                if (count > 0) {
+                    const barWidth = (count / teamPlayers.length) * 100;
+                    html += `
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 0.8125rem;">
+                                <span style="font-weight: 600;">${pos}</span>
+                                <span style="color: #60a5fa;">${count}</span>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="background: #60a5fa; height: 100%; width: ${barWidth}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            return html || '<p style="color: #94a3b8; font-style: italic; font-size: 0.875rem;">No position data</p>';
+        }
+
+        function renderMyTeamCard(leagueKey) {
+            const league = LEAGUES[leagueKey];
+            const roster = getCachedLeagueRoster(leagueKey);
+            const lastSync = localStorage.getItem(`${leagueKey}_lastSync`);
+            const cardStyle = 'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;';
+
+            if (!roster || roster.length === 0) {
+                return `
+                    <div style="${cardStyle}">
+                        <h3 style="margin-top: 0;">${league.name}</h3>
+                        <p style="color: #94a3b8; font-size: 0.875rem;">${league.description}</p>
+                        <div class="empty-state" style="padding: 20px 0;">
+                            <div style="font-size: 2.5rem;">📭</div>
+                            <p style="color: #94a3b8; margin-top: 10px;">Not synced yet</p>
+                        </div>
+                        <button class="upload-btn" onclick="goToTeamRoster('${leagueKey}')" style="width: 100%;">🔄 Sync This League</button>
+                    </div>
+                `;
+            }
+
+            const myPlayers = roster.filter(p => p.fantraxTeam === league.myTeam);
+
+            let capHtml = '';
+            if (league.salaryCapEnabled && league.capAmount) {
+                const salaryData = getCachedLeagueSalaryData(leagueKey);
+                if (salaryData) {
+                    const totalSalary = myPlayers.reduce((sum, p) => sum + (parseInt(salaryData[p.name]?.salary) || 0), 0);
+                    const pctUsed = Math.min(100, (totalSalary / league.capAmount) * 100);
+                    capHtml = `
+                        <div style="margin-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.875rem;">
+                                <span style="font-weight: 600;">💰 Cap Usage</span>
+                                <span style="color: #fcd34d;">$${(totalSalary / 1000000).toFixed(1)}M / $${(league.capAmount / 1000000).toFixed(0)}M</span>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: ${pctUsed > 95 ? '#ef4444' : '#22c55e'}; height: 100%; width: ${pctUsed}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            return `
+                <div style="${cardStyle}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;">
+                        <div>
+                            <h3 style="margin: 0;">${league.name}</h3>
+                            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 0.875rem;">${league.myTeam}</p>
+                        </div>
+                        <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; white-space: nowrap;">
+                            Synced ${formatRelativeTime(lastSync)}
+                        </span>
+                    </div>
+                    <div style="margin: 15px 0; font-size: 0.875rem; color: #cbd5e1;">
+                        <strong style="color: #4ade80; font-size: 1.25rem;">${myPlayers.length}</strong> players on roster
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.875rem; color: #94a3b8;">POSITION BREAKDOWN</div>
+                        ${buildPositionBreakdownHtml(myPlayers)}
+                    </div>
+                    ${capHtml}
+                    <button class="upload-btn" onclick="goToTeamRoster('${leagueKey}')" style="width: 100%; margin-top: 15px;">View Full Roster →</button>
+                </div>
+            `;
+        }
+
+        function renderMyTeams() {
+            const container = document.getElementById('myTeamsContent');
+            if (!container) return;
+
+            const leagueKeys = Object.keys(LEAGUES).filter(k => k !== 'NONE');
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+                    ${leagueKeys.map(key => renderMyTeamCard(key)).join('')}
+                </div>
+            `;
+        }
+
+        // ========== MY PROSPECTS DASHBOARD ==========
+        // Cross-references both teams' cached rosters against the prospect rankings so every
+        // prospect you own shows up in one place, tagged by league, with year-over-year rank
+        // movement. Cards reuse toggleProspectCard() to lazily fetch live stats on expand,
+        // exactly like the Top Prospects tab.
+
+        async function renderMyProspects() {
+            const container = document.getElementById('myProspectsContent');
+            if (!container) return;
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading your prospects...</p></div>';
+
+            const leagueKeys = Object.keys(LEAGUES).filter(k => k !== 'NONE');
+            const teamRosters = {};
+            let anySynced = false;
+
+            leagueKeys.forEach(key => {
+                const roster = getCachedLeagueRoster(key);
+                if (roster && roster.length > 0) {
+                    anySynced = true;
+                    teamRosters[key] = roster.filter(p => p.fantraxTeam === LEAGUES[key].myTeam);
+                } else {
+                    teamRosters[key] = [];
+                }
+            });
+
+            if (!anySynced) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem;">🌱</div>
+                        <h3>No Rosters Synced Yet</h3>
+                        <p style="color: #94a3b8; margin-top: 10px;">Sync at least one league from "My Roster" to see your prospects here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentYear = currentProspectYear || '2026';
+            const priorYear = String(parseInt(currentYear) - 1);
+
+            const [currentData, priorData] = await Promise.all([
+                loadProspectsForYear(currentYear),
+                loadProspectsForYear(priorYear)
+            ]);
+
+            const currentProspects = currentData?.prospects || [];
+            const priorProspects = priorData?.prospects || [];
+
+            const myProspectEntries = [];
+            currentProspects.forEach(prospect => {
+                const owningLeagues = leagueKeys.filter(key =>
+                    matchProspectInRoster(teamRosters[key], prospect.name, prospect.age, prospect.team).length > 0
+                );
+                if (owningLeagues.length > 0) {
+                    myProspectEntries.push({ prospect, owningLeagues });
+                }
+            });
+
+            if (myProspectEntries.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem;">🌱</div>
+                        <h3>No Ranked Prospects Found on Your Rosters</h3>
+                        <p style="color: #94a3b8; margin-top: 10px;">None of your synced roster players matched the ${currentYear} prospect rankings.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            myProspectEntries.sort((a, b) => a.prospect.rank - b.prospect.rank);
+
+            // Summary strip: FV tier distribution + call-up watch
+            const fvCounts = {};
+            myProspectEntries.forEach(({ prospect }) => {
+                const fvMatch = prospect.notes.match(/FV (\d+)/);
+                const fv = fvMatch ? parseInt(fvMatch[1]) : null;
+                let tier = 'Unrated';
+                if (fv !== null) {
+                    if (fv >= 60) tier = 'Elite (60+)';
+                    else if (fv >= 55) tier = 'Excellent (55-59)';
+                    else if (fv >= 50) tier = 'Solid (50-54)';
+                    else if (fv >= 45) tier = 'Average (45-49)';
+                    else tier = 'Below Avg';
+                }
+                fvCounts[tier] = (fvCounts[tier] || 0) + 1;
+            });
+            const thisYear = new Date().getFullYear();
+            const callUpWatch = myProspectEntries.filter(({ prospect }) => parseInt(prospect.eta) <= thisYear + 1);
+
+            let html = `
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                        <div><strong style="color: #4ade80; font-size: 1.5rem;">${myProspectEntries.length}</strong><br><span style="color: #94a3b8; font-size: 0.875rem;">Total Prospects (${currentYear})</span></div>
+                        <div><strong style="color: #fcd34d; font-size: 1.5rem;">${callUpWatch.length}</strong><br><span style="color: #94a3b8; font-size: 0.875rem;">Call-Up Watch (ETA ${thisYear}-${thisYear + 1})</span></div>
+                        ${Object.entries(fvCounts).map(([tier, count]) => `<div><strong style="color: #60a5fa; font-size: 1.5rem;">${count}</strong><br><span style="color: #94a3b8; font-size: 0.875rem;">${tier}</span></div>`).join('')}
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 15px;">
+            `;
+
+            myProspectEntries.forEach(({ prospect, owningLeagues }, index) => {
+                const tierColor = getTierColor(prospect.tier);
+                const positionColor = getPositionColor(prospect.pos);
+                const cardId = `myprospect-${index}`;
+
+                const priorMatch = priorProspects.find(p => normalizePlayerName(p.name) === normalizePlayerName(prospect.name));
+                let movementBadge = '<span class="badge" style="background: rgba(96, 165, 250, 0.3); color: #60a5fa;">🆕 NEW</span>';
+                if (priorMatch) {
+                    const delta = priorMatch.rank - prospect.rank; // positive = moved up in rank
+                    if (delta > 0) {
+                        movementBadge = `<span class="badge" style="background: rgba(34, 197, 94, 0.3); color: #4ade80;">▲ +${delta}</span>`;
+                    } else if (delta < 0) {
+                        movementBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.3); color: #f87171;">▼ ${delta}</span>`;
+                    } else {
+                        movementBadge = `<span class="badge" style="background: rgba(148, 163, 184, 0.3); color: #94a3b8;">— No Change</span>`;
+                    }
+                }
+
+                const leagueBadges = owningLeagues.map(key =>
+                    `<span class="badge" style="background: rgba(34, 197, 94, 0.3); color: #4ade80;">${LEAGUES[key].name.split(' (')[0]}</span>`
+                ).join('');
+
+                html += `
+                    <div class="player-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);"
+                         onmouseover="this.style.borderColor='#60a5fa'"
+                         onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                        <div class="player-header" onclick="toggleProspectCard('${cardId}', '${prospect.name.replace(/'/g, "\\'")}', '${prospect.pos}', '${prospect.team}')">
+                            <div class="player-name">#${prospect.rank} ${prospect.name}</div>
+                            <div class="player-badges">
+                                ${leagueBadges}
+                                <span class="badge badge-position" style="background: ${positionColor};">${prospect.pos}</span>
+                                <span class="badge badge-team" style="background: rgba(59, 130, 246, 0.3); color: #60a5fa;">${prospect.team}</span>
+                                <span class="badge" style="background: ${tierColor}; color: white;">${prospect.tier}</span>
+                                <span class="badge badge-age">${prospect.age} yrs</span>
+                                <span class="badge" style="background: rgba(251, 191, 36, 0.3); color: #fcd34d;">ETA: ${prospect.eta}</span>
+                                ${movementBadge}
+                            </div>
+                        </div>
+                        <div class="player-details" id="${cardId}">
+                            <div style="color: #cbd5e1; font-size: 0.875rem; margin-bottom: 15px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                                ${prospect.notes}
+                            </div>
+                            <div id="${cardId}-content"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
         // ========== ROSTER COMPOSITION DASHBOARD ==========
         
         let currentLeague = 'mbl'; // Track which league rules to show
@@ -8190,7 +7580,6 @@
             // Pre-load prospects so they're ready when tab is clicked
             // This prevents the need to switch to 2025 and back
             if (liveProspectData && liveProspectData.length > 0) {
-                console.log('📊 Prospects pre-loaded and ready');
                 
                 // Populate prospect names datalist for quick add watchlist
                 const datalist = document.getElementById('prospectNames');
@@ -8472,362 +7861,6 @@
             }
         }
         
-        // ========== TRADE ANALYZER ==========
-        
-        let tradeReceiveAutocompleteTimeout;
-        let tradeReceiveAutocompleteIndex = -1;
-        let tradeReceiveAutocompleteResults = [];
-        
-        function populateTradeSendDropdown() {
-            const select = document.getElementById('tradeSendSelect');
-            if (!select) return;
-            
-            select.innerHTML = '<option value="">Select player to send...</option>';
-            
-            players.forEach(player => {
-                if (!tradeSendPlayers.includes(player.name)) {
-                    const option = document.createElement('option');
-                    option.value = player.name;
-                    option.textContent = `${player.name} (${player.position})`;
-                    select.appendChild(option);
-                }
-            });
-        }
-        
-        // Autocomplete for trade receive input (OLD - only runs if element exists)
-        document.addEventListener('input', function(e) {
-            if (e.target.id === 'tradeReceiveInput') {
-                const autocomplete = document.getElementById('tradeReceiveAutocomplete');
-                if (!autocomplete) return; // Element doesn't exist in new UI
-                
-                const query = e.target.value.trim();
-                
-                if (query.length < 2) {
-                    autocomplete.style.display = 'none';
-                    return;
-                }
-                
-                clearTimeout(tradeReceiveAutocompleteTimeout);
-                tradeReceiveAutocompleteTimeout = setTimeout(() => {
-                    fetchTradeReceiveAutocomplete(query);
-                }, 300);
-            }
-        });
-        
-        async function fetchTradeReceiveAutocomplete(query) {
-            const autocomplete = document.getElementById('tradeReceiveAutocomplete');
-            if (!autocomplete) return; // Element doesn't exist in new UI
-            
-            if (demoMode) {
-                // Use mock data in demo mode
-                const results = Object.values(mockPlayers).filter(p => 
-                    p.fullName.toLowerCase().includes(query.toLowerCase())
-                );
-                tradeReceiveAutocompleteResults = results;
-                displayTradeReceiveAutocomplete(results);
-                return;
-            }
-            
-            try {
-                const searchUrl = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(query)}`;
-                const response = await fetch(searchUrl);
-                const data = await response.json();
-                
-                if (data.people && data.people.length > 0) {
-                    tradeReceiveAutocompleteResults = data.people.slice(0, 10);
-                    displayTradeReceiveAutocomplete(tradeReceiveAutocompleteResults);
-                } else {
-                    autocomplete.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Autocomplete error:', error);
-            }
-        }
-        
-        function displayTradeReceiveAutocomplete(results) {
-            const dropdown = document.getElementById('tradeReceiveAutocomplete');
-            if (!dropdown) return; // Element doesn't exist in new UI
-            
-            if (results.length === 0) {
-                dropdown.style.display = 'none';
-                return;
-            }
-            
-            dropdown.innerHTML = results.map((person, index) => `
-                <div class="autocomplete-item ${index === tradeReceiveAutocompleteIndex ? 'active' : ''}" 
-                     onclick="selectTradeReceivePlayer('${person.fullName.replace(/'/g, "\\'")}', ${person.id})"
-                     data-index="${index}">
-                    <div style="font-weight: 600;">${person.fullName}</div>
-                    <div style="font-size: 0.875rem; color: #94a3b8;">
-                        ${person.primaryPosition?.abbreviation || 'N/A'} • ${person.currentTeam?.name || 'FA'} • Age ${person.currentAge || '?'}
-                    </div>
-                </div>
-            `).join('');
-            
-            dropdown.style.display = 'block';
-        }
-        
-        function selectTradeReceivePlayer(playerName, playerId) {
-            const input = document.getElementById('tradeReceiveInput');
-            const dropdown = document.getElementById('tradeReceiveAutocomplete');
-            
-            if (input) input.value = '';
-            if (dropdown) dropdown.style.display = 'none';
-            addTradePlayer('receive', playerName, playerId);
-        }
-        
-        // Keyboard navigation for trade receive autocomplete
-        document.addEventListener('keydown', function(e) {
-            if (e.target.id === 'tradeReceiveInput') {
-                const dropdown = document.getElementById('tradeReceiveAutocomplete');
-                if (!dropdown || dropdown.style.display === 'none') return;
-                
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    tradeReceiveAutocompleteIndex = Math.min(tradeReceiveAutocompleteIndex + 1, tradeReceiveAutocompleteResults.length - 1);
-                    displayTradeReceiveAutocomplete(tradeReceiveAutocompleteResults);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    tradeReceiveAutocompleteIndex = Math.max(tradeReceiveAutocompleteIndex - 1, -1);
-                    displayTradeReceiveAutocomplete(tradeReceiveAutocompleteResults);
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (tradeReceiveAutocompleteIndex >= 0) {
-                        const selected = tradeReceiveAutocompleteResults[tradeReceiveAutocompleteIndex];
-                        selectTradeReceivePlayer(selected.fullName, selected.id);
-                    }
-                } else if (e.key === 'Escape') {
-                    dropdown.style.display = 'none';
-                }
-            }
-        });
-        
-        // ========== OLD TRADE ANALYZER CODE (Legacy) ==========
-        // Note: Some functions kept for backwards compatibility
-        
-        function addTradePlayer(side, playerName, playerId) {
-            if (!playerName) return;
-            
-            if (side === 'send') {
-                if (!tradeSendPlayers.includes(playerName)) {
-                    tradeSendPlayers.push(playerName);
-                    renderTradePlayers();
-                    populateTradeSendDropdown();
-                }
-                document.getElementById('tradeSendSelect').value = '';
-            } else {
-                if (!tradeReceivePlayers.some(p => p.name === playerName)) {
-                    tradeReceivePlayers.push({ name: playerName, id: playerId });
-                    renderTradePlayers();
-                }
-            }
-        }
-        
-        function removeTradePlayer(side, playerName) {
-            if (side === 'send') {
-                tradeSendPlayers = tradeSendPlayers.filter(p => p !== playerName);
-                populateTradeSendDropdown();
-            } else {
-                tradeReceivePlayers = tradeReceivePlayers.filter(p => p.name !== playerName);
-            }
-            renderTradePlayers();
-        }
-        
-        function renderTradePlayers() {
-            // Render send list
-            const sendList = document.getElementById('tradeSendList');
-            if (tradeSendPlayers.length === 0) {
-                sendList.innerHTML = '<p style="color: #94a3b8; font-style: italic;">No players selected</p>';
-            } else {
-                sendList.innerHTML = tradeSendPlayers.map(name => {
-                    const player = players.find(p => p.name === name);
-                    const salary = salaryData[name] ? `$${formatSalary(salaryData[name].salary)}` : 'Unknown';
-                    return `
-                        <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-weight: 600;">${name}</div>
-                                <div style="font-size: 0.875rem; color: #94a3b8;">${player?.position || 'N/A'} • ${salary}</div>
-                            </div>
-                            <button onclick="removeTradePlayer('send', '${name}')" style="background: rgba(239, 68, 68, 0.3); border: none; color: #fca5a5; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✕</button>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            // Render receive list
-            const receiveList = document.getElementById('tradeReceiveList');
-            if (tradeReceivePlayers.length === 0) {
-                receiveList.innerHTML = '<p style="color: #94a3b8; font-style: italic;">No players selected</p>';
-            } else {
-                receiveList.innerHTML = tradeReceivePlayers.map(p => `
-                    <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 600;">${p.name}</div>
-                            <div style="font-size: 0.875rem; color: #94a3b8;">From other team</div>
-                        </div>
-                        <button onclick="removeTradePlayer('receive', '${p.name}')" style="background: rgba(239, 68, 68, 0.3); border: none; color: #fca5a5; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✕</button>
-                    </div>
-                `).join('');
-            }
-        }
-        
-        // ========== TRADE VALUE SYSTEM ==========
-        
-        async function calculateTradeValue(playerName, playerId) {
-            // This will return a trade value score based on multiple factors
-            // For now, return placeholder - will implement when season starts
-            
-            try {
-                // Future: Query MLB API for player stats
-                // Future: Query fantasy ranking APIs
-                // Future: Use AI to analyze recent performance
-                
-                return {
-                    playerName: playerName,
-                    overallValue: 0, // 0-100 scale
-                    ageValue: 0,
-                    productionValue: 0,
-                    upside: 'Unknown',
-                    ranking: null,
-                    note: 'Trade values will be calculated when season starts'
-                };
-            } catch (error) {
-                return null;
-            }
-        }
-        
-        // ========== TRADE VALUE SYSTEM ==========
-        
-        async function analyzeTrade() {
-            if (tradeSendPlayers.length === 0 && tradeReceivePlayers.length === 0) {
-                alert('Please add players to both sides of the trade');
-                return;
-            }
-            
-            // Calculate salary impact
-            let sendSalary = 0;
-            let receiveSalary = 0;
-            let sendYears = 0;
-            let receiveYears = 0;
-            
-            tradeSendPlayers.forEach(name => {
-                if (salaryData[name]) {
-                    sendSalary += parseInt(salaryData[name].salary) || 0;
-                    sendYears = Math.max(sendYears, parseInt(salaryData[name].yearsRemaining) || 0);
-                }
-            });
-            
-            // For received players, we don't have salary data, so just note that
-            
-            const salaryDiff = receiveSalary - sendSalary;
-            const currentCapSpace = 241000000 - players.reduce((sum, p) => {
-                return sum + (salaryData[p.name] ? parseInt(salaryData[p.name].salary) : 0);
-            }, 0);
-            
-            const capSpaceAfter = currentCapSpace + sendSalary - receiveSalary;
-            const isLegal = capSpaceAfter >= 0;
-            
-            let html = `
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 25px; margin-top: 20px;">
-                    <h3 style="margin-bottom: 20px; text-align: center; font-size: 1.5rem;">📊 Trade Analysis</h3>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-                        <div style="background: rgba(239, 68, 68, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">You Send</div>
-                            <div style="color: #ef4444; font-size: 1.5rem; font-weight: bold;">$${formatSalary(sendSalary.toString())}</div>
-                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${tradeSendPlayers.length} player${tradeSendPlayers.length !== 1 ? 's' : ''}</div>
-                        </div>
-                        
-                        <div style="background: rgba(59, 130, 246, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">Net Impact</div>
-                            <div style="color: ${salaryDiff > 0 ? '#ef4444' : '#22c55e'}; font-size: 1.5rem; font-weight: bold;">
-                                ${salaryDiff > 0 ? '+' : ''}$${formatSalary(Math.abs(salaryDiff).toString())}
-                            </div>
-                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${salaryDiff > 0 ? 'More expense' : 'Savings'}</div>
-                        </div>
-                        
-                        <div style="background: rgba(34, 197, 94, 0.2); padding: 15px; border-radius: 10px; text-align: center;">
-                            <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 5px;">You Receive</div>
-                            <div style="color: #22c55e; font-size: 1.5rem; font-weight: bold;">$${formatSalary(receiveSalary.toString())}</div>
-                            <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 3px;">${tradeReceivePlayers.length} player${tradeReceivePlayers.length !== 1 ? 's' : ''}</div>
-                        </div>
-                    </div>
-                    
-                    ${Object.keys(salaryData).length > 0 ? `
-                        <div style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
-                            <h4 style="color: #06b6d4; margin-bottom: 15px;">💰 MBL Cap Space Impact</h4>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span>Current Cap Space:</span>
-                                <span style="font-weight: 600;">$${formatSalary(currentCapSpace.toString())}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span>Salary Out:</span>
-                                <span style="color: #22c55e;">-$${formatSalary(sendSalary.toString())}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                                <span>Salary In:</span>
-                                <span style="color: #ef4444;">+$${formatSalary(receiveSalary.toString())}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 1.125rem;">
-                                <span style="font-weight: 600;">Cap Space After Trade:</span>
-                                <span style="font-weight: bold; color: ${isLegal ? '#22c55e' : '#ef4444'};">
-                                    $${formatSalary(capSpaceAfter.toString())}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        ${!isLegal ? `
-                            <div style="background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px;">
-                                <div style="font-size: 3rem; margin-bottom: 10px;">🚫</div>
-                                <h3 style="color: #ef4444; margin-bottom: 10px;">Trade Blocked - Over Salary Cap</h3>
-                                <p style="color: #fca5a5;">This trade would put you over the $241M salary cap. Per MBL rules, this trade cannot be processed.</p>
-                            </div>
-                        ` : `
-                            <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px;">
-                                <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-                                <h3 style="color: #22c55e; margin-bottom: 10px;">MBL Trade is Legal</h3>
-                                <p style="color: #86efac;">This trade complies with MBL salary cap rules.</p>
-                            </div>
-                        `}
-                    ` : ''}
-                    
-                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
-                        <h4 style="color: #a855f7; margin-bottom: 15px;">⚖️ Trade Value Analysis</h4>
-                        <div style="text-align: center; padding: 30px;">
-                            <div style="font-size: 3rem; margin-bottom: 10px;">🔮</div>
-                            <h3 style="color: #a855f7; margin-bottom: 10px;">Coming Soon: AI-Powered Trade Values</h3>
-                            <p style="color: #cbd5e1; line-height: 1.6; max-width: 600px; margin: 0 auto;">
-                                When the season starts, this section will show:
-                                <br><br>
-                                • <strong>Overall Trade Value:</strong> Fair, Win, Lose rating
-                                <br>• <strong>Player Rankings:</strong> Dynasty rankings for each player
-                                <br>• <strong>Age/Upside Analysis:</strong> Long-term value projection
-                                <br>• <strong>Recent Performance:</strong> Hot/cold streak impact
-                                <br>• <strong>Category Impact:</strong> How trade affects your team needs
-                                <br>• <strong>Multi-League Support:</strong> Works for any league format
-                            </p>
-                        </div>
-                        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 8px; margin-top: 15px;">
-                            <h4 style="color: #a855f7; font-size: 0.875rem; margin-bottom: 10px;">📊 Planned Value Sources:</h4>
-                            <ul style="color: #cbd5e1; font-size: 0.875rem; line-height: 1.8; margin-left: 20px;">
-                                <li>MLB Stats API (recent performance, career stats)</li>
-                                <li>Fantasy rankings aggregators (consensus values)</li>
-                                <li>Age curves and projection systems</li>
-                                <li>AI analysis of player trends and upside</li>
-                                <li>Your league context (categories, roster needs)</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; font-size: 0.875rem; color: #fcd34d;">
-                        <strong>⚠️ Note:</strong> Salary data for received players must be verified manually. MBL cap analysis uses your roster's salary data only. Trade values will be available when regular season begins.
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('tradeAnalysisResults').innerHTML = html;
-        }
-        
         // ========== LEAGUE FINANCES (Google Sheets Integration) ==========
         
         const GOOGLE_SHEETS_ID = '1r7gg-UI3xhI5YrLjTN_jXBFBtWzqiTqY7gyczz8VGdk'; // Original league sheet
@@ -8839,11 +7872,9 @@
         
         // Fetch player contracts from Master tab
         async function loadPlayerContracts(forceRefresh = false) {
-            console.log('💰 Loading player contracts from Google Sheets...');
             
             // Check cache first
             if (!forceRefresh && playerContractsData) {
-                console.log('✅ Using cached player contracts');
                 return playerContractsData;
             }
             
@@ -8852,7 +7883,6 @@
                 const range = 'A1:L2000'; // Get enough rows for all players
                 const jsonUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${range}`;
                 
-                console.log('📥 Fetching player contracts from Master tab...');
                 
                 const response = await fetch(jsonUrl);
                 const text = await response.text();
@@ -8866,7 +7896,6 @@
                 const rows = data.table.rows;
                 const contracts = {};
                 
-                console.log(`📋 Processing ${rows.length} rows from Master tab`);
                 
                 // Find header row to identify column positions
                 let headerRow = -1;
@@ -8874,7 +7903,6 @@
                     const firstCell = rows[i].c[1]?.v; // Column B should be "Player"
                     if (firstCell && typeof firstCell === 'string' && firstCell.toLowerCase() === 'player') {
                         headerRow = i;
-                        console.log(`✅ Found header at row ${i}`);
                         break;
                     }
                 }
@@ -8943,18 +7971,15 @@
                     playerCount++;
                     
                     if (playerCount % 100 === 0) {
-                        console.log(`   Processed ${playerCount} players...`);
                     }
                 }
                 
                 playerContractsData = contracts;
-                console.log(`✅ Loaded contracts for ${playerCount} players`);
                 
                 // Enable enrich button if roster is also loaded
                 const enrichBtn = document.getElementById('enrichBtn');
                 if (enrichBtn && players && players.length > 0) {
                     enrichBtn.disabled = false;
-                    console.log('✅ Enrich button enabled');
                 }
                 
                 return contracts;
@@ -8978,7 +8003,6 @@
                 return;
             }
             
-            console.log('✨ Manually enriching players with contract data...');
             mergePlayerContracts();
             
             // Update button to show success
@@ -8996,37 +8020,21 @@
         
         function mergePlayerContracts() {
             if (!playerContractsData || !players || players.length === 0) {
-                console.log('⚠️ Cannot merge contracts - data not ready');
                 return;
             }
             
-            console.log('🔗 Merging player contracts with roster...');
-            
-            // Helper to normalize names for matching
-            const normalizeName = (name) => {
-                if (!name) return '';
-                name = name.trim();
-                
-                // If "Last, First" format, convert to "First Last"
-                if (name.includes(',')) {
-                    const parts = name.split(',').map(p => p.trim());
-                    name = `${parts[1]} ${parts[0]}`;
-                }
-                
-                return name.toLowerCase();
-            };
             
             // Create a map of normalized names to contract data
             const contractsByNormalizedName = {};
             for (const [contractName, contractData] of Object.entries(playerContractsData)) {
-                const normalizedName = normalizeName(contractName);
+                const normalizedName = normalizePlayerName(contractName);
                 contractsByNormalizedName[normalizedName] = contractData;
             }
-            
+
             let matchCount = 0;
-            
+
             for (const player of players) {
-                const normalizedPlayerName = normalizeName(player.name);
+                const normalizedPlayerName = normalizePlayerName(player.name);
                 const contract = contractsByNormalizedName[normalizedPlayerName];
                 
                 if (contract) {
@@ -9035,14 +8043,13 @@
                 }
             }
             
-            console.log(`✅ Merged contracts for ${matchCount}/${players.length} players`);
         }
         
         // Format salary value (handles numbers, "ARB1", "TC", "FA", etc.)
         function formatSalaryValue(value) {
             if (!value) return '-';
             if (typeof value === 'number') {
-                return '$' + (value / 1000000).toFixed(1) + 'M';
+                return '$' + formatAsMillions(value);
             }
             // Return service status as-is (ARB1, TC, FA, etc.)
             return value;
@@ -9088,7 +8095,6 @@
         
         // Fetch team salaries from Google Sheets (using JSON API)
         async function loadLeagueFinances(forceRefresh = false) {
-            console.log('💵 Loading league finances from Google Sheets...');
             
             const statusEl = document.getElementById('financesStatus');
             if (statusEl) {
@@ -9097,7 +8103,6 @@
             
             // Check cache first (unless force refresh)
             if (!forceRefresh && leagueFinancesData) {
-                console.log('✅ Using cached finances data');
                 renderFinancesTable();
                 return;
             }
@@ -9108,7 +8113,6 @@
                 const range = 'A1:H35'; // Get header + 30 teams + footer
                 const jsonUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${range}`;
                 
-                console.log('📥 Fetching from JSON API:', jsonUrl);
                 
                 const response = await fetch(jsonUrl);
                 const text = await response.text();
@@ -9117,7 +8121,6 @@
                 const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
                 const data = JSON.parse(jsonText);
                 
-                console.log('📊 Parsed JSON data:', data);
                 
                 if (!data.table || !data.table.rows) {
                     throw new Error('Invalid data structure from Google Sheets');
@@ -9126,7 +8129,6 @@
                 const rows = data.table.rows;
                 const teams = [];
                 
-                console.log(`📋 Total rows: ${rows.length}`);
                 
                 // Find where data starts (skip header rows)
                 let dataStartIndex = -1;
@@ -9134,7 +8136,6 @@
                     const firstCell = rows[i].c[0]?.v;
                     if (firstCell && typeof firstCell === 'string' && firstCell.length === 3 && firstCell !== 'Team') {
                         dataStartIndex = i;
-                        console.log(`✅ Data starts at row ${i} with team: ${firstCell}`);
                         break;
                     }
                 }
@@ -9159,7 +8160,6 @@
                         (teamName.toLowerCase().includes('salary cap') || 
                          teamName.startsWith('*') || 
                          teamName.toLowerCase().includes('updated'))) {
-                        console.log(`📍 Stopped at footer row: ${teamName}`);
                         break;
                     }
                     
@@ -9168,7 +8168,6 @@
                         teamName.length < 2 || 
                         teamName.length > 3 || 
                         !/^[A-Z]{2,3}$/.test(teamName)) {
-                        console.log(`⚠️ Skipping invalid team name at row ${i}: "${teamName}"`);
                         continue; // Skip but don't stop
                     }
                     
@@ -9183,11 +8182,9 @@
                         payroll2031: cells[7]?.v || 0
                     };
                     
-                    console.log(`✅ Parsed team ${teamName}:`, teamData);
                     teams.push(teamData);
                     
                     if (teams.length >= 30) {
-                        console.log('✅ Reached 30 teams, stopping');
                         break;
                     }
                 }
@@ -9202,7 +8199,6 @@
                 leagueFinancesData = teams;
                 leagueFinancesLastUpdate = new Date();
                 
-                console.log(`✅ Loaded finances for ${teams.length} teams`);
                 
                 if (statusEl) {
                     statusEl.innerHTML = '📊 Status: <span style="color: #22c55e;">Loaded</span>';
@@ -9298,191 +8294,10 @@
         // Helper function to format currency
         function formatCurrency(amount) {
             if (!amount) return '$0';
-            return '$' + (amount / 1000000).toFixed(1) + 'M';
+            return '$' + formatAsMillions(amount);
         }
         
-        // ========== NEW TRADE ANALYZER (Team-to-Team) ==========
-        
-        let tradeTeam1 = null;
-        let tradeTeam2 = null;
-        let tradeTeam1Roster = [];
-        let tradeTeam2Roster = [];
-        let tradeTeam1Sends = [];
-        let tradeTeam2Sends = [];
-        
-        // Initialize trade team selectors when tab loads
-        function initTradeAnalyzer() {
-            const team1Select = document.getElementById('tradeTeam1Select');
-            const team2Select = document.getElementById('tradeTeam2Select');
-            
-            if (!team1Select || !team2Select) return;
-            
-            // Get unique team names from loaded roster
-            const teams = [...new Set(players.map(p => p.fantraxTeam))].sort();
-            
-            // Populate both dropdowns
-            team1Select.innerHTML = '<option value="">Select Team 1...</option>';
-            team2Select.innerHTML = '<option value="">Select Team 2...</option>';
-            
-            teams.forEach(team => {
-                if (team) {
-                    team1Select.innerHTML += `<option value="${team}">${team}</option>`;
-                    team2Select.innerHTML += `<option value="${team}">${team}</option>`;
-                }
-            });
-            
-            console.log(`📋 Initialized trade analyzer with ${teams.length} teams`);
-        }
-        
-        // Load roster for a trade team
-        function loadTradeTeamRoster(teamNum, teamName) {
-            if (!teamName) return;
-            
-            console.log(`📋 Loading roster for Team ${teamNum}: ${teamName}`);
-            
-            // Get all players from this team
-            const roster = players.filter(p => p.fantraxTeam === teamName);
-            
-            if (teamNum === 1) {
-                tradeTeam1 = teamName;
-                tradeTeam1Roster = roster;
-                tradeTeam1Sends = [];
-                document.getElementById('tradeTeam1Name').textContent = teamName;
-                document.getElementById('tradeTeam1Info').textContent = `${roster.length} players on roster`;
-                populateTradePlayerDropdown(1);
-            } else {
-                tradeTeam2 = teamName;
-                tradeTeam2Roster = roster;
-                tradeTeam2Sends = [];
-                document.getElementById('tradeTeam2Name').textContent = teamName;
-                document.getElementById('tradeTeam2Info').textContent = `${roster.length} players on roster`;
-                populateTradePlayerDropdown(2);
-            }
-            
-            // Show/hide trade interface
-            if (tradeTeam1 && tradeTeam2) {
-                document.getElementById('tradeInterface').style.display = 'block';
-                document.getElementById('tradePlaceholder').style.display = 'none';
-            }
-            
-            // Clear send lists
-            renderTradeSends();
-        }
-        
-        // Populate player dropdown for a team
-        function populateTradePlayerDropdown(teamNum) {
-            const selectId = `tradeTeam${teamNum}Players`;
-            const select = document.getElementById(selectId);
-            const roster = teamNum === 1 ? tradeTeam1Roster : tradeTeam2Roster;
-            const sends = teamNum === 1 ? tradeTeam1Sends : tradeTeam2Sends;
-            
-            // Filter out players already added to trade
-            const available = roster.filter(p => !sends.includes(p.name));
-            
-            select.innerHTML = '<option value="">Select player to trade...</option>';
-            available.forEach(player => {
-                select.innerHTML += `<option value="${player.name}">${player.name} (${player.position}) - ${player.salaryFormatted || 'N/A'}</option>`;
-            });
-        }
-        
-        // Add player to trade
-        function addTradePlayer(teamNum, playerName) {
-            if (!playerName) return;
-            
-            console.log(`➕ Adding ${playerName} to Team ${teamNum} sends`);
-            
-            if (teamNum === 1) {
-                if (!tradeTeam1Sends.includes(playerName)) {
-                    tradeTeam1Sends.push(playerName);
-                }
-            } else {
-                if (!tradeTeam2Sends.includes(playerName)) {
-                    tradeTeam2Sends.push(playerName);
-                }
-            }
-            
-            renderTradeSends();
-            populateTradePlayerDropdown(teamNum);
-        }
-        
-        // Remove player from trade
-        function removeTradePlayer(teamNum, playerName) {
-            console.log(`➖ Removing ${playerName} from Team ${teamNum} sends`);
-            
-            if (teamNum === 1) {
-                tradeTeam1Sends = tradeTeam1Sends.filter(p => p !== playerName);
-            } else {
-                tradeTeam2Sends = tradeTeam2Sends.filter(p => p !== playerName);
-            }
-            
-            renderTradeSends();
-            populateTradePlayerDropdown(teamNum);
-        }
-        
-        // Render trade send lists
-        function renderTradeSends() {
-            // Team 1 sends
-            const team1List = document.getElementById('tradeTeam1SendList');
-            if (tradeTeam1Sends.length === 0) {
-                team1List.innerHTML = '<p style="color: #64748b; font-style: italic; padding: 10px;">No players added yet</p>';
-            } else {
-                team1List.innerHTML = tradeTeam1Sends.map(playerName => {
-                    const player = players.find(p => p.name === playerName);
-                    return `
-                        <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>${playerName}</strong>
-                                <div style="font-size: 0.875rem; color: #94a3b8;">
-                                    ${player?.position || 'N/A'} | ${player?.salaryFormatted || 'N/A'}
-                                </div>
-                            </div>
-                            <button onclick="removeTradePlayer(1, '${playerName.replace(/'/g, "\\'")}')" style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.5); color: #ef4444; padding: 5px 10px; border-radius: 6px; cursor: pointer;">✕</button>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            // Team 2 sends
-            const team2List = document.getElementById('tradeTeam2SendList');
-            if (tradeTeam2Sends.length === 0) {
-                team2List.innerHTML = '<p style="color: #64748b; font-style: italic; padding: 10px;">No players added yet</p>';
-            } else {
-                team2List.innerHTML = tradeTeam2Sends.map(playerName => {
-                    const player = players.find(p => p.name === playerName);
-                    return `
-                        <div style="background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>${playerName}</strong>
-                                <div style="font-size: 0.875rem; color: #94a3b8;">
-                                    ${player?.position || 'N/A'} | ${player?.salaryFormatted || 'N/A'}
-                                </div>
-                            </div>
-                            <button onclick="removeTradePlayer(2, '${playerName.replace(/'/g, "\\'")}')" style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.5); color: #ef4444; padding: 5px 10px; border-radius: 6px; cursor: pointer;">✕</button>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-        
-        // ========== OLD TRADE FUNCTIONS (will update analyzeTrade() separately) ==========
-        
-        function clearTrade() {
-            // Clear new trade system
-            tradeTeam1Sends = [];
-            tradeTeam2Sends = [];
-            renderTradeSends();
-            
-            // Clear old system (for backwards compatibility)
-            tradeSendPlayers = [];
-            tradeReceivePlayers = [];
-            
-            // Clear results
-            document.getElementById('tradeAnalysisResults').innerHTML = '';
-            
-            console.log('✅ Trade cleared');
-        }
-        
-        // Populate trade dropdown when salary data loads
+        // Cap Planning team selector wiring
         document.addEventListener('DOMContentLoaded', function() {
             // Cap Planning team selector
             const capPlanningTeamSelect = document.getElementById('capPlanningTeamSelect');
@@ -9493,106 +8308,11 @@
             }
         });
         
-        // ========== DROP PENALTY CALCULATOR ==========
-        
-        function showDropPenalty(playerName) {
-            const contract = salaryData[playerName];
-            if (!contract) {
-                alert('No salary data found for this player');
-                return;
-            }
-            
-            const salary = parseInt(contract.salary);
-            const years = parseInt(contract.yearsRemaining) || 0;
-            const status = contract.serviceStatus;
-            
-            // Check if can drop without penalty
-            const canDropFree = status === 'Team Control' || salary <= 760000;
-            
-            let html = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h3 style="font-size: 1.5rem; margin-bottom: 5px;">${playerName}</h3>
-                    <p style="color: #94a3b8;">2025 Salary: $${formatSalary(contract.salary)} | ${years} year${years !== 1 ? 's' : ''} remaining</p>
-                </div>
-            `;
-            
-            if (canDropFree) {
-                html += `
-                    <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 12px; padding: 20px; text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-                        <h3 style="color: #22c55e; margin-bottom: 10px;">No Penalty!</h3>
-                        <p style="color: #86efac; line-height: 1.6;">
-                            ${status === 'Team Control' ? 'Players on team control' : 'Players making league minimum'} can be dropped without penalty.
-                        </p>
-                    </div>
-                `;
-            } else {
-                // Calculate penalties
-                const penalties = [];
-                let totalPenalty = 0;
-                const percentages = [100, 80, 60, 40, 20];
-                
-                for (let i = 0; i < Math.min(years, 5); i++) {
-                    const yearPenalty = Math.floor(salary * (percentages[i] / 100));
-                    penalties.push({
-                        year: 2025 + i,
-                        percent: percentages[i],
-                        amount: yearPenalty
-                    });
-                    totalPenalty += yearPenalty;
-                }
-                
-                html += `
-                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                        <h3 style="color: #ef4444; margin-bottom: 15px;">⚠️ Drop Penalty Breakdown</h3>
-                        <div style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 15px;">
-                `;
-                
-                penalties.forEach(p => {
-                    html += `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                            <span style="color: #cbd5e1;">${p.year}</span>
-                            <span style="color: #94a3b8; font-size: 0.875rem;">${p.percent}%</span>
-                            <span style="color: #fca5a5; font-weight: 600;">$${formatSalary(p.amount.toString())}</span>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                        <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(239, 68, 68, 0.5); display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 600; font-size: 1.125rem;">Total Cap Hit:</span>
-                            <span style="color: #ef4444; font-weight: bold; font-size: 1.5rem;">$${formatSalary(totalPenalty.toString())}</span>
-                        </div>
-                    </div>
-                    
-                    <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 15px; font-size: 0.875rem; color: #fcd34d; line-height: 1.6;">
-                        <strong>⚠️ Important:</strong> This penalty will count against your salary cap for ${years} year${years !== 1 ? 's' : ''}. Make sure you have enough cap space to absorb this hit.
-                    </div>
-                `;
-            }
-            
-            document.getElementById('dropPenaltyContent').innerHTML = html;
-            document.getElementById('dropPenaltyModal').classList.add('active');
-        }
-        
-        function closeDropPenalty() {
-            document.getElementById('dropPenaltyModal').classList.remove('active');
-        }
-        
-        // Close modals when clicking outside
-        document.getElementById('dropPenaltyModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDropPenalty();
-            }
-        });
-        
         // ========== PWA SERVICE WORKER REGISTRATION ==========
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(registration => console.log('✅ Service Worker registered'))
-                    .catch(err => console.log('❌ Service Worker registration failed:', err));
+                    .catch(err => console.error('Service Worker registration failed:', err));
             });
         }
     </script>
