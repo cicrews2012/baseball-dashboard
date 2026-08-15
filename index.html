@@ -1268,12 +1268,13 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.4 - Faster Roster Sync</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.4.5 - Cap Planning That Actually Works</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
                         <span id="supabaseStatus" style="color: #94a3b8;">☁️ Cloud Sync: <span style="color: #fcd34d;">Connecting...</span></span>
                         <span id="rosterStatus" style="color: #94a3b8;">📋 Roster: <span style="color: #ef4444;">Not Loaded</span></span>
+                        <span id="salaryStatus" style="color: #94a3b8;">💰 Contracts: <span style="color: #ef4444;">Not Loaded</span></span>
                         <span id="notesStatus" style="color: #94a3b8;">📝 Notes: <span style="color: #ef4444;">0 players</span></span>
                         <span id="watchlistStatus" style="color: #94a3b8;">👁️ Watchlist: <span style="color: #ef4444;">0 players</span></span>
                     </div>
@@ -1321,7 +1322,7 @@
                         </label>
                         <select id="leagueSelector" class="filter-select" style="width: 100%; font-size: 1rem; padding: 12px;" onchange="handleLeagueChange(this.value)">
                             <option value="NONE">No League (Manual CSV Upload)</option>
-                            <option value="MBL">Multiverse Baseball League (MBL) - 30 teams, $241M cap</option>
+                            <option value="MBL">Multiverse Baseball League (MBL) - 30 teams, $244M cap</option>
                             <option value="ARMCHAIR">Armchair GM's - 12 teams, no cap</option>
                         </select>
                     </div>
@@ -1342,7 +1343,7 @@
                             🔄 Refresh Roster from Fantrax
                         </button>
                         <button id="enrichBtn" class="upload-btn" onclick="manualEnrichPlayers()" disabled style="background: rgba(168, 85, 247, 0.3); border-color: rgba(168, 85, 247, 0.5); white-space: nowrap; flex: 1;">
-                            ✨ Enrich with Contracts
+                            🔄 Refresh Contracts
                         </button>
                     </div>
                 </div>
@@ -1377,11 +1378,11 @@
             
             <div class="stat-summary hidden" id="salarySummary" style="margin-top: 15px; border: 2px solid rgba(6, 182, 212, 0.5);">
                 <div class="summary-box">
-                    <div class="summary-label">💰 2025 Cap Used</div>
+                    <div class="summary-label">💰 2026 Cap Used</div>
                     <div class="summary-value" id="salaryCapUsed" style="color: #06b6d4;">$0</div>
                 </div>
                 <div class="summary-box">
-                    <div class="summary-label">💵 2025 Cap Space</div>
+                    <div class="summary-label">💵 2026 Cap Space</div>
                     <div class="summary-value" id="salaryCapSpace" style="color: #22c55e;">$0</div>
                 </div>
                 <div class="summary-box">
@@ -1389,7 +1390,7 @@
                     <div class="summary-value" id="salaryCapPct" style="color: #f59e0b;">0%</div>
                 </div>
                 <div class="summary-box">
-                    <div class="summary-label">🔮 2026 Projected</div>
+                    <div class="summary-label">🔮 2027 Projected</div>
                     <div class="summary-value" id="salaryCap2026" style="color: #a855f7;">$0</div>
                 </div>
             </div>
@@ -1640,7 +1641,7 @@
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
                     <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
                         <div style="color: #22c55e; font-size: 0.875rem; margin-bottom: 5px;">💰 Salary Cap</div>
-                        <div style="font-size: 1.75rem; font-weight: 600;">$244M</div>
+                        <div id="salaryCapDisplay" style="font-size: 1.75rem; font-weight: 600;">-</div>
                     </div>
                     <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
                         <div style="color: #60a5fa; font-size: 0.875rem; margin-bottom: 5px;">📊 Avg Payroll</div>
@@ -1989,7 +1990,19 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.4 - Faster Roster Sync ⚡ (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.4.5 - Cap Planning That Actually Works 💰 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>💰 Salary cap corrected to $244M league-wide (was stuck at $241M in 7 places after the offseason vote raised it)</li>
+                            <li>⚡ Contracts and league finances now auto-load from the commissioner's Google Sheet on page open and cache for 12h - no more visiting League Finances first for Cap Planning to work</li>
+                            <li>🔄 Contracts auto-merge onto your roster automatically (MBL only); "Enrich with Contracts" is now "Refresh Contracts", a manual override rather than a required step</li>
+                            <li>🐛 Fixed My Roster's cap summary secretly summing the entire league's salaries instead of just your team</li>
+                            <li>🐛 Fixed a missing status element that was silently crashing the header's status indicators every page load</li>
+                            <li>🔗 Roster Breakdown's Salary Distribution and Contract Expiration Timeline, and the My Teams cap bar, now read live contract data instead of a data source with no way to populate it</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.4.4 - Faster Roster Sync ⚡</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>⚡ Roster refresh now caches each player's MLB bio/team for 24h, so repeat syncs of players you've already seen skip the network entirely</li>
                             <li>🏟️ MLB team/org lookups are now deduped - each org is fetched once total instead of once per player who shares it</li>
@@ -2852,7 +2865,6 @@
         let selectedAutocompleteIndex = -1;
         let autocompleteResults = [];
         let currentProspectYear = "2026"; // Default to 2026 class
-        let salaryData = {}; // Stores player salary/contract info
         let watchlistPlayers = []; // Stores watchlist player data
         let playerNotes = {}; // Stores notes and tags for each player
         
@@ -2863,8 +2875,8 @@
                 fantraxId: "et8ng63pmg6t1pzl",
                 myTeam: "San Francisco Giants",
                 salaryCapEnabled: true,
-                capAmount: 241000000,
-                description: "30-team dynasty, $241M cap"
+                capAmount: 244000000, // Raised from $241M by offseason vote
+                description: "30-team dynasty, $244M cap"
             },
             ARMCHAIR: {
                 name: "Armchair GM's",
@@ -3744,6 +3756,13 @@
             const refreshBtn = document.getElementById('refreshRosterBtn');
             const teamSelectorContainer = document.getElementById('teamSelectorContainer');
             
+            // Contracts only apply to MBL - enable/disable the Refresh Contracts button accordingly
+            const enrichBtn = document.getElementById('enrichBtn');
+            if (enrichBtn) {
+                enrichBtn.disabled = leagueKey !== 'MBL';
+                enrichBtn.title = leagueKey === 'MBL' ? '' : 'Contracts are only tracked for MBL';
+            }
+
             // Update UI based on league selection
             if (leagueKey === 'NONE') {
                 // No league selected - manual CSV only
@@ -3761,13 +3780,7 @@
                 statusText.textContent = `${league.name} selected - Click "Refresh Roster" to sync from Fantrax`;
                 refreshBtn.disabled = false;
                 teamSelectorContainer.style.display = 'block';
-                
-                // Enable enrich button if contract data is loaded
-                const enrichBtn = document.getElementById('enrichBtn');
-                if (playerContractsData && Object.keys(playerContractsData).length > 0) {
-                    enrichBtn.disabled = false;
-                }
-                
+
                 // Check if we have cached data
                 const cacheKey = `${leagueKey}_roster_cache`;
                 const cachedRoster = localStorage.getItem(cacheKey);
@@ -3949,15 +3962,12 @@
                 
                 // Update players array
                 players = rosterPlayers;
-                
-                // Don't auto-merge contracts - user will click button when ready
-                
+
+                mergeContractsIfReady();
+
                 // Populate team selector
                 populateTeamSelector(league);
-                
-                // Load salary data if available
-                loadSalaryDataForLeague(selectedFantraxLeague);
-                
+
                 // Render players
                 applyTeamFilter();
                 
@@ -4008,18 +4018,15 @@
                 const rosterPlayers = JSON.parse(cachedRoster);
                 
                 players = rosterPlayers;
-                
-                // Don't auto-merge - user will trigger manually
-                
+
+                mergeContractsIfReady();
+
                 // Extract unique teams
                 fantraxTeams = [...new Set(rosterPlayers.map(p => p.fantraxTeam || p.team))];
                 
                 const league = LEAGUES[leagueKey];
                 populateTeamSelector(league);
 
-                // Load salary data if available
-                loadSalaryDataForLeague(leagueKey);
-                
                 // Render players
                 applyTeamFilter();
                 
@@ -4081,24 +4088,6 @@
             }
             
         }
-        
-        function loadSalaryDataForLeague(leagueKey) {
-            // Check if we have salary data cached for this league
-            const salaryKey = `${leagueKey}_salary_data`;
-            const cachedSalary = localStorage.getItem(salaryKey);
-            
-            if (cachedSalary) {
-                try {
-                    salaryData = JSON.parse(cachedSalary);
-                } catch (error) {
-                    console.error('Error loading salary data:', error);
-                    salaryData = {};
-                }
-            } else {
-                salaryData = {};
-            }
-        }
-        
         
         // ========== MLB ENRICHMENT CACHES ==========
         // Roster sync used to re-fetch every player's bio/team from the MLB Stats API on
@@ -4850,13 +4839,17 @@
                 rosterStatus.innerHTML = `📋 Roster: <span style="color: #ef4444;">Not Loaded</span>`;
             }
             
-            // Salary status
+            // Contracts status (MBL only - contracts don't apply to other leagues)
             const salaryStatus = document.getElementById('salaryStatus');
-            const salaryCount = Object.keys(salaryData).length;
-            if (salaryCount > 0) {
-                salaryStatus.innerHTML = `💰 Salary: <span style="color: #22c55e;">${salaryCount} contracts</span>`;
+            if (selectedFantraxLeague !== 'MBL') {
+                salaryStatus.innerHTML = `💰 Contracts: <span style="color: #94a3b8;">N/A (MBL only)</span>`;
             } else {
-                salaryStatus.innerHTML = `💰 Salary: <span style="color: #ef4444;">Not Loaded</span>`;
+                const contractCount = playerContractsData ? Object.keys(playerContractsData).length : 0;
+                if (contractCount > 0) {
+                    salaryStatus.innerHTML = `💰 Contracts: <span style="color: #22c55e;">${contractCount} loaded</span>`;
+                } else {
+                    salaryStatus.innerHTML = `💰 Contracts: <span style="color: #ef4444;">Not Loaded</span>`;
+                }
             }
             
             // Notes status
@@ -4991,53 +4984,29 @@
             document.getElementById('prospects').textContent = prospectsCount;
             document.getElementById('avgAge').textContent = avgAge;
             
-            // Calculate salary cap if salary data is loaded
-            if (Object.keys(salaryData).length > 0) {
-                // Use league-specific cap amount (only MBL has a cap)
-                const league = LEAGUES[selectedFantraxLeague] || LEAGUES.NONE;
-                const salaryCap = league.capAmount || 241000000; // Default to $241M if not set
-                let totalSalary2025 = 0;
+            // Cap summary - MBL only, my team only, sourced from the merged contract data
+            const league = LEAGUES[selectedFantraxLeague] || LEAGUES.NONE;
+            const myContractedPlayers = selectedFantraxLeague === 'MBL'
+                ? players.filter(p => p.fantraxTeam === league.myTeam && p.contract)
+                : [];
+
+            if (selectedFantraxLeague === 'MBL' && league.capAmount && myContractedPlayers.length > 0) {
+                const salaryCap = league.capAmount;
                 let totalSalary2026 = 0;
-                let contractedPlayers = 0;
-                let arbPlayers = 0;
-                
-                players.forEach(p => {
-                    if (salaryData[p.name]) {
-                        const salary = parseInt(salaryData[p.name].salary) || 0;
-                        const status = salaryData[p.name].serviceStatus;
-                        const next2026 = salaryData[p.name].next2026;
-                        
-                        totalSalary2025 += salary;
-                        contractedPlayers++;
-                        
-                        // Project 2026 salary
-                        if (next2026 && next2026 !== 'FA' && next2026 !== '') {
-                            // Check if 2026 has a dollar amount
-                            const amount2026 = next2026.replace(/,/g, '');
-                            if (!isNaN(parseFloat(amount2026))) {
-                                totalSalary2026 += parseFloat(amount2026);
-                            } else if (next2026.includes('ARB') || next2026 === 'TC') {
-                                // Estimate arb increase (conservative: +$1M for arb players)
-                                if (status.includes('Arb')) {
-                                    totalSalary2026 += salary + 1000000;
-                                    arbPlayers++;
-                                } else {
-                                    totalSalary2026 += 760000; // League minimum
-                                }
-                            }
-                        }
-                    }
+                let totalSalary2027 = 0;
+
+                myContractedPlayers.forEach(p => {
+                    totalSalary2026 += estimateSalaryForYear(p.contract, 2026).amount;
+                    totalSalary2027 += estimateSalaryForYear(p.contract, 2027).amount;
                 });
-                
-                const capSpace2025 = salaryCap - totalSalary2025;
-                const capUsedPct2025 = ((totalSalary2025 / salaryCap) * 100).toFixed(1);
+
                 const capSpace2026 = salaryCap - totalSalary2026;
-                
-                // Show salary info
-                document.getElementById('salaryCapUsed').textContent = `$${formatSalary(totalSalary2025.toString())}`;
-                document.getElementById('salaryCapSpace').textContent = `$${formatSalary(capSpace2025.toString())}`;
-                document.getElementById('salaryCapPct').textContent = `${capUsedPct2025}%`;
-                document.getElementById('salaryCap2026').textContent = `$${formatSalary(totalSalary2026.toString())}`;
+                const capUsedPct2026 = ((totalSalary2026 / salaryCap) * 100).toFixed(1);
+
+                document.getElementById('salaryCapUsed').textContent = `$${formatSalary(totalSalary2026.toString())}`;
+                document.getElementById('salaryCapSpace').textContent = `$${formatSalary(capSpace2026.toString())}`;
+                document.getElementById('salaryCapPct').textContent = `${capUsedPct2026}%`;
+                document.getElementById('salaryCap2026').textContent = `$${formatSalary(totalSalary2027.toString())}`;
                 document.getElementById('salarySummary').classList.remove('hidden');
             } else {
                 document.getElementById('salarySummary').classList.add('hidden');
@@ -6113,15 +6082,8 @@
                 salaryDisplay = salary2026; // It's already a string like "TC" or "ARB1"
             }
             
-            // Count contract years
-            let years = 0;
-            if (contract.salary2026) years++;
-            if (contract.salary2027) years++;
-            if (contract.salary2028) years++;
-            if (contract.salary2029) years++;
-            if (contract.salary2030) years++;
-            if (contract.salary2031) years++;
-            
+            const years = getContractYearsRemaining(contract);
+
             // Determine if player can be dropped without penalty
             const canDropFree = status === 'TC' || (typeof salary2026 === 'number' && salary2026 <= 800000);
             
@@ -6915,15 +6877,6 @@
             }
         }
 
-        function getCachedLeagueSalaryData(leagueKey) {
-            try {
-                const cached = localStorage.getItem(`${leagueKey}_salary_data`);
-                return cached ? JSON.parse(cached) : null;
-            } catch (error) {
-                return null;
-            }
-        }
-
         function formatRelativeTime(isoString) {
             if (!isoString) return 'never';
             const then = new Date(isoString);
@@ -6998,9 +6951,12 @@
 
             let capHtml = '';
             if (league.salaryCapEnabled && league.capAmount) {
-                const salaryData = getCachedLeagueSalaryData(leagueKey);
-                if (salaryData) {
-                    const totalSalary = myPlayers.reduce((sum, p) => sum + (parseInt(salaryData[p.name]?.salary) || 0), 0);
+                const contractsByName = getContractsByNormalizedName();
+                if (Object.keys(contractsByName).length > 0) {
+                    const totalSalary = myPlayers.reduce((sum, p) => {
+                        const contract = contractsByName[normalizePlayerName(p.name)];
+                        return sum + (contract ? estimateSalaryForYear(contract, 2026).amount : 0);
+                    }, 0);
                     const pctUsed = Math.min(100, (totalSalary / league.capAmount) * 100);
                     capHtml = `
                         <div style="margin-top: 15px;">
@@ -7285,48 +7241,20 @@
             // Project each player's salary
             teamPlayers.forEach(contract => {
                 years.forEach(year => {
-                    const salaryKey = `salary${year}`;
-                    const salary = contract[salaryKey];
-                    
-                    if (salary) {
-                        // Handle both numeric and string salaries
-                        let projectedSalary = 0;
-                        let status = contract.serviceStatus || 'Unknown';
-                        
-                        if (typeof salary === 'number') {
-                            projectedSalary = salary;
-                            status = contract.serviceStatus || 'Under Contract';
-                        } else if (typeof salary === 'string') {
-                            // It's a service status like "TC", "ARB1", etc.
-                            status = salary;
-                            
-                            // Estimate salaries for service time players
-                            if (salary === 'TC') {
-                                projectedSalary = 800000; // League minimum
-                            } else if (salary === 'ARB1') {
-                                projectedSalary = 2500000; // ~$2.5M arb 1
-                            } else if (salary === 'ARB2') {
-                                projectedSalary = 5000000; // ~$5M arb 2
-                            } else if (salary === 'ARB3') {
-                                projectedSalary = 8000000; // ~$8M arb 3
-                            } else {
-                                projectedSalary = 0; // FA or unknown
-                            }
-                        }
-                        
-                        if (projectedSalary > 0) {
-                            yearlyProjections[year].totalCommitted += projectedSalary;
-                            yearlyProjections[year].players.push({
-                                name: contract.name,
-                                salary: projectedSalary,
-                                status: status
-                            });
-                        }
+                    const { amount: projectedSalary, status } = estimateSalaryForYear(contract, year);
+
+                    if (projectedSalary > 0) {
+                        yearlyProjections[year].totalCommitted += projectedSalary;
+                        yearlyProjections[year].players.push({
+                            name: contract.name,
+                            salary: projectedSalary,
+                            status: status
+                        });
                     }
                 });
             });
             
-            const capLimit = 241000000; // MBL cap limit
+            const capLimit = LEAGUES.MBL.capAmount;
             
             let html = `
                 <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
@@ -7485,7 +7413,7 @@
                         
                         <h4 style="color: #60a5fa; margin-top: 20px; margin-bottom: 10px;">💰 Salary Cap</h4>
                         <ul style="color: #cbd5e1; line-height: 1.8; margin-left: 20px;">
-                            <li><strong>Cap Limit:</strong> $241M (hard cap)</li>
+                            <li><strong>Cap Limit:</strong> $244M (hard cap)</li>
                             <li><strong>League Minimum:</strong> $760K</li>
                             <li><strong>What Counts:</strong> Active, Reserve, and Injured Reserve players</li>
                             <li><strong>Minors:</strong> Do NOT count against cap</li>
@@ -7739,55 +7667,56 @@
             });
             document.getElementById('positionBreakdown').innerHTML = positionHtml;
             
-            // By Service Time
-            const serviceGroups = {
-                'Team Control': 0,
-                'Arb 1': 0,
-                'Arb 2': 0,
-                'Arb 3': 0,
-                'Free Agent': 0,
-                'Unknown': 0
-            };
-            
-            myPlayers.forEach(p => {
-                if (salaryData[p.name]) {
-                    const status = salaryData[p.name].serviceStatus;
-                    if (serviceGroups.hasOwnProperty(status)) {
-                        serviceGroups[status]++;
-                    } else {
-                        serviceGroups['Unknown']++;
+            // By Service Time (MBL only - contracts don't apply to other leagues)
+            if (selectedFantraxLeague !== 'MBL') {
+                document.getElementById('serviceBreakdown').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Service time tracking is only available for MBL</p>';
+            } else {
+                const SERVICE_STATUS_LABELS = { TC: 'Team Control', ARB1: 'Arb 1', ARB2: 'Arb 2', ARB3: 'Arb 3', FA: 'Free Agent' };
+                const serviceGroups = {
+                    'Team Control': 0,
+                    'Arb 1': 0,
+                    'Arb 2': 0,
+                    'Arb 3': 0,
+                    'Under Contract': 0,
+                    'Free Agent': 0,
+                    'Unknown': 0
+                };
+
+                myPlayers.forEach(p => {
+                    const rawStatus = p.contract?.serviceStatus;
+                    const label = rawStatus ? (SERVICE_STATUS_LABELS[rawStatus] || 'Under Contract') : 'Unknown';
+                    serviceGroups[label]++;
+                });
+
+                const colors = {
+                    'Team Control': '#22c55e',
+                    'Arb 1': '#60a5fa',
+                    'Arb 2': '#a855f7',
+                    'Arb 3': '#f59e0b',
+                    'Under Contract': '#06b6d4',
+                    'Free Agent': '#ef4444',
+                    'Unknown': '#94a3b8'
+                };
+
+                let serviceHtml = '';
+                Object.entries(serviceGroups).forEach(([status, count]) => {
+                    if (count > 0) {
+                        const barWidth = (count / myPlayers.length) * 100;
+                        serviceHtml += `
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                    <span style="font-weight: 600;">${status}</span>
+                                    <span style="color: ${colors[status]};">${count} player${count !== 1 ? 's' : ''}</span>
+                                </div>
+                                <div style="background: rgba(0, 0, 0, 0.3); height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div style="background: ${colors[status]}; height: 100%; width: ${barWidth}%;"></div>
+                                </div>
+                            </div>
+                        `;
                     }
-                } else {
-                    serviceGroups['Unknown']++;
-                }
-            });
-            
-            let serviceHtml = '';
-            Object.entries(serviceGroups).forEach(([status, count]) => {
-                if (count > 0) {
-                    const barWidth = (count / myPlayers.length) * 100;
-                    const colors = {
-                        'Team Control': '#22c55e',
-                        'Arb 1': '#60a5fa',
-                        'Arb 2': '#a855f7',
-                        'Arb 3': '#f59e0b',
-                        'Free Agent': '#ef4444',
-                        'Unknown': '#94a3b8'
-                    };
-                    serviceHtml += `
-                        <div style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                                <span style="font-weight: 600;">${status}</span>
-                                <span style="color: ${colors[status]};">${count} player${count !== 1 ? 's' : ''}</span>
-                            </div>
-                            <div style="background: rgba(0, 0, 0, 0.3); height: 8px; border-radius: 4px; overflow: hidden;">
-                                <div style="background: ${colors[status]}; height: 100%; width: ${barWidth}%;"></div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            document.getElementById('serviceBreakdown').innerHTML = serviceHtml;
+                });
+                document.getElementById('serviceBreakdown').innerHTML = serviceHtml;
+            }
             
             // By Age Group
             const ageGroups = {
@@ -7859,8 +7788,11 @@
             });
             document.getElementById('levelBreakdown').innerHTML = levelHtml;
             
-            // Salary Distribution
-            if (Object.keys(salaryData).length > 0) {
+            // Salary Distribution (MBL only)
+            const myContractedPlayers = myPlayers.filter(p => p.contract);
+            if (selectedFantraxLeague !== 'MBL') {
+                document.getElementById('salaryBreakdown').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Salary tracking is only available for MBL</p>';
+            } else if (myContractedPlayers.length > 0) {
                 const salaryBuckets = {
                     'League Min ($760K)': 0,
                     '$1M - $5M': 0,
@@ -7868,21 +7800,19 @@
                     '$10M - $15M': 0,
                     '$15M+': 0
                 };
-                
+
                 let totalSalary = 0;
-                players.forEach(p => {
-                    if (salaryData[p.name]) {
-                        const salary = parseInt(salaryData[p.name].salary);
-                        totalSalary += salary;
-                        
-                        if (salary <= 760000) salaryBuckets['League Min ($760K)']++;
-                        else if (salary <= 5000000) salaryBuckets['$1M - $5M']++;
-                        else if (salary <= 10000000) salaryBuckets['$5M - $10M']++;
-                        else if (salary <= 15000000) salaryBuckets['$10M - $15M']++;
-                        else salaryBuckets['$15M+']++;
-                    }
+                myContractedPlayers.forEach(p => {
+                    const salary = estimateSalaryForYear(p.contract, 2026).amount;
+                    totalSalary += salary;
+
+                    if (salary <= 760000) salaryBuckets['League Min ($760K)']++;
+                    else if (salary <= 5000000) salaryBuckets['$1M - $5M']++;
+                    else if (salary <= 10000000) salaryBuckets['$5M - $10M']++;
+                    else if (salary <= 15000000) salaryBuckets['$10M - $15M']++;
+                    else salaryBuckets['$15M+']++;
                 });
-                
+
                 let salaryHtml = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">';
                 Object.entries(salaryBuckets).forEach(([bucket, count]) => {
                     if (count > 0) {
@@ -7895,7 +7825,7 @@
                     }
                 });
                 salaryHtml += '</div>';
-                
+
                 salaryHtml += `
                     <div style="margin-top: 20px; padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -7904,38 +7834,37 @@
                         </div>
                     </div>
                 `;
-                
+
                 document.getElementById('salaryBreakdown').innerHTML = salaryHtml;
             } else {
-                document.getElementById('salaryBreakdown').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Upload salary data to see distribution</p>';
+                document.getElementById('salaryBreakdown').innerHTML = '<p style="color: #94a3b8; font-style: italic;">No contract data loaded yet - click "Refresh Contracts" on My Roster</p>';
             }
-            
-            // Contract Expiration Timeline
-            if (Object.keys(salaryData).length > 0) {
+
+            // Contract Expiration Timeline (MBL only)
+            if (selectedFantraxLeague !== 'MBL') {
+                document.getElementById('contractTimeline').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Contract tracking is only available for MBL</p>';
+            } else if (myContractedPlayers.length > 0) {
                 const expirations = {
-                    '2025 (FA now)': [],
-                    '2026': [],
+                    'FA Now': [],
                     '2027': [],
-                    '2028+': []
+                    '2028': [],
+                    '2029+': []
                 };
-                
-                players.forEach(p => {
-                    if (salaryData[p.name]) {
-                        const years = parseInt(salaryData[p.name].yearsRemaining) || 0;
-                        const status = salaryData[p.name].next2026;
-                        
-                        if (status === 'FA' || years === 0) {
-                            expirations['2025 (FA now)'].push(p.name);
-                        } else if (years === 1) {
-                            expirations['2026'].push(p.name);
-                        } else if (years === 2) {
-                            expirations['2027'].push(p.name);
-                        } else if (years >= 3) {
-                            expirations['2028+'].push(p.name);
-                        }
+
+                myContractedPlayers.forEach(p => {
+                    const years = getContractYearsRemaining(p.contract);
+
+                    if (years === 0) {
+                        expirations['FA Now'].push(p.name);
+                    } else if (years === 1) {
+                        expirations['2027'].push(p.name);
+                    } else if (years === 2) {
+                        expirations['2028'].push(p.name);
+                    } else {
+                        expirations['2029+'].push(p.name);
                     }
                 });
-                
+
                 let timelineHtml = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">';
                 Object.entries(expirations).forEach(([year, playerList]) => {
                     const count = playerList.length;
@@ -7952,30 +7881,50 @@
                     }
                 });
                 timelineHtml += '</div>';
-                
+
                 document.getElementById('contractTimeline').innerHTML = timelineHtml;
             } else {
-                document.getElementById('contractTimeline').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Upload salary data to see contract timeline</p>';
+                document.getElementById('contractTimeline').innerHTML = '<p style="color: #94a3b8; font-style: italic;">No contract data loaded yet - click "Refresh Contracts" on My Roster</p>';
             }
         }
         
         // ========== LEAGUE FINANCES (Google Sheets Integration) ==========
         
         const GOOGLE_SHEETS_ID = '1r7gg-UI3xhI5YrLjTN_jXBFBtWzqiTqY7gyczz8VGdk'; // Original league sheet
-        const SALARY_CAP = 244000000;
-        
+
         let leagueFinancesData = null;
         let leagueFinancesLastUpdate = null;
         let playerContractsData = null; // Player-by-player contracts
-        
+
         // Fetch player contracts from Master tab
+        const PLAYER_CONTRACTS_CACHE_KEY = 'mbl_player_contracts_cache';
+        const LEAGUE_FINANCES_CACHE_KEY = 'mbl_league_finances_cache';
+        const FINANCES_CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12h - commissioner's sheet doesn't change often
+
         async function loadPlayerContracts(forceRefresh = false) {
-            
-            // Check cache first
+
+            // In-memory cache for this page session
             if (!forceRefresh && playerContractsData) {
                 return playerContractsData;
             }
-            
+
+            // Persisted cache across page loads
+            if (!forceRefresh) {
+                try {
+                    const cached = JSON.parse(localStorage.getItem(PLAYER_CONTRACTS_CACHE_KEY));
+                    if (cached && (Date.now() - cached.cachedAt) < FINANCES_CACHE_MAX_AGE_MS) {
+                        playerContractsData = cached.contracts;
+                        const enrichBtn = document.getElementById('enrichBtn');
+                        if (enrichBtn && players && players.length > 0) {
+                            enrichBtn.disabled = false;
+                        }
+                        return playerContractsData;
+                    }
+                } catch (error) {
+                    // fall through to a live fetch
+                }
+            }
+
             try {
                 const sheetName = 'Master';
                 const range = 'A1:L2000'; // Get enough rows for all players
@@ -8073,74 +8022,127 @@
                 }
                 
                 playerContractsData = contracts;
-                
+
+                try {
+                    localStorage.setItem(PLAYER_CONTRACTS_CACHE_KEY, JSON.stringify({ contracts, cachedAt: Date.now() }));
+                } catch (error) {
+                    console.error('Error caching player contracts:', error);
+                }
+
                 // Enable enrich button if roster is also loaded
                 const enrichBtn = document.getElementById('enrichBtn');
                 if (enrichBtn && players && players.length > 0) {
                     enrichBtn.disabled = false;
                 }
-                
+
                 return contracts;
-                
+
             } catch (error) {
                 console.error('❌ Error loading player contracts:', error);
                 return null;
             }
         }
         
-        // Merge contracts into roster players
-        
-        function manualEnrichPlayers() {
-            if (!players || players.length === 0) {
-                alert('⚠️ Load roster first!');
-                return;
+        // ========== SHARED CONTRACT HELPERS ==========
+        // Reused by Cap Planning, My Roster's cap summary, Roster Breakdown, and My Teams,
+        // so they all agree on the same salary-estimation and years-remaining math instead
+        // of each re-deriving it slightly differently.
+
+        const SERVICE_STATUS_SALARY_ESTIMATES = { TC: 800000, ARB1: 2500000, ARB2: 5000000, ARB3: 8000000 };
+
+        // Projected salary for a contract in a given year: the real number if the sheet has
+        // one, otherwise a conservative estimate for a service-time status (TC/ARB1/ARB2/ARB3).
+        // FA / unrecognized statuses project to 0.
+        function estimateSalaryForYear(contract, year) {
+            const salary = contract[`salary${year}`];
+            if (!salary) return { amount: 0, status: contract.serviceStatus || 'Unknown' };
+
+            if (typeof salary === 'number') {
+                return { amount: salary, status: contract.serviceStatus || 'Under Contract' };
             }
-            
-            if (!playerContractsData || Object.keys(playerContractsData).length === 0) {
-                alert('⚠️ No contract data available. Try refreshing the page.');
-                return;
-            }
-            
-            mergePlayerContracts();
-            
-            // Update button to show success
-            const btn = document.getElementById('enrichBtn');
-            btn.innerHTML = '✅ Enriched!';
-            btn.style.background = 'rgba(34, 197, 94, 0.3)';
-            btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-            btn.disabled = true;
-            
-            // Re-render to show enriched data
-            applyTeamFilter();
-            
-            alert('✅ Players enriched with contract data!');
+
+            // String value = a service-time status like "TC", "ARB1", etc.
+            return { amount: SERVICE_STATUS_SALARY_ESTIMATES[salary] || 0, status: salary };
         }
-        
+
+        // How many of salary2026..salary2031 are populated (real salary or a status string).
+        function getContractYearsRemaining(contract) {
+            let years = 0;
+            for (const year of [2026, 2027, 2028, 2029, 2030, 2031]) {
+                if (contract[`salary${year}`]) years++;
+            }
+            return years;
+        }
+
+        // playerContractsData keyed by normalized name, for lookups outside the live roster
+        // (e.g. My Teams' cached-roster cards, which intentionally don't touch global `players`).
+        function getContractsByNormalizedName() {
+            const map = {};
+            if (!playerContractsData) return map;
+            for (const contract of Object.values(playerContractsData)) {
+                map[normalizePlayerName(contract.name)] = contract;
+            }
+            return map;
+        }
+
+        // Merge contracts into roster players - MBL only. The contract sheet is a fictional
+        // MBL-dynasty construct, not real-world data, so it must never be applied to ARMCHAIR
+        // players even though name-matching would technically "succeed" (same real MLB people).
         function mergePlayerContracts() {
+            if (selectedFantraxLeague !== 'MBL') return;
             if (!playerContractsData || !players || players.length === 0) {
                 return;
             }
-            
-            
-            // Create a map of normalized names to contract data
-            const contractsByNormalizedName = {};
-            for (const [contractName, contractData] of Object.entries(playerContractsData)) {
-                const normalizedName = normalizePlayerName(contractName);
-                contractsByNormalizedName[normalizedName] = contractData;
-            }
 
-            let matchCount = 0;
+            const contractsByNormalizedName = getContractsByNormalizedName();
 
             for (const player of players) {
-                const normalizedPlayerName = normalizePlayerName(player.name);
-                const contract = contractsByNormalizedName[normalizedPlayerName];
-                
+                const contract = contractsByNormalizedName[normalizePlayerName(player.name)];
                 if (contract) {
                     player.contract = contract;
-                    matchCount++;
                 }
             }
-            
+        }
+
+        // Merge whenever both pieces are ready - called automatically after a roster syncs/loads
+        // and after contracts load, so nothing requires manual "enrich" clicks anymore.
+        function mergeContractsIfReady() {
+            if (selectedFantraxLeague !== 'MBL') return;
+            if (!players || players.length === 0) return;
+            if (!playerContractsData || Object.keys(playerContractsData).length === 0) return;
+            mergePlayerContracts();
+            applyTeamFilter();
+        }
+
+        // "Refresh Contracts" button - force-refetches the sheet (bypassing the 12h cache) and
+        // re-merges. Not required for basic function anymore, just a manual override.
+        async function manualEnrichPlayers() {
+            if (selectedFantraxLeague !== 'MBL') {
+                alert('⚠️ Contracts are only tracked for the Multiverse Baseball League (MBL).');
+                return;
+            }
+            if (!players || players.length === 0) {
+                alert('⚠️ Load your roster first!');
+                return;
+            }
+
+            const btn = document.getElementById('enrichBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Refreshing...';
+
+            await loadPlayerContracts(true);
+            mergePlayerContracts();
+            applyTeamFilter();
+
+            btn.innerHTML = '✅ Refreshed!';
+            btn.style.background = 'rgba(34, 197, 94, 0.3)';
+            btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+            setTimeout(() => {
+                btn.innerHTML = '🔄 Refresh Contracts';
+                btn.style.background = 'rgba(168, 85, 247, 0.3)';
+                btn.style.borderColor = 'rgba(168, 85, 247, 0.5)';
+                btn.disabled = selectedFantraxLeague !== 'MBL';
+            }, 2000);
         }
         
         // Format salary value (handles numbers, "ARB1", "TC", "FA", etc.)
@@ -8199,12 +8201,36 @@
                 statusEl.innerHTML = '📊 Status: <span style="color: #fcd34d;">Loading...</span>';
             }
             
-            // Check cache first (unless force refresh)
+            // In-memory cache for this page session
             if (!forceRefresh && leagueFinancesData) {
                 renderFinancesTable();
+                updateFinancesSummary();
                 return;
             }
-            
+
+            // Persisted cache across page loads
+            if (!forceRefresh) {
+                try {
+                    const cached = JSON.parse(localStorage.getItem(LEAGUE_FINANCES_CACHE_KEY));
+                    if (cached && (Date.now() - cached.cachedAt) < FINANCES_CACHE_MAX_AGE_MS) {
+                        leagueFinancesData = cached.teams;
+                        leagueFinancesLastUpdate = new Date(cached.cachedAt);
+                        if (statusEl) {
+                            statusEl.innerHTML = '📊 Status: <span style="color: #22c55e;">Loaded</span>';
+                        }
+                        const updateEl = document.getElementById('financesLastUpdate');
+                        if (updateEl) {
+                            updateEl.textContent = `Last updated: ${leagueFinancesLastUpdate.toLocaleTimeString()}`;
+                        }
+                        renderFinancesTable();
+                        updateFinancesSummary();
+                        return;
+                    }
+                } catch (error) {
+                    // fall through to a live fetch
+                }
+            }
+
             try {
                 // Use Google Sheets JSON API - reference by tab name!
                 const sheetName = 'Team Salaries';
@@ -8296,8 +8322,13 @@
                 
                 leagueFinancesData = teams;
                 leagueFinancesLastUpdate = new Date();
-                
-                
+
+                try {
+                    localStorage.setItem(LEAGUE_FINANCES_CACHE_KEY, JSON.stringify({ teams, cachedAt: leagueFinancesLastUpdate.getTime() }));
+                } catch (error) {
+                    console.error('Error caching league finances:', error);
+                }
+
                 if (statusEl) {
                     statusEl.innerHTML = '📊 Status: <span style="color: #22c55e;">Loaded</span>';
                 }
@@ -8317,7 +8348,18 @@
                 }
             }
         }
-        
+
+        // Auto-load MBL contracts/finances from the commissioner's Google Sheet on page load,
+        // so Cap Planning/My Roster/My Teams have data without requiring a visit to the
+        // League Finances tab first. Cached in localStorage (see FINANCES_CACHE_MAX_AGE_MS)
+        // so this is normally a no-op fetch after the first load of the day. Placed after
+        // loadPlayerContracts/loadLeagueFinances so the `let playerContractsData`/
+        // `let leagueFinancesData` declarations above have already executed (TDZ).
+        (async () => {
+            await Promise.all([loadPlayerContracts(), loadLeagueFinances()]);
+            mergeContractsIfReady();
+        })();
+
         // Update summary cards
         function updateFinancesSummary() {
             if (!leagueFinancesData) return;
@@ -8329,6 +8371,7 @@
             document.getElementById('avgPayroll').textContent = formatCurrency(avgPayroll);
             document.getElementById('mostCapSpace').textContent = mostCapTeam.team;
             document.getElementById('highestPayroll').textContent = highestPayrollTeam.team;
+            document.getElementById('salaryCapDisplay').textContent = formatCurrency(LEAGUES.MBL.capAmount);
         }
         
         // Render finances table
