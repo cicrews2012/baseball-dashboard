@@ -1268,7 +1268,7 @@
                 <div>
                     <h1>🎯 Prospect Scouting Dashboard</h1>
                     <p style="color: #94a3b8;">Advanced analytics, level-by-level stats, performance trends & scouting insights</p>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.5.0 - Quick Stats On The Card</p>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 5px;">v5.5.1 - Quick Stats Backfill Fix</p>
                     
                     <!-- Data Status Indicators -->
                     <div id="dataStatus" style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.875rem;">
@@ -1990,7 +1990,15 @@
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">📜 Version History</h3>
                     
                     <div style="margin-bottom: 15px;">
-                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.5.0 - Quick Stats On The Card 📊 (Current)</h4>
+                        <h4 style="color: #22c55e; margin-bottom: 8px;">v5.5.1 - Quick Stats Backfill Fix 🩹 (Current)</h4>
+                        <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
+                            <li>🐛 Fixed quick stats not showing for anyone already synced before v5.5.0 shipped - their bio cache entry was still fresh (within the 24h TTL) but predated the quickStats field entirely, so it silently skipped straight past the new fetch and stayed blank until that cache happened to expire</li>
+                            <li>✅ That kind of pre-existing cache entry is now detected and backfilled with one extra request (not a full re-sync) the next time that player is enriched, so quick stats show up right away instead of waiting out the full 24h</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 8px;">v5.5.0 - Quick Stats On The Card 📊</h4>
                         <ul style="color: #cbd5e1; line-height: 1.6; margin-left: 20px; font-size: 0.875rem;">
                             <li>📊 Roster cards now show a quick current-season stat line (AVG/HR/RBI/SB for hitters, ERA/W-L/K/WHIP for pitchers) right on the collapsed card - no more clicking in just to check basic numbers</li>
                             <li>⚡ Pulled during the same roster sync that already fetches team/age data, cached for 24h alongside it, so repeat syncs stay just as fast; only newly-seen players cost one extra request</li>
@@ -4204,6 +4212,35 @@
             }
         }
 
+        // Pull a quick current-season stat line for the collapsed card. Best-effort - a
+        // failure here just means no stat line, the full comprehensive stats (fetched
+        // separately when a card is expanded) are unaffected.
+        async function fetchQuickStats(mlbPlayerId, position) {
+            try {
+                const currentYear = new Date().getFullYear();
+                const isPitcherPos = position && (
+                    position.includes('SP') ||
+                    position.includes('RP') ||
+                    position === 'P'
+                );
+                const groupName = isPitcherPos ? 'pitching' : 'hitting';
+                const quickStatsUrl = `https://statsapi.mlb.com/api/v1/people/${mlbPlayerId}?hydrate=stats(group=[${groupName}],type=season,season=${currentYear})`;
+                const quickStatsRes = await fetch(quickStatsUrl);
+                const quickStatsData = await quickStatsRes.json();
+                const personWithStats = quickStatsData.people?.[0];
+                const statGroup = personWithStats?.stats?.find(g =>
+                    g.type?.displayName === 'season' && g.group?.displayName === groupName
+                );
+                const split = statGroup?.splits?.[0];
+                if (split?.stat?.gamesPlayed > 0) {
+                    return buildStatObject(split.stat, 'MLB', isPitcherPos, split);
+                }
+            } catch (error) {
+                // quick stats are a nice-to-have, fall back silently
+            }
+            return null;
+        }
+
         async function enrichPlayerWithMLBData(player) {
             const cacheKey = normalizePlayerName(player.name);
             const cached = mlbPlayerBioCache[cacheKey];
@@ -4216,7 +4253,18 @@
                 player.usedFallback = cached.usedFallback || false;
                 player.mlbDataEnriched = true;
                 player.mlbNotFound = cached.mlbNotFound || false;
-                player.quickStats = cached.quickStats || null;
+
+                // Cache entries written before quick stats existed won't have this key at
+                // all (as opposed to a genuine null for a not-found player) - backfill it
+                // with one extra request instead of waiting out the full 24h TTL, so
+                // players synced before this feature shipped don't sit without a stat
+                // line until their next natural re-enrichment.
+                if (!('quickStats' in cached) && cached.mlbPlayerId) {
+                    player.quickStats = await fetchQuickStats(cached.mlbPlayerId, player.position);
+                    cached.quickStats = player.quickStats;
+                } else {
+                    player.quickStats = cached.quickStats || null;
+                }
                 return player;
             }
 
@@ -4346,34 +4394,9 @@
                 player.mlbPlayerId = mlbPlayer.id;
 
                 // Pull a quick season stat line so it can show on the collapsed card
-                // without clicking in. Reuses the same hydration pattern as the full
-                // stats fetch (fetchPlayerStats), just scoped to one stat group/season
-                // so it stays cheap. Best-effort - if it fails, the card just won't
-                // show a stat line, and the full comprehensive stats are still
-                // available on click.
-                player.quickStats = null;
-                try {
-                    const currentYear = new Date().getFullYear();
-                    const isPitcherPos = player.position && (
-                        player.position.includes('SP') ||
-                        player.position.includes('RP') ||
-                        player.position === 'P'
-                    );
-                    const groupName = isPitcherPos ? 'pitching' : 'hitting';
-                    const quickStatsUrl = `https://statsapi.mlb.com/api/v1/people/${mlbPlayer.id}?hydrate=stats(group=[${groupName}],type=season,season=${currentYear})`;
-                    const quickStatsRes = await fetch(quickStatsUrl);
-                    const quickStatsData = await quickStatsRes.json();
-                    const personWithStats = quickStatsData.people?.[0];
-                    const statGroup = personWithStats?.stats?.find(g =>
-                        g.type?.displayName === 'season' && g.group?.displayName === groupName
-                    );
-                    const split = statGroup?.splits?.[0];
-                    if (split?.stat?.gamesPlayed > 0) {
-                        player.quickStats = buildStatObject(split.stat, 'MLB', isPitcherPos, split);
-                    }
-                } catch (error) {
-                    // quick stats are a nice-to-have, fall back silently
-                }
+                // without clicking in. Best-effort - the full comprehensive stats are
+                // still available on click either way.
+                player.quickStats = await fetchQuickStats(mlbPlayer.id, player.position);
 
                 mlbPlayerBioCache[cacheKey] = {
                     age: player.age,
